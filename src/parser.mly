@@ -29,6 +29,7 @@
 %token INFINITY
 %token TRUE FALSE
 %token AND OR
+%token POR PBRANCH
 %token FORALL EXISTS
 %token LET IN
 %token CUT LEFT RIGHT
@@ -107,6 +108,8 @@ topdirective:
 expr:
   | e = or_expr
     { e }
+  | e = opattern_expr
+    { S.OPattern e }
   | CUT x = VAR COLON s = segment LEFT e1 = expr RIGHT e2 = expr
     { S.Cut (x, s, e1, e2) }
   | CUT x = VAR LEFT e1 = expr RIGHT e2 = expr
@@ -131,7 +134,7 @@ simple_expr:
     { S.True }
   | FALSE
     { S.False }
-  | e = simple_expr p = PROJECT 
+  | e = simple_expr p = PROJECT
     { S.Proj (e, p) }
   | LPAREN e = expr RPAREN
     { e }
@@ -164,7 +167,7 @@ bin_expr:
   | e1 = bin_expr PLUS e2 = bin_expr
     { S.Binary (S.Plus, e1, e2) }
   | e1 = bin_expr MINUS e2 = bin_expr
-    { S.Binary (S.Minus, e1, e2) } 
+    { S.Binary (S.Minus, e1, e2) }
   | e1 = bin_expr TIMES e2 = bin_expr
     { S.Binary (S.Times, e1, e2) }
   | e1 = bin_expr QUOTIENT e2 = bin_expr
@@ -173,28 +176,34 @@ bin_expr:
     { equal r e1 e2 }
   | e1 = bin_expr UNEQUAL e2 = bin_expr
     { apart e1 e2 }
-  | e1 = bin_expr LESS e2 = bin_expr  
+  | e1 = bin_expr LESS e2 = bin_expr
     { S.Less (e1, e2) }
-  | e1 = bin_expr GREATER e2 = bin_expr 
+  | e1 = bin_expr GREATER e2 = bin_expr
     { S.Less (e2, e1) }
 
 and_expr:
   | e = bin_expr
     { e }
-  | e1 = bin_expr AND e2 = and_expr_list     
+  | e1 = bin_expr AND e2 = and_expr_list
     { S.And (e1 :: e2) }
 
 and_expr_list:
   | e = bin_expr
     { [e] }
-  | e = bin_expr AND es = and_expr_list 
+  | e = bin_expr AND es = and_expr_list
     { e :: es }
 
 or_expr:
   | e = and_expr
     { e }
-  | e = and_expr OR es = or_expr_list       
+  | e = and_expr OR es = or_expr_list
     { S.Or (e :: es) }
+
+opattern_expr:
+  | p = or_expr PBRANCH e = or_expr POR es = opattern_expr
+    { (p,e) :: es }
+  | p = or_expr PBRANCH e = or_expr
+    { [(p, e)] }
 
 or_expr_list:
   | e = and_expr
@@ -209,7 +218,7 @@ expr_list:
     { e :: es }
 
 ty_simple:
-  | TSIGMA 
+  | TSIGMA
     { S.Ty_Sigma }
   | TREAL
     { S.Ty_Real }
@@ -219,11 +228,11 @@ ty_simple:
 ty_prod:
   | t = ty_simple
     { t }
-  | t = ty_simple TIMES ts = ty_prod_list 
+  | t = ty_simple TIMES ts = ty_prod_list
     { S.Ty_Tuple (t :: ts) }
 
 ty_prod_list:
-  | t = ty_simple 
+  | t = ty_simple
     { [t] }
   | t = ty_simple TIMES ts = ty_prod_list
     { t :: ts }
@@ -233,17 +242,17 @@ ty:
     { S.Ty_Arrow (t1, t2) }
   | t = ty_prod
     { t }
-      
+
 segment:
   | TREAL
     { I.bottom }
   | q1 = left_endpoint COMMA q2 = right_endpoint
     { I.make q1 q2 }
-	
+
 left_endpoint:
   | LPAREN MINUS INFINITY
     { D.negative_infinity }
-  | LBRACK q = numconst  
+  | LBRACK q = numconst
     { q }
 
 right_endpoint:

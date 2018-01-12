@@ -8,17 +8,17 @@ struct
   type name =
     | Ident of string
     | Gensym of string * int
-	
+
   (** Generate a fresh variable name. *)
   let fresh_name =
     let k = ref 0 in
       fun s -> incr k; Gensym (s,!k)
-	
+
   (** Convert a name to a string. *)
   let string_of_name = function
     | Ident str -> str
     | Gensym (s,k) -> s ^ string_of_int k
-	
+
   (** In Marshall we have base types for reals and propositions, product types and
       function types. Function types are a mirage because all $\lambda$-abstractions get
       $\beta$-reduced away. *)
@@ -84,6 +84,7 @@ struct
 	   and $a ={e}= b$, which means $-e < a - b < e$. *)
     | And of expr list (* [p1 /\ p2 /\ ... /\ pn] *)
     | Or of expr list (* [p1 \/ p2 \/ ... \/ pn] *)
+    | OPattern of (expr * expr) list
     | Exists of name * I.t * expr (* [exists x : [a,b], p] *)
     | Forall of name * I.t * expr (* [forall x : [a,b], p] *)
     | Let of name * expr * expr (* [let x = e1 in e2] *)
@@ -138,6 +139,7 @@ struct
 	  | Less (e1, e2) ->     (30, to_str 30 e1 ^ " < " ^ to_str 30 e2)
 	  | And lst ->           (20, String.concat " /\\ " (List.map (to_str 19) lst))
 	  | Or lst ->            (15, String.concat " \\/ " (List.map (to_str 14) lst))
+  	| OPattern lst ->            (15, String.concat " \\/ " (List.map (fun p -> to_str 14 (fst p) ^ "=>" ^ to_str 14 (snd p)) lst))
 	  | Exists (x, t, p) ->  (10, "exists " ^ string_of_name x ^ " : " ^
 				    I.to_string t ^ " , " ^ to_str 9 p)
 	  | Forall (x, t, p) ->  (10, "forall " ^ string_of_name x ^ " : " ^

@@ -44,6 +44,10 @@ struct
     | False -> Ty_Sigma
     | And lst
     | Or lst  -> List.iter (check ctx Ty_Sigma) lst ; Ty_Sigma
+	| OPattern ((p, e) :: es) -> List.iter (check ctx Ty_Sigma) (p :: List.map fst es) ;
+	                             let ty = type_of ctx e in
+								 List.iter (check ctx ty) (List.map snd es) ;
+								 ty
     | Less (e1, e2) ->
 	check ctx Ty_Real e1 ;
 	check ctx Ty_Real e2 ;
@@ -77,7 +81,7 @@ struct
 
   (* Does [e] have type [ty] in context [ctx]? *)
   and check ctx ty e =
-    let ty' = type_of ctx e in 
+    let ty' = type_of ctx e in
       if ty <> ty' then
 	error (string_of_type ty ^ " expected but got " ^ string_of_type ty')
 end;;

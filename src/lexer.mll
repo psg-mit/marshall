@@ -13,7 +13,7 @@ struct
 	    pos_lnum = pos.pos_lnum + 1;
 	    pos_bol = pos.pos_cnum;
 	}
-        
+
   let reserved_words = [
     "cut", CUT;
     "exists", EXISTS;
@@ -86,6 +86,8 @@ rule token = parse
   | ']'             	 { RBRACK }
   | "/\\"                { AND }
   | "\\/"                { OR }
+  | "||"                 { POR }
+  | "~>"                 { PBRANCH }
   | var             	 { let str = lexeme lexbuf in
 			     try List.assoc str reserved_words with Not_found -> VAR (S.Ident str) }
   | '\"' [^'\"']* '\"'   { let str = lexeme lexbuf in STRING (String.sub str 1 (String.length str - 2)) }

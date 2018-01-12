@@ -57,6 +57,7 @@ struct
      disjunctions. *)
 
   exception Break
+	exception Break1 of S.expr
 
   (* [fold_and f [x1,...,xn]] constructs the conjunction [And [f x1;
      ..., f xn]]. It throws out [True]'s and shortcircuits on
@@ -97,6 +98,22 @@ struct
       with Break -> S.True
 
 
+	  let fold_opattern f lst =
+    let rec fold acc = function
+      | [] -> acc
+      | (p, e) ::ps ->
+	  (match f p with
+	     | S.True -> raise (Break1(e))
+	     | S.False -> fold acc ps
+	     | q -> fold ((q, e)::acc) ps)
+    in
+      try
+	match fold [] lst with
+	  | [] -> S.False (* This should result in an error *)
+	  | lst -> S.OPattern (List.rev lst)
+      with Break1(e) -> e
+
+
   (* \subsection{Approximants} *)
 
   (* [lower prec env e] computes the lower approximant of [e] in
@@ -132,6 +149,7 @@ struct
 		S.False
 	| S.And lst -> fold_and approx lst
 	| S.Or lst -> fold_or approx lst
+	| S.OPattern lst -> fold_opattern approx lst (* is this right? *)
 	| S.Exists (x, s, e) ->
 	    let m = S.Dyadic (I.midpoint prec 1 s) in
 	      lower prec (Env.extend x m env) e
@@ -180,6 +198,7 @@ struct
 		S.False
 	| S.And lst -> fold_and approx lst
 	| S.Or lst -> fold_or approx lst
+	| S.OPattern lst -> fold_opattern approx lst (* is this right? *)
 	| S.Exists (x, i, e) ->
 	    let j = I.flip i in
 	      upper prec (Env.extend x (S.Interval j) env) e
