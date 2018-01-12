@@ -139,7 +139,7 @@ struct
 	  | Less (e1, e2) ->     (30, to_str 30 e1 ^ " < " ^ to_str 30 e2)
 	  | And lst ->           (20, String.concat " /\\ " (List.map (to_str 19) lst))
 	  | Or lst ->            (15, String.concat " \\/ " (List.map (to_str 14) lst))
-  	| OPattern lst ->            (15, String.concat " \\/ " (List.map (fun p -> to_str 14 (fst p) ^ "=>" ^ to_str 14 (snd p)) lst))
+  	| OPattern lst ->            (15, String.concat " || " (List.map (fun p -> to_str 14 (fst p) ^ "~>" ^ to_str 14 (snd p)) lst))
 	  | Exists (x, t, p) ->  (10, "exists " ^ string_of_name x ^ " : " ^
 				    I.to_string t ^ " , " ^ to_str 9 p)
 	  | Forall (x, t, p) ->  (10, "forall " ^ string_of_name x ^ " : " ^
