@@ -20,7 +20,7 @@ struct
   (* \subsection{Basic mainpulation} *)
 
   (* [make l u] constructs an interal from two fiven dyadics. *)
-  let make l u = { lower = lazy_from_val l; upper = lazy_from_val u } 
+  let make l u = { lower = lazy_from_val l; upper = lazy_from_val u }
 
   (* [lower i] computes the lower endpoint. *)
   let lower i = force_val i.lower
@@ -39,6 +39,8 @@ struct
   let bottom = make D.negative_infinity D.positive_infinity
 
   let top = make D.positive_infinity D.negative_infinity
+
+	let bin_or a b = make (D.min (lower a) (lower b)) (D.max (upper a) (upper b))
 
   (* \subsection{Testing for infinite endpoints and back-to-front.} *)
 
@@ -89,7 +91,7 @@ struct
     let dnuor = D.anti round in
       { lower = lazy (D.neg ~prec ~round (upper i)) ;
 	upper = lazy (D.neg ~prec ~round:dnuor (lower i)) }
-	
+
   (* Kaucher multiplication of intervals is given by the following table.
 
      \begin{center}
@@ -191,7 +193,7 @@ struct
 		  else (* non-negative [b] *)
 		    upow b k
 	    ) }
-	    
+
 
   let inv ~prec ~round i =
     let a = lower i in

@@ -4,7 +4,7 @@
 
 let sqrt =
   fun a : real =>
-    cut x 
+    cut x
       left  (x < 0 \/ x * x < a)
 
       right (x > 0 /\ x * x > a)
@@ -23,7 +23,7 @@ let max =
 ;;
 
 let aprx_compare = fun eps : real => fun x : real =>
-  ( x > - eps ~> True || x < eps ~> False)
+  ( x > - eps ~> 1 || x < eps ~> 0)
 ;;
 
 ! sqrt(2) is approximately larger than 1.4

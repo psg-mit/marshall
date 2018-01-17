@@ -21,7 +21,7 @@ struct
 	   List.assoc x ctx
 	 with Not_found -> error ("Unknown variable " ^ string_of_name x))
     | RealVar (x, _) ->
-	error ("Typechecking encountered areal variable " ^ string_of_name x ^
+	error ("Typechecking encountered a real variable " ^ string_of_name x ^
 		 ". This should not happen")
     | Dyadic _ -> Ty_Real
     | Interval _ -> Ty_Real

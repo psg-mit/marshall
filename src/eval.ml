@@ -166,6 +166,8 @@ struct
      free variable [x] ranging over interval [i].
   *)
 
+	exception Break1 of S.expr
+
   let rec refine k prec env e =
     let refn = refine k prec env in
       if A.lower prec env e = S.True then S.True
@@ -221,7 +223,7 @@ struct
 	  | S.Less (e1, e2) -> S.Less (refn e1, refn e2)
 	  | S.And lst -> A.fold_and refn lst
 	  | S.Or lst -> A.fold_or refn lst
-		| S.OPattern lst -> A.fold_opattern refn lst
+		| S.OPattern lst -> fold_opattern k prec env lst
 	  | S.Exists (x, i, p) ->
 	      let prec = make_prec prec i in
 	      let q = refine k prec (Env.extend x (S.RealVar (x, i)) env) p in
@@ -324,6 +326,20 @@ struct
 	      (match refn e1 with
 		 | S.Lambda (x, _, e) -> refine k prec (Env.extend x (refn e2) env) e
 		 | e -> S.App (e, e2))
+
+and
+	 fold_opattern k prec env lst =
+    let rec fold acc = function
+      | [] -> acc
+      | (p, e) ::ps ->
+	  (match refine k prec env p with
+	     | S.True -> raise (Break1(e))
+	     | q -> fold ((q, e)::acc) ps)
+    in
+      try
+	match fold [] lst with
+	  | lst -> S.OPattern (List.rev lst)
+      with Break1(e) -> refine k prec env e
 
   (** [eval prec env e] evaluates expression [e] in environment [env] by
       repeatedly calling [refine]. It increases precision at each step,
