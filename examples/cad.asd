@@ -31,6 +31,17 @@ let circle =
   (x * x + y * y < 1, x * x + y * y > 1)
 ;;
 
+let circle_compact =
+  (-1, 1, -1, 1, circle);;
+
+let rightmost_extent =
+  fun shape : real -> real -> prop * prop =>
+  cut x
+     left (exists x' : real, x < x' /\ (exists y' : real, (shape x' y')#0))
+     right (forall x' : [-3, 3], x' < x \/ (forall y' : [-3, 3], (shape x' y')#1))
+;;
+
+
 ! Compute the intersection of two shapes.
 let intersection =
   fun shape_1 : real -> real -> prop * prop =>
@@ -111,8 +122,65 @@ let disk_int_square_empty =
   overlaps (translate 5 5 circle) (rectangle 1 1);;
 ! ANS: disk_int_square_empty : prop = False
 
+let minkowski_ball =
+  fun eps : real =>
+  fun u : real -> real -> prop =>
+  fun x : real =>
+  fun y : real =>
+  exists dx : real,
+  exists dy : real,
+  dx^2 + dy^2 < 1 /\ u (x + dx) (y + dy)
+;;
+
 ! (3/4, 0) is in the unit disk but not the unit square
 let test_point =
   (circle (3/4) 0)#0 /\ (rectangle 1 1 (3/4) 0)#1;;
 ! ANS: test_point : prop = True
 
+let is_in_bool =
+  fun shape : real -> real -> prop * prop =>
+  fun x : real =>
+  fun y : real =>
+  ( (shape x y)#0 ~> 1
+  || (shape x y)#1 ~> 0
+  )
+;;
+
+let grow_in_eps =
+  fun eps : real =>
+  fun shape : real -> real -> prop * prop =>
+  fun x : real =>
+  fun y : real =>
+  (minkowski_ball eps (fun x' : real => fun y' : real => (shape x' y')#0) x y,
+   (shape x y)#1)
+;;
+
+let grow_out_eps =
+  fun eps : real =>
+  fun shape : real -> real -> prop * prop =>
+  fun x : real =>
+  fun y : real =>
+  ((shape x y)#0,
+   minkowski_ball eps (fun x' : real => fun y' : real => (shape x' y')#1) x y)
+;;
+
+let is_in_bool =
+  fun shape : real -> real -> prop * prop =>
+  fun x : real =>
+  fun y : real =>
+  ( (shape x y)#0 ~> 1
+  || (shape x y)#1 ~> 0
+  )
+;;
+
+! Try a point on the border of the rectangle, having
+! thickened the "in" part by a radius of 0.1.
+let is_in_rect_in =
+  is_in_bool (grow_in_eps 0.1 (rectangle 2 2)) 1 1;;
+! ANS: is_in_rect_in : real = 1.0
+
+! Try a point on the border of the rectangle, having
+! thickened the "out" part by a radius of 0.1.
+let is_in_rect_out =
+  is_in_bool (grow_out_eps 0.1 (rectangle 2 2)) 1 1;;
+! ANS: is_in_rect_out : real = 0.0
