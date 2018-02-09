@@ -383,7 +383,7 @@ and
 		([], [])
 		lst
 	    in
-	      (S.Tuple lst1, S.Tuple lst2)
+	      (S.Tuple (List.rev lst1), S.Tuple (List.rev lst2))
     in
       loop 1 32 (hnf env e)
 end;;
