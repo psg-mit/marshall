@@ -24,6 +24,27 @@ let rectangle =
   )
 ;;
 
+let quantify_unit_square =
+  fun p : real -> real -> prop =>
+  ( forall x : [-1, 1], forall y : [-1, 1], p x y
+  , exists x : [-1, 1], exists y : [-1, 1], p x y
+  );;
+
+let unit_square =
+  (quantify_unit_square, rectangle 2 2)
+  ;;
+
+let scale_x_y_shape =
+  fun cx : real =>
+  fun cy : real =>
+  fun shape : ((real -> real -> prop) -> prop * prop)
+            * (real -> real -> prop * prop) =>
+  (fun p : real -> real -> prop =>
+    shape#0 (fun x : real => fun y : real => (p x y))
+  , fun x : real => fun y : real =>
+    shape#1 (x / cx) (y / cy)
+  );;
+
 ! unit disk centered at origin
 let circle =
   fun x : real =>
@@ -31,16 +52,42 @@ let circle =
   (x * x + y * y < 1, x * x + y * y > 1)
 ;;
 
-let circle_compact =
-  (-1, 1, -1, 1, circle);;
+let forall_circle =
+  fun p : real -> real -> prop =>
+  forall x : [-1, 1],
+  forall y : [-1, 1],
+  (circle x y)#1 \/ p x y
+;;
+
+! Can't get the border - would need sine and cosine.
+let exists_circle_int =
+  fun p : real -> real -> prop =>
+  exists x : [-1, 1],
+  exists y : [-1, 1],
+  (circle x y)#0 /\ p x y
+;;
 
 let rightmost_extent =
+  fun shape : ((real -> real -> prop) -> prop * prop)
+            * (real -> real -> prop * prop) =>
+  cut x
+     left  (((shape#0) (fun x' : real => fun y' : real => x < x'))#1)
+     right (((shape#0) (fun x' : real => fun y' : real => x' < x))#0)
+;;
+
+let rightmost_extent_2 =
+  fun shape : ((real -> real -> prop) -> prop * prop) =>
+  cut x
+     left  ((shape (fun x' : real => fun y' : real => x < x'))#1)
+     right ((shape (fun x' : real => fun y' : real => x' < x))#0)
+;;
+
+let rightmost_extent_3 =
   fun shape : real -> real -> prop * prop =>
   cut x
      left (exists x' : real, x < x' /\ (exists y' : real, (shape x' y')#0))
      right (forall x' : [-3, 3], x' < x \/ (forall y' : [-3, 3], (shape x' y')#1))
 ;;
-
 
 ! Compute the intersection of two shapes.
 let intersection =
@@ -105,6 +152,14 @@ let overlaps =
   nonempty (intersection shape_1 shape_2)
 ;;
 
+! Does one shape lie strictly inside another?
+!let shape_inside =
+!  fun shape_1 : ((real -> real -> prop) -> prop * prop)
+!            * (real -> real -> prop * prop) =>
+!  fun shape_2 : ((real -> real -> prop) -> prop * prop)
+!            * (real -> real -> prop * prop) =>
+!  shape_1#0 (fun x : real => fun y : real => (shape_2#0 x y)#0);;
+
 ! The unit disk is nonempty
 let disk_nonempty = nonempty circle;;
 ! ANS: disk_nonempty : prop = True
@@ -129,7 +184,7 @@ let minkowski_ball =
   fun y : real =>
   exists dx : real,
   exists dy : real,
-  dx^2 + dy^2 < 1 /\ u (x + dx) (y + dy)
+  dx^2 + dy^2 < eps /\ u (x + dx) (y + dy)
 ;;
 
 ! (3/4, 0) is in the unit disk but not the unit square
