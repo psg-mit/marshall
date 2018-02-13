@@ -52,6 +52,14 @@ struct
 	check ctx Ty_Real e1 ;
 	check ctx Ty_Real e2 ;
 	Ty_Sigma
+	| MkBool (e1, e2) ->
+	check ctx Ty_Sigma e1 ;
+	check ctx Ty_Sigma e2 ;
+	Ty_Bool
+	| IsTrue e
+	| IsFalse e ->
+	check ctx Ty_Bool e ;
+	Ty_Sigma
     | Exists (x, s, p) ->
 	check_segment s ;
 	check ((x,Ty_Real)::ctx) Ty_Sigma p ;

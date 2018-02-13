@@ -27,6 +27,7 @@ struct
     | Ty_Real  (* [real] *)
     | Ty_Arrow of ty * ty (* [t1 -> t2] *)
     | Ty_Tuple of ty list (* [t1 * t2 * ... * tn] *)
+    | Ty_Bool
 
   (** Binary arithmetical operations. *)
   type binary =
@@ -92,6 +93,9 @@ struct
     | Proj of expr * int (* Concrete syntax for $k$-th projection is [e#k] *)
     | Lambda of name * ty * expr (* Concrete syntax is [fun x : ty => e] *)
     | App of expr * expr
+    | MkBool of expr * expr
+    | IsTrue of expr
+    | IsFalse of expr
 
   (** Toplevel commands *)
   type toplevel_cmd =
@@ -110,6 +114,7 @@ struct
 	match ty with
 	  | Ty_Sigma            -> (3, "prop")
 	  | Ty_Real             -> (3, "real")
+    | Ty_Bool             -> (3, "bool")
 	  | Ty_Tuple lst        -> (2, String.concat "*" (List.map (to_str 2) lst))
 	  | Ty_Arrow (ty1, ty2) -> (1, to_str 1 ty1 ^ " -> " ^ to_str 0 ty2)
       in
@@ -131,6 +136,9 @@ struct
 	  | Tuple lst ->         (100, "(" ^ (String.concat ", " (List.map (to_str 10) lst)) ^ ")")
 	  | Proj (e, k) ->       (90, to_str 90 e ^ "#" ^ string_of_int k)
 	  | App (e1, e2) ->      (85, to_str 84 e1 ^ " " ^ to_str 85 e2)
+    | MkBool (et, ef) ->   (80, "mkbool " ^ to_str 80 et ^ " " ^ to_str 80 ef)
+    | IsTrue e ->          (80, "is_true " ^ to_str 80 e)
+    | IsFalse e ->         (80, "is_true " ^ to_str 80 e)
 	  | Power (e, k) ->      (83, to_str 82 e ^ " ^ " ^ string_of_int k)
 	  | Unary (op, e) ->     (80, string_of_unary op ^ " " ^ to_str 80 e)
 	  | Binary (op, e1, e2) ->

@@ -28,7 +28,11 @@ struct
     "prop", TSIGMA;
     "real", TREAL;
     "right", RIGHT;
-    "True", TRUE
+    "True", TRUE;
+    "bool", TBOOL;
+    "mkbool", MKBOOL;
+    "is_true", ISTRUE;
+    "is_false", ISFALSE;
   ]
 
   let position_of_lex lex =

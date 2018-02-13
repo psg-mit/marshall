@@ -69,8 +69,11 @@ struct
 	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False -> false
 	| S.Cut (x, i, p1, p2) -> x<>y && (free_in y p1 || free_in y p2)
 	| S.Binary (op, e1, e2) -> free_in y e1 || free_in y e2
+	| S.MkBool (e1, e2) -> free_in y e1 || free_in y e2
 	| S.Unary (op, e) -> free_in y e
 	| S.Power (e, k) -> free_in y e
+	| S.IsTrue e
+	| S.IsFalse e -> free_in y e
 	| S.Proj (e, k) ->
 	    (match  e with
 	       | S.Tuple _ as e' -> free_in y (A.proj e' k)
@@ -131,9 +134,18 @@ struct
 	    (match hnf env e with
 	       | S.Tuple _ as e' -> A.proj e' k
 	       | e' -> S.Proj (e', k))
+	| S.IsTrue e ->
+	    (match hnf env e with
+	       | S.MkBool _ as e' -> A.is_true e'
+	       | e' -> S.IsTrue e')
+	| S.IsFalse e ->
+	    (match hnf env e with
+	       | S.MkBool _ as e' -> A.is_false e'
+	       | e' -> S.IsFalse e')
 	| S.Less (e1, e2) -> S.Less (hnf env e1, hnf env e2)
 	| S.And lst -> S.And (List.map (hnf env) lst)
 	| S.Or lst -> S.Or (List.map (hnf env) lst)
+	| S.MkBool (e1, e2) -> S.MkBool (hnf env e1, hnf env e2)
 	| S.OPattern lst -> S.OPattern (List.map (fun p -> (hnf env (fst p), hnf env (snd p))) lst)
 	| S.Tuple lst -> S.Tuple (List.map (hnf env) lst)
 	| S.Lambda (x, ty, e) ->
@@ -220,6 +232,7 @@ struct
 	  | S.Power (e, k) -> S.Power (refn e, k)
 	  | S.True -> S.True
 	  | S.False -> S.False
+	  | S.MkBool (e1, e2) -> S.MkBool (refn e1, refn e2)
 	  | S.Less (e1, e2) -> S.Less (refn e1, refn e2)
 	  | S.And lst -> A.fold_and refn lst
 	  | S.Or lst -> A.fold_or refn lst
@@ -321,6 +334,16 @@ struct
 			refn (List.nth lst k)
 		      with Failure _ -> error "Tuple too short")
 		 | e -> S.Proj (e, k))
+		| S.IsTrue e' ->
+	      (match refn e' with
+		     | S.MkBool (e1, e2) -> refn e1
+		     | e'' -> S.IsTrue e''
+				)
+		| S.IsFalse e' ->
+	      (match refn e' with
+		     | S.MkBool (e1, e2) -> refn e2
+		     | e'' -> S.IsTrue e''
+				)
 	  | S.Lambda _ -> e
 	  | S.App (e1, e2) ->
 	      (match refn e1 with
@@ -362,6 +385,7 @@ and
 	| S.Var _ | S.RealVar _
 	| S.Less _ | S.And _ | S.Or _ | S.Exists _ | S.Forall _
 	| S.OPattern _
+	| S.IsTrue _ | S.IsFalse _
 	| S.Let _ | S.Proj _ | S.App _ ->
 	    loop (k+1) (p+1) (refine k p env e)
 	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ ->
@@ -374,6 +398,9 @@ and
 		       loop (k+1) (make_prec (p+3) (I.make D.zero !target_precision)) (refine k p env e)
 	       | _ -> assert false)
 	| S.Dyadic _ | S.Interval _ | S.True | S.False | S.Lambda _ -> (e, e)
+	| S.MkBool (S.True, e2) -> (e, e)
+	| S.MkBool (e1, S.True) -> (e, e)
+	| S.MkBool _ -> loop (k+1) (p+1) (refine k p env e)
 	| S.Tuple lst ->
 	    let lst1, lst2 =
 	      List.fold_left

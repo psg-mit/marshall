@@ -33,6 +33,8 @@
 %token FORALL EXISTS
 %token LET IN
 %token CUT LEFT RIGHT
+%token TBOOL MKBOOL
+%token ISTRUE ISFALSE
 %token FUN DARROW
 %token PLUS MINUS TIMES QUOTIENT INVERSE POWER
 %token EQUAL LESS GREATER UNEQUAL
@@ -134,6 +136,12 @@ simple_expr:
     { S.True }
   | FALSE
     { S.False }
+  | MKBOOL e1 = simple_expr; e2 = simple_expr
+    { S.MkBool (e1, e2) }
+  | ISTRUE e = simple_expr
+    { S.IsTrue e }
+  | ISFALSE e = simple_expr
+    { S.IsFalse e }
   | e = simple_expr p = PROJECT
     { S.Proj (e, p) }
   | LPAREN e = expr RPAREN
@@ -222,6 +230,8 @@ ty_simple:
     { S.Ty_Sigma }
   | TREAL
     { S.Ty_Real }
+  | TBOOL
+    { S.Ty_Bool }
   | LPAREN t = ty RPAREN
     { t }
 

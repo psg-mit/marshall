@@ -23,9 +23,12 @@ struct
     | S.Cut (y, _, p1, p2) -> x = y || (free x p1 && free x p2)
     | S.Binary (_, e1, e2)
     | S.Less (e1, e2)
+    | S.MkBool (e1, e2)
     | S.App (e1, e2)  -> free x e1 && free x e2
     | S.Unary (_, e)
     | S.Power (e, _)
+    | S.IsTrue e
+    | S.IsFalse e
     | S.Proj (e, _) -> free x e
     | S.And lst
     | S.Or lst
@@ -99,6 +102,9 @@ struct
     | S.Proj (_, _) -> failwith "Cannot differentiate a projection"
     | S.Lambda (x, ty, e) -> failwith "Cannot differentiate an abstraction"
     | S.App (e1, e2) -> failwith "Cannot differentiate a redex"
+    | S.MkBool (e1, e2) -> failwith "Cannot differentiate a Boolean"
+    | S.IsTrue _
+    | S.IsFalse _ -> failwith "Cannot differentiate is_true/is_false"
 
 
   let estimate_endpoint prec x y d =
@@ -185,7 +191,11 @@ struct
         estimate_true k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
     | S.Forall (y, j, p) ->
         estimate_true k prec (Env.extend y (S.Interval j) env) x i p
-    | _ -> assert false
+    | S.OPattern lst ->
+            List.fold_left
+  	    (fun r p -> R.union r (estimate_true k prec env x i (snd p)))
+  	    R.empty lst
+    | e -> failwith ("Cannot estimate " ^ S.string_of_expr e)
 
   let rec estimate_false k prec env x i = function
     | S.True -> R.real_line
@@ -209,7 +219,11 @@ struct
         estimate_false k prec (Env.extend y (S.Interval (I.flip j)) env) x i p
     | S.Forall (y, j, p) ->
         estimate_false k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
-    | _ -> assert false
+    | S.OPattern lst ->
+        List.fold_left
+  	(fun r p -> R.union r (estimate_false k prec env x i (snd p)))
+  	R.empty lst
+    | e -> failwith ("Cannot estimate " ^ S.string_of_expr e)
 
   let estimate k prec env x i p =
     (R.intersection (R.complement (estimate_false k prec env x i p)) (R.of_interval i),

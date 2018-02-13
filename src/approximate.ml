@@ -37,6 +37,14 @@ struct
             List.nth lst k
           with Failure _ -> error "Tuple too short")
       | _ -> error "Tuple expected"
+	let is_true e =
+    match e with
+      | S.MkBool (e1, e2) -> e1
+      | _ -> S.IsTrue e
+	let is_false e =
+    match e with
+      | S.MkBool (e1, e2) -> e2
+      | _ -> S.IsFalse e
 
   (* Apply a binary artithmetical operator with precision [prec]. The
      rounding mode, which is [Dyadic.down] or [Dyadic.up] tells whether
@@ -147,7 +155,10 @@ struct
 	| S.Let (x, e1, e2) ->
 	    lower prec (Env.extend x (approx e1) env) e2
 	| S.Tuple _ as e -> e
+	| S.MkBool _ as e -> e (* is this right? *)
 	| S.Proj (e, k) -> proj (approx e) k
+	| S.IsTrue e -> is_true (approx e)
+	| S.IsFalse e -> is_false (approx e)
 	| S.Lambda _ as e -> e
 	| S.App (e1, e2) ->
 	    let x, e = get_lambda (approx e1) in
@@ -214,6 +225,9 @@ and
 	| S.Tuple _ as e -> e
 	| S.Proj (e, k) -> proj (approx e) k
 	| S.Lambda _ as e -> e
+	| S.MkBool _ as e -> e (* is this right? *)
+	| S.IsTrue e -> is_true (approx e)
+	| S.IsFalse e -> is_false (approx e)
 	| S.App (e1, e2) ->
 	    let x, e = get_lambda (approx e1) in
 	      upper prec (Env.extend x (approx e2) env) e
