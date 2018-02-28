@@ -22,8 +22,15 @@ let max =
       right (forall x : [0,1], f x < a)
 ;;
 
+let restrictb =
+  fun U : prop =>
+  fun x : bool =>
+  mkbool (U /\ is_true x) (U /\ is_false x)
+  ;;
+
 let aprx_compare = fun eps : real => fun x : real =>
-  ( x > - eps ~> 1 || x < eps ~> 0)
+     restrictb (x > - eps) (mkbool True False)
+  || restrictb (x < eps)   (mkbool False True)
 ;;
 
 ! sqrt(2) is approximately larger than 1.4

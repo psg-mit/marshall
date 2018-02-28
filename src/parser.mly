@@ -29,7 +29,7 @@
 %token INFINITY
 %token TRUE FALSE
 %token AND OR
-%token POR PBRANCH
+%token JOIN
 %token FORALL EXISTS
 %token LET IN
 %token CUT LEFT RIGHT
@@ -110,8 +110,6 @@ topdirective:
 expr:
   | e = or_expr
     { e }
-  | e = opattern_expr
-    { S.OPattern e }
   | CUT x = VAR COLON s = segment LEFT e1 = expr RIGHT e2 = expr
     { S.Cut (x, s, e1, e2) }
   | CUT x = VAR LEFT e1 = expr RIGHT e2 = expr
@@ -188,6 +186,8 @@ bin_expr:
     { S.Less (e1, e2) }
   | e1 = bin_expr GREATER e2 = bin_expr
     { S.Less (e2, e1) }
+  | e1 = bin_expr JOIN e2 = bin_expr
+    { S.Join (e1, e2) }
 
 and_expr:
   | e = bin_expr
@@ -206,12 +206,6 @@ or_expr:
     { e }
   | e = and_expr OR es = or_expr_list
     { S.Or (e :: es) }
-
-opattern_expr:
-  | p = or_expr PBRANCH e = or_expr POR es = opattern_expr
-    { (p,e) :: es }
-  | p = or_expr PBRANCH e = or_expr
-    { [(p, e)] }
 
 or_expr_list:
   | e = and_expr

@@ -78,10 +78,10 @@ struct
 	    (match  e with
 	       | S.Tuple _ as e' -> free_in y (A.proj e' k)
 	       | e' -> free_in y e)
+	| S.Join (e1, e2)
 	| S.Less (e1, e2) -> free_in y e1 || free_in y e2
 	| S.And lst -> List.fold_left (fun p e -> p || free_in y e) false lst
 	| S.Or lst -> List.fold_left (fun p e -> p || free_in y e) false lst
-	| S.OPattern lst -> List.fold_left (fun p e -> p || free_in y (fst e) || free_in y (snd e)) false lst
 	| S.Tuple lst -> List.fold_left (fun p e -> p || free_in y e) false lst
 	| S.Lambda (x, ty, e) -> x<>y && (free_in y e)
 	| S.Exists (x, i, e) -> x<>y && (free_in y e)
@@ -99,6 +99,11 @@ struct
      causes a huge inefficiency because it may unnecessarily multiply
      repeat subexpressions, but computation of derivatives cannot handle
      general applications and local definitions. *)
+
+		(* TODO: We probably need to lift joins to the outermost part.
+		   For instance, we likely need to do the reduction
+			 f (e1 || e2)    -->    f e1 || f e2
+		*)
 
   let rec hnf ?(free=false) env e =
     let alpha1 x env e =
@@ -128,6 +133,7 @@ struct
 	    let env' = Env.extend x' (S.Var x') env in
 	      S.Cut (x', i, hnf env' p1', hnf env' p2')
 	| S.Binary (op, e1, e2) -> S.Binary (op, hnf env e1, hnf env e2)
+	| S.Join (e1, e2) -> S.Join (hnf env e1, hnf env e2)
 	| S.Unary (op, e) -> S.Unary (op, hnf env e)
 	| S.Power (e, k) -> S.Power (hnf env e, k)
 	| S.Proj (e, k) ->
@@ -137,16 +143,17 @@ struct
 	| S.IsTrue e ->
 	    (match hnf env e with
 	       | S.MkBool _ as e' -> A.is_true e'
+				 | S.Join (e1, e2) -> hnf env (S.Or [S.IsTrue e1; S.IsTrue e2]) (* seems kind of ad-hoc *)
 	       | e' -> S.IsTrue e')
 	| S.IsFalse e ->
 	    (match hnf env e with
 	       | S.MkBool _ as e' -> A.is_false e'
+				 | S.Join (e1, e2) -> hnf env (S.Or [S.IsFalse e1; S.IsFalse e2]) (* seems kind of ad-hoc *)
 	       | e' -> S.IsFalse e')
 	| S.Less (e1, e2) -> S.Less (hnf env e1, hnf env e2)
 	| S.And lst -> S.And (List.map (hnf env) lst)
 	| S.Or lst -> S.Or (List.map (hnf env) lst)
 	| S.MkBool (e1, e2) -> S.MkBool (hnf env e1, hnf env e2)
-	| S.OPattern lst -> S.OPattern (List.map (fun p -> (hnf env (fst p), hnf env (snd p))) lst)
 	| S.Tuple lst -> S.Tuple (List.map (hnf env) lst)
 	| S.Lambda (x, ty, e) ->
 	  let x',e' = alpha1 x env e in
@@ -234,9 +241,9 @@ struct
 	  | S.False -> S.False
 	  | S.MkBool (e1, e2) -> S.MkBool (refn e1, refn e2)
 	  | S.Less (e1, e2) -> S.Less (refn e1, refn e2)
+		| S.Join (e1, e2) -> S.Join (refn e1, refn e2)
 	  | S.And lst -> A.fold_and refn lst
 	  | S.Or lst -> A.fold_or refn lst
-		| S.OPattern lst -> fold_opattern k prec env lst
 	  | S.Exists (x, i, p) ->
 	      let prec = make_prec prec i in
 	      let q = refine k prec (Env.extend x (S.RealVar (x, i)) env) p in
@@ -350,19 +357,55 @@ struct
 		 | S.Lambda (x, _, e) -> refine k prec (Env.extend x (refn e2) env) e
 		 | e -> S.App (e, e2))
 
-and
-	 fold_opattern k prec env lst =
-    let rec fold acc = function
-      | [] -> acc
-      | (p, e) ::ps ->
-	  (match refine k prec env p with
-	     | S.True -> raise (Break1(e))
-	     | q -> fold ((q, e)::acc) ps)
-    in
-      try
-	match fold [] lst with
-	  | lst -> S.OPattern (List.rev lst)
-      with Break1(e) -> refine k prec env e
+	type 'a step_result =
+    | Step_Done of 'a
+    | Step_Go of int
+
+	let map_step_result f (x, sx) = (f x, match sx with
+	  | Step_Done e -> Step_Done (f e)
+		| Step_Go p -> Step_Go p
+		)
+
+	let pair_step_result (x : 'a * 'a step_result) (y : 'b * 'b step_result) : ('a * 'b) * ('a * 'b) step_result =
+	  let (e1, sx) = x in let (e2, sy) = y in
+		((e1, e2),
+	   match sx, sy with
+	   | Step_Done e1', Step_Done e2' -> Step_Done (e1', e2')
+	   | Step_Done e1', Step_Go _ -> Step_Done (e1', e2)
+		 | Step_Go _, Step_Done e2' -> Step_Done (e1, e2')
+		 | Step_Go p1, Step_Go p2 -> Step_Go (max p1 p2)
+		)
+
+	let rec collect_step_result (xs : ('a * 'a step_result) list) : ('a list) * ('a list) step_result = match xs with
+	| [x] -> map_step_result (fun z -> [z]) x
+	| x :: xs' -> map_step_result (fun (z, zs) -> z :: zs) (pair_step_result x (collect_step_result xs'))
+	| [] -> assert false
+
+  let rec step env e (p : int) = match e with
+	| S.Var _ | S.RealVar _
+	| S.Less _ | S.And _ | S.Or _ | S.Exists _ | S.Forall _
+	| S.IsTrue _ | S.IsFalse _
+	| S.Let _ | S.Proj _ | S.App _ ->
+	    Step_Go (p + 1)
+	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ ->
+	    (match A.lower p env e with
+	       | S.Interval i ->
+		   let w = (I.width 10 D.up i) in
+		     if D.lt w !target_precision then
+		       Step_Done (S.Interval i)
+		     else
+				   Step_Go (make_prec (p+3) (I.make D.zero !target_precision))
+	       | _ -> assert false)
+	| S.Dyadic _ | S.Interval _ | S.True | S.False | S.Lambda _ -> Step_Done e
+	| S.MkBool (S.True, e2) -> Step_Done e
+	| S.MkBool (e1, S.True) -> Step_Done e
+	| S.MkBool _ -> Step_Go (p + 1)
+	| S.Join (e1, e2) -> (match step env e1 p, step env e2 p with
+	   | Step_Done e1', Step_Done e2' -> Step_Done (S.Join (e1', e2'))
+	   | Step_Done e1', Step_Go _ -> Step_Done (S.Join (e1', e2))
+		 | Step_Go _, Step_Done e2' -> Step_Done (S.Join (e1, e2'))
+		 | Step_Go p1, Step_Go p2 -> Step_Go (max p1 p2))
+	| S.Tuple lst -> snd (map_step_result (fun x -> S.Tuple x) (collect_step_result (List.map (fun e' -> (e', step env e' p)) lst)))
 
   (** [eval prec env e] evaluates expression [e] in environment [env] by
       repeatedly calling [refine]. It increases precision at each step,
@@ -381,36 +424,9 @@ and
 			) ;
 	  ignore (read_line ())
 	end ;
-      match e with
-	| S.Var _ | S.RealVar _
-	| S.Less _ | S.And _ | S.Or _ | S.Exists _ | S.Forall _
-	| S.OPattern _
-	| S.IsTrue _ | S.IsFalse _
-	| S.Let _ | S.Proj _ | S.App _ ->
-	    loop (k+1) (p+1) (refine k p env e)
-	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ ->
-	    (match A.lower p env e with
-	       | S.Interval i ->
-		   let w = (I.width 10 D.up i) in
-		     if D.lt w !target_precision then
-		       (e, S.Interval i)
-		     else
-		       loop (k+1) (make_prec (p+3) (I.make D.zero !target_precision)) (refine k p env e)
-	       | _ -> assert false)
-	| S.Dyadic _ | S.Interval _ | S.True | S.False | S.Lambda _ -> (e, e)
-	| S.MkBool (S.True, e2) -> (e, e)
-	| S.MkBool (e1, S.True) -> (e, e)
-	| S.MkBool _ -> loop (k+1) (p+1) (refine k p env e)
-	| S.Tuple lst ->
-	    let lst1, lst2 =
-	      List.fold_left
-		(fun (lst1, lst2) e ->
-		   let v1, v2 = loop k p e in
-		     v1::lst1, v2::lst2)
-		([], [])
-		lst
-	    in
-	      (S.Tuple (List.rev lst1), S.Tuple (List.rev lst2))
+	    match step env e p with
+			| Step_Done e' -> (e, e')
+			| Step_Go p' -> loop (k+1) p' (refine k p env e)
     in
       loop 1 32 (hnf env e)
 end;;

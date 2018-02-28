@@ -192,12 +192,26 @@ let test_point =
   (circle (3/4) 0)#0 /\ (rectangle 1 1 (3/4) 0)#1;;
 ! ANS: test_point : prop = True
 
+let restrict =
+  fun U : prop =>
+  fun x : real =>
+  cut z
+     left U /\ z < x
+     right U /\ x < z
+;;
+
+let restrictb =
+  fun U : prop =>
+  fun x : bool =>
+  mkbool (U /\ is_true x) (U /\ is_false x)
+  ;;
+
 let is_in_bool =
   fun shape : real -> real -> prop * prop =>
   fun x : real =>
   fun y : real =>
-  ( (shape x y)#0 ~> 1
-  || (shape x y)#1 ~> 0
+  (  restrictb ((shape x y)#0) (mkbool True False)
+  || restrictb ((shape x y)#1) (mkbool False True)
   )
 ;;
 
@@ -217,15 +231,6 @@ let grow_out_eps =
   fun y : real =>
   ((shape x y)#0,
    minkowski_ball eps (fun x' : real => fun y' : real => (shape x' y')#1) x y)
-;;
-
-let is_in_bool =
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  ( (shape x y)#0 ~> 1
-  || (shape x y)#1 ~> 0
-  )
 ;;
 
 ! Try a point on the border of the rectangle, having

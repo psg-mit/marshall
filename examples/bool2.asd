@@ -9,7 +9,7 @@ let orb = fun x : bool => fun y : bool =>
 let tt = mkbool True False;;
 let ff = mkbool False True;;
 let negb = fun x : bool =>
-  mkbool (is_false x) (is_true x)
+  mkboolp (is_false x) (is_true x)
   ;;
 
 let not_0 =
@@ -23,16 +23,28 @@ let is_0_eps =
   -eps < x /\ x < eps
 ;;
 
+let restrictb =
+  fun U : prop =>
+  fun x : bool =>
+  mkbool (U /\ is_true x) (U /\ is_false x)
+  ;;
+
+let mkboolp =
+  fun U : prop =>
+  fun V : prop =>
+  restrictb U tt || restrictb V ff
+  ;;
+
 let is_0_eps_bool =
   fun eps : real =>
   fun x : real =>
-     mkbool (is_0_eps eps x) (not_0 x);;
+     mkboolp (is_0_eps eps x) (not_0 x);;
 
 ! Forall-quantification of a nondeterministic-Boolean-valued
 ! predicate over the unit interval.
 let exists_bool_interval =
   fun pred : real -> bool =>
-  mkbool
+  mkboolp
      (exists x : [0,1], is_true (pred x))
      (forall x : [0,1], is_false (pred x))
 ;;
