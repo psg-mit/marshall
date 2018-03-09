@@ -78,6 +78,39 @@ let help_text = "Toplevel commands:
 
   let initial_ctxenv = ([], [])
 
+  let color_bool x =
+  	match x with
+	  | None -> 128
+    | Some true -> 0
+    | Some false -> 255
+    ;;
+
+
+  (* e must have type bool *)
+  let rec to_bool_option e =
+    match e with
+    | E.S.MkBool (E.S.True, _) -> Some true
+    | E.S.MkBool (_, E.S.True) -> Some false
+    | E.S.Join (e1, e2) -> (match to_bool_option e1 with
+       | Some b -> Some b
+       | None -> to_bool_option e2)
+    | _ -> None
+  ;;
+
+
+  (* should only be called when `e` has type `bool` *)
+  let eval_bool env e =
+	let v1, v2 = E.eval_bounded 10 env e in
+    to_bool_option v2;;
+
+  let plot_shape pixels env e =
+    let mypixels = D.of_int ~round:D.down pixels in
+    Grapher.plot (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->
+      let x : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down i) mypixels in
+      let y : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down j) mypixels in
+      color_bool (eval_bool env (E.S.App (E.S.App (e, E.S.Dyadic x), E.S.Dyadic y)))
+      );;
+
   (** [exec_cmd interactive (ctx,env) c] executes toplevel command [c] in global
       environment [env] and typing context [ctx]. It prints the result on
       standard output and return the new environment. *)
@@ -107,8 +140,10 @@ let help_text = "Toplevel commands:
 	  (ctx, env)
     | E.S.Help -> print_endline help_text ; (ctx, env)
     | E.S.Quit -> raise End_of_file
+    | E.S.Plot (pixels, e) -> plot_shape pixels env e;
+      (ctx, env)
     | E.S.Use fn -> use_file (ctx, env) (fn, interactive)
-	
+
   (** [exec_cmds interactive (ctx,env) cmds] executes the list of commands [cmds] in
       context [ctx] and environment [env], and returns the new
       environment. *)

@@ -105,6 +105,7 @@ struct
     | Precision of D.t          (* Target precision [$precision d] *)
     | Hnf of expr               (* Compute head-normal form *)
     | Help                      (* Print help *)
+    | Plot of int * expr
     | Quit                      (* Exit toplevel [$quit] *)
 
   (** Convert a type to a string *)

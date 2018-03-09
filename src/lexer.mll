@@ -64,6 +64,7 @@ rule token = parse
   | "#quit"              { QUIT }
   | "#hnf"               { HNF }
   | "#help"              { HELP }
+  | "#plot"              { PLOT }
   | '#' ['0'-'9']+       { let str = lexeme lexbuf in
 			     PROJECT (int_of_string (String.sub str 1 (String.length str - 1)))
 			 }

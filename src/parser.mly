@@ -41,7 +41,7 @@
 %token COLON COMMA SEMISEMI
 %token LPAREN RPAREN
 %token LBRACK RBRACK LBRACE RBRACE
-%token USE QUIT TRACE PRECISION HNF HELP
+%token USE QUIT TRACE PRECISION HNF HELP PLOT
 %token <string> STRING
 %token EOF
 
@@ -103,6 +103,8 @@ topdirective:
     { S.Hnf e }
   | HELP
     { S.Help }
+  | PLOT n = NATURAL e = expr
+    { S.Plot (n, e) }
   | QUIT
     { S.Quit }
 

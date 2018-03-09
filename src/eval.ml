@@ -407,6 +407,17 @@ struct
 		 | Step_Go p1, Step_Go p2 -> Step_Go (max p1 p2))
 	| S.Tuple lst -> snd (map_step_result (fun x -> S.Tuple x) (collect_step_result (List.map (fun e' -> (e', step env e' p)) lst)))
 
+  let eval_bounded nloop env e =
+    let rec loop k p e =
+		  if k >= nloop then (e, e)
+			  else
+	    match step env e p with
+			| Step_Done e' -> (e, e')
+			| Step_Go p' -> loop (k+1) p' (refine k p env e)
+    in
+      loop 1 nloop (hnf env e);;
+
+
   (** [eval prec env e] evaluates expression [e] in environment [env] by
       repeatedly calling [refine]. It increases precision at each step,
       although we should do something more intelligent about that (not
