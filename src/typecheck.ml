@@ -44,10 +44,10 @@ struct
     | False -> Ty_Sigma
     | And lst
     | Or lst  -> List.iter (check ctx Ty_Sigma) lst ; Ty_Sigma
-	| OPattern ((p, e) :: es) -> List.iter (check ctx Ty_Sigma) (p :: List.map fst es) ;
-	                             let ty = type_of ctx e in
-								 List.iter (check ctx ty) (List.map snd es) ;
-								 ty
+    | Join (e1, e2) ->
+	   let ty = type_of ctx e1 in
+	   check ctx ty e2;
+	   ty
     | Less (e1, e2) ->
 	check ctx Ty_Real e1 ;
 	check ctx Ty_Real e2 ;

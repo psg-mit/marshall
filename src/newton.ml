@@ -24,6 +24,7 @@ struct
     | S.Binary (_, e1, e2)
     | S.Less (e1, e2)
     | S.MkBool (e1, e2)
+    | S.Join (e1, e2)
     | S.App (e1, e2)  -> free x e1 && free x e2
     | S.Unary (_, e)
     | S.Power (e, _)
@@ -33,7 +34,6 @@ struct
     | S.And lst
     | S.Or lst
     | S.Tuple lst -> List.for_all (free x) lst
-    | S.OPattern lst -> List.for_all (fun p -> free x (fst p) && free x (snd p)) lst
     | S.Lambda (y, _, e)
     | S.Exists (y, _, e)
     | S.Forall (y, _, e) -> x = y || free x e
@@ -95,7 +95,7 @@ struct
     | S.And _
     | S.Or _
     | S.Exists _
-    | S.OPattern _
+    | S.Join _ -> failwith "Cannot differentiate a join"
     | S.Forall _ -> Error.runtime "Cannot differentiate a proposition"
     | S.Let (y, e1, e2) -> Error.runtime "Cannot differentiate a local definition"
     | S.Tuple _ -> failwith "Cannot differentiate a tuple"
@@ -191,10 +191,7 @@ struct
         estimate_true k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
     | S.Forall (y, j, p) ->
         estimate_true k prec (Env.extend y (S.Interval j) env) x i p
-    | S.OPattern lst ->
-            List.fold_left
-  	    (fun r p -> R.union r (estimate_true k prec env x i (snd p)))
-  	    R.empty lst
+    | S.Join (e1, e2) -> estimate_true k prec env x i (S.Or [e1; e2])
     | e -> failwith ("Cannot estimate " ^ S.string_of_expr e)
 
   let rec estimate_false k prec env x i = function
@@ -219,10 +216,7 @@ struct
         estimate_false k prec (Env.extend y (S.Interval (I.flip j)) env) x i p
     | S.Forall (y, j, p) ->
         estimate_false k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
-    | S.OPattern lst ->
-        List.fold_left
-  	(fun r p -> R.union r (estimate_false k prec env x i (snd p)))
-  	R.empty lst
+    | S.Join (e1, e2) -> estimate_false k prec env x i (S.Or [e1; e2])
     | e -> failwith ("Cannot estimate " ^ S.string_of_expr e)
 
   let estimate k prec env x i p =
