@@ -37,7 +37,7 @@ let norm =
     sqrt (z#0 * z#0 + z1 * z1)
     ;;
 
-!! A general idea of how to find the roots of unity. 
+!! A general idea of how to find the roots of unity.
 !let roots_of_unity =
 !    fun z : real * real =>
 !    cut z  ! this isn't defined. Not sure how to define it.
