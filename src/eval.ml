@@ -333,7 +333,7 @@ struct
               (*A.fold_and (fun i -> make_forall x i q) [i1; i2]*)
 	  | S.Let (x, e1, e2) ->
 	      refine k prec (Env.extend x (refn e1) env) e2
-	  | S.Tuple _ -> e
+	  | S.Tuple xs -> S.Tuple (List.map refn xs)
 	  | S.Proj (e, k) ->
 	      (match refn e with
 		 | S.Tuple lst ->
