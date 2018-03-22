@@ -35,6 +35,19 @@ let complement =
   ((shape x y)#1, (shape x y)#0)
 ;;
 
+
+
+let to_bool =
+  fun p : prop * prop =>
+  mkbool p#0 p#1 ;;
+
+let shape_to_bool =
+  fun shape : real -> real -> prop * prop =>
+  fun x : real =>
+  fun y : real =>
+  to_bool (shape x y);;
+  
+
 ! Implement line with an interior in the direction of the normal.
 let line =
       fun nx : real =>
@@ -50,47 +63,12 @@ let sloped_line =
       line -1 (1/m)
   ;;
 
-!! Create a slope m line through the origin.
-!let line =
-!      fun m : real =>
-!      fun x : real =>
-!      fun y : real =>
-!      (y - m * x < 0, y - m * x > 0)
-!  ;;
-!
-!!! pass in a single parameter
-!!let nowline =
-!!    fun my_line : real -> real -> prop * prop  =>
-!!    fun x : real =>
-!!    fun y : real =>
-!!    (my_line x y 1)
-!!;;
-!
-!
-!! Create a unit slope line through the origin.
-!let unitline =
-!      fun x : real =>
-!      fun y : real =>
-!      (y - x < 0, y - x > 0)
-!  ;;
-!
-!! Another version
-!! Maybe use this and then have generic single-coordinate scaling
-!let unit_line = line 1
-
 ! Bad vertical line
 let vertical_line =
     fun x : real =>
     fun y : real =>
     (x<0,x>0)
     ;;
-
-! Better vertical line?
-! NOTE DOESNT WORK RN
-!let vertical_line =
-!    fun x : real =>
-!    flip_interior (line 1 x 0)
-!    ;;
 
 
 ! Create a unit triangle centered at the origin
@@ -140,7 +118,7 @@ let dot =
 
 
 ! Implementation of reflection of a shape across a line
-! The line is ax + bx + c = 0
+! The line is ax + by + c = 0
 ! https://drive.google.com/file/d/0By83v5TWkGjvb2tuekNSUFo3cFE/view
 let reflect =
     fun a : real =>
