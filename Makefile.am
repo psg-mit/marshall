@@ -9,7 +9,7 @@ marshalldir=$(datarootdir)/marshall
 MARSHALLTARGET=src/marshall
 
 # How to compile
-MARSHALLOCAMLBUILD=$(OCAMLBUILD) -use-ocamlfind -use-menhir -lib nums -lib unix -lib bigarray
+MARSHALLOCAMLBUILD=$(OCAMLBUILD) -use-ocamlfind -use-menhir -lib nums -pkgs gmp
 
 .PHONY: test test-validate test-clean src/version.ml \
 	marshall.byte marshall.native marshall.d.byte marshall.p.native
