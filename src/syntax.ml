@@ -85,7 +85,7 @@ struct
 	   and $a ={e}= b$, which means $-e < a - b < e$. *)
     | And of expr list (* [p1 /\ p2 /\ ... /\ pn] *)
     | Or of expr list (* [p1 \/ p2 \/ ... \/ pn] *)
-    | Join of (expr * expr)
+    | Join of (expr list)
     | Exists of name * I.t * expr (* [exists x : [a,b], p] *)
     | Forall of name * I.t * expr (* [forall x : [a,b], p] *)
     | Let of name * expr * expr (* [let x = e1 in e2] *)
@@ -146,7 +146,7 @@ struct
 	      let p, p1, p2 = precs_of_binary op in
 		(p, to_str p1 e1 ^ " " ^ string_of_binary op ^ " " ^ to_str p2 e2)
 	  | Less (e1, e2) ->     (30, to_str 30 e1 ^ " < " ^ to_str 30 e2)
-  	| Join (e1, e2) ->     (39, to_str 30 e1 ^ " || " ^ to_str 30 e2)
+  	| Join lst ->         (14, "{" ^ String.concat " || "  (List.map (to_str 13) lst) ^ "}")
 	  | And lst ->           (20, String.concat " /\\ " (List.map (to_str 19) lst))
 	  | Or lst ->            (15, String.concat " \\/ " (List.map (to_str 14) lst))
 	  | Exists (x, t, p) ->  (10, "exists " ^ string_of_name x ^ " : " ^

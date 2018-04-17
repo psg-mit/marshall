@@ -91,9 +91,9 @@ let help_text = "Toplevel commands:
     match e with
     | E.S.MkBool (E.S.True, _) -> Some true
     | E.S.MkBool (_, E.S.True) -> Some false
-    | E.S.Join (e1, e2) -> (match to_bool_option e1 with
+    | E.S.Join (e :: es) -> (match to_bool_option e with
        | Some b -> Some b
-       | None -> to_bool_option e2)
+       | None -> to_bool_option (E.S.Join es))
     | _ -> None
   ;;
 

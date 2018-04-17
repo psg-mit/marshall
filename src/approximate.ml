@@ -15,7 +15,8 @@ struct
     | S.Interval i -> i
     | S.Dyadic q -> I.of_dyadic q
     | S.Cut (_, i, _, _) -> i
-		| S.Join (e1, e2) -> I.bin_or (get_interval e1) (get_interval e2)
+		| S.Join lst ->
+		   List.fold_left (fun acc e -> I.bin_or acc (get_interval e)) I.bottom lst
     | e -> error ("Numerical constant expected but got " ^ S.string_of_expr e)
 
   (* Get the bound variable and the matrix of an abstraction. *)
@@ -142,7 +143,7 @@ struct
 		S.False
 	| S.And lst -> fold_and approx lst
 	| S.Or lst -> fold_or approx lst
-	| S.Join (e1, e2) -> S.Join (approx e1, approx e2) (* Is this right? *)
+	| S.Join lst -> S.Join (List.map approx lst) (* Is this right? *)
 	| S.Exists (x, s, e) ->
 	    let m = S.Dyadic (I.midpoint prec 1 s) in
 	      lower prec (Env.extend x m env) e
@@ -195,7 +196,7 @@ struct
 		S.False
 	| S.And lst -> fold_and approx lst
 	| S.Or lst -> fold_or approx lst
-	| S.Join (e1, e2) -> S.Join (approx e1, approx e2) (* Is this right? *)
+	| S.Join lst -> S.Join (List.map approx lst) (* Is this right? *)
 	| S.Exists (x, i, e) ->
 	    let j = I.flip i in
 	      upper prec (Env.extend x (S.Interval j) env) e

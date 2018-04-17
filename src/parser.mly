@@ -110,7 +110,7 @@ topdirective:
 
 (* Main syntax tree. *)
 expr:
-  | e = or_expr
+  | e = join_expr
     { e }
   | CUT x = VAR COLON s = segment LEFT e1 = expr RIGHT e2 = expr
     { S.Cut (x, s, e1, e2) }
@@ -188,8 +188,6 @@ bin_expr:
     { S.Less (e1, e2) }
   | e1 = bin_expr GREATER e2 = bin_expr
     { S.Less (e2, e1) }
-  | e1 = bin_expr JOIN e2 = bin_expr
-    { S.Join (e1, e2) }
 
 and_expr:
   | e = bin_expr
@@ -213,6 +211,18 @@ or_expr_list:
   | e = and_expr
     { [e] }
   | e = and_expr OR es = or_expr_list
+    { e :: es }
+
+join_expr:
+  | e = or_expr
+    { e }
+  | e = or_expr JOIN es = join_expr_list
+    { S.Join (e :: es) }
+
+join_expr_list:
+  | e = or_expr
+    { [e] }
+  | e = or_expr JOIN es = join_expr_list
     { e :: es }
 
 expr_list:

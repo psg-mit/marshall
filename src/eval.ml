@@ -78,10 +78,10 @@ struct
 	    (match  e with
 	       | S.Tuple _ as e' -> free_in y (A.proj e' k)
 	       | e' -> free_in y e)
-	| S.Join (e1, e2)
 	| S.Less (e1, e2) -> free_in y e1 || free_in y e2
-	| S.And lst -> List.fold_left (fun p e -> p || free_in y e) false lst
-	| S.Or lst -> List.fold_left (fun p e -> p || free_in y e) false lst
+	| S.And lst
+	| S.Or lst
+	| S.Join lst
 	| S.Tuple lst -> List.fold_left (fun p e -> p || free_in y e) false lst
 	| S.Lambda (x, ty, e) -> x<>y && (free_in y e)
 	| S.Exists (x, i, e) -> x<>y && (free_in y e)
@@ -94,84 +94,115 @@ struct
 	| [] -> false
 	| (y,e')::l -> (if free_in y e then free_in x e' else false) || free_in_env x l e
 
+let rec list_bind xs f =
+    match xs with
+    | [] -> []
+    | x :: xs -> f x @ list_bind xs f
+  ;;
+
+let rec list_prod (f : 'a -> 'b -> 'c) (xs : 'a list) (ys : 'b list) : 'c list = match xs with
+  | [] -> []
+	| x :: xs' -> List.map (f x) ys @ list_prod f xs' ys
+
+let join1 xs = match xs with
+  | [x] -> x
+	| _ -> S.Join xs
+
   (* The first step of evaluation is to evaluate to head-normal form
      because we want to get rid of local definitions and redexes. This
      causes a huge inefficiency because it may unnecessarily multiply
      repeat subexpressions, but computation of derivatives cannot handle
      general applications and local definitions. *)
 
-		(* TODO: We probably need to lift joins to the outermost part.
-		   For instance, we likely need to do the reduction
-			 f (e1 || e2)    -->    f e1 || f e2
-		*)
-
-  let rec hnf ?(free=false) env e =
+  let rec hnf' ?(free=false) env e : S.expr list =
     let alpha1 x env e =
       if free_in_env x env e then
 	let x' = S.fresh_name (S.string_of_name x) in
-	  x', hnf ~free:true (Env.extend x (S.Var x') []) e
+	  x', join1 (hnf' ~free:true (Env.extend x (S.Var x') []) e)
       else
 	 x, e
     in
     let alpha2 x env e1 e2 =
       if free_in_env x env e1 || free_in_env x env e2 then
 	let x' = S.fresh_name (S.string_of_name x) in
-	  x', hnf ~free:true (Env.extend x (S.Var x') []) e1, hnf ~free:true (Env.extend x (S.Var x') []) e2
+	  x', join1 (hnf' ~free:true (Env.extend x (S.Var x') []) e1)
+		  , join1 (hnf' ~free:true (Env.extend x (S.Var x') []) e2)
       else
 	 x, e1, e2
     in
-    let hnf = hnf ~free in
+    let hnf = hnf' ~free in
       match e with
 	| S.Var x ->
 	    (try
-	       List.assoc x env
+	       [List.assoc x env]
 	     with Not_found ->
-	       if free then S.Var x else error ("Unknown variable " ^ S.string_of_name x))
-	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False) as e -> e
+	       if free then [S.Var x] else error ("Unknown variable " ^ S.string_of_name x))
+	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False) as e -> [e]
 	| S.Cut (x, i, p1, p2) ->
 	    let x', p1', p2' = alpha2 x env p1 p2 in
 	    let env' = Env.extend x' (S.Var x') env in
-	      S.Cut (x', i, hnf env' p1', hnf env' p2')
-	| S.Binary (op, e1, e2) -> S.Binary (op, hnf env e1, hnf env e2)
-	| S.Join (e1, e2) -> S.Join (hnf env e1, hnf env e2)
-	| S.Unary (op, e) -> S.Unary (op, hnf env e)
-	| S.Power (e, k) -> S.Power (hnf env e, k)
-	| S.Proj (e, k) ->
-	    (match hnf env e with
+	      [S.Cut (x', i, S.Or (hnf env' p1'), S.Or (hnf env' p2'))]
+	| S.Binary (op, e1, e2) ->
+		  list_bind (hnf env e1) (fun e1' ->
+			List.map (fun e2' -> S.Binary (op, e1', e2')) (hnf env e2))
+	| S.Unary (op, e) ->
+	   List.map (fun e' -> S.Unary (op, e')) (hnf env e)
+	| S.Power (e, k) ->
+		 List.map (fun e' -> S.Power (e', k )) (hnf env e)
+	| S.Proj (e, k) -> List.map (fun e' ->
+	    (match e' with
 	       | S.Tuple _ as e' -> A.proj e' k
 	       | e' -> S.Proj (e', k))
-	| S.IsTrue e ->
-	    (match hnf env e with
+	    ) (hnf env e)
+	| S.IsTrue e -> List.map (fun e' ->
+	    (match e' with
 	       | S.MkBool _ as e' -> A.is_true e'
-				 | S.Join (e1, e2) -> hnf env (S.Or [S.IsTrue e1; S.IsTrue e2]) (* seems kind of ad-hoc *)
 	       | e' -> S.IsTrue e')
-	| S.IsFalse e ->
-	    (match hnf env e with
+	    ) (hnf env e)
+	| S.IsFalse e -> List.map (fun e' ->
+	    (match e' with
 	       | S.MkBool _ as e' -> A.is_false e'
-				 | S.Join (e1, e2) -> hnf env (S.Or [S.IsFalse e1; S.IsFalse e2]) (* seems kind of ad-hoc *)
 	       | e' -> S.IsFalse e')
-	| S.Less (e1, e2) -> S.Less (hnf env e1, hnf env e2)
-	| S.And lst -> S.And (List.map (hnf env) lst)
-	| S.Or lst -> S.Or (List.map (hnf env) lst)
-	| S.MkBool (e1, e2) -> S.MkBool (hnf env e1, hnf env e2)
-	| S.Tuple lst -> S.Tuple (List.map (hnf env) lst)
+	    ) (hnf env e)
+	| S.Less (e1, e2) ->
+		  list_bind (hnf env e1) (fun e1' ->
+			List.map (fun e2' -> S.Less (e1', e2')) (hnf env e2)
+			)
+	| S.And lst -> (match (List.map (hnf env) lst) with
+	    | [] -> [S.True]
+			| xs -> [S.And (List.map (fun e -> S.Or e) xs)])
+	| S.Or lst -> list_bind lst (hnf env)
+	| S.Join lst -> list_bind lst (hnf env)
+	| S.MkBool (e1, e2) -> [S.MkBool (S.Or (hnf env e1), S.Or (hnf env e2))]
+	| S.Tuple lst -> List.map (fun e -> S.Tuple e) (List.fold_right
+	    (fun e (acc : S.expr list list) -> list_prod (fun x xs -> x :: xs) (hnf env e) acc)
+			lst
+			[[]]
+			)
 	| S.Lambda (x, ty, e) ->
 	  let x',e' = alpha1 x env e in
-	    S.Lambda (x', ty, hnf (Env.extend x' (S.Var x') env) e')
+	    [S.Lambda (x', ty, join1 (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.Exists (x, i, e) ->
 	  let x',e' = alpha1 x env e in
-	    S.Exists (x', i, hnf (Env.extend x' (S.Var x') env) e')
+	    [S.Exists (x', i, S.Or (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.Forall (x, i, e) ->
 	  let x',e' = alpha1 x env e in
-	    S.Forall (x', i, hnf (Env.extend x' (S.Var x') env) e')
+	    [S.Forall (x', i, S.Or (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.App (e1, e2)  ->
-	    let e2' = hnf env e2 in
-	      (match hnf env e1 with
-		 | S.Lambda (x, ty, e) -> hnf (Env.extend x e2' env) e
-		 | e1' -> S.App (e1', e2'))
+      list_bind (hnf env e2) (fun e2' ->
+		  list_bind (hnf env e1) (fun e1' -> match e1' with
+			  | S.Lambda (x, ty, e) ->
+		        hnf (Env.extend x e2' env) e
+		    | e1' ->
+		      [S.App (e1', e2')]
+			)
+			)
 	| S.Let (x, e1, e2) ->
-	    let e1' = hnf env e1 in
-	      hnf (Env.extend x e1' env) e2
+	    list_bind (hnf env e1) (fun e1' ->
+			  hnf (Env.extend x e1' env) e2
+			)
+
+let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 
   (* The function [refine k prec env e] performs one step of evaluation
      of expression [e] in environment [env], using precision [prec] to
@@ -212,7 +243,11 @@ struct
 	      	(* Newton's method *)
 	      let (r1, r2) = N.estimate k prec env x j p1 in
 	      let (s1, s2) = N.estimate k prec env x j p2 in
-      	      let a'' = D.max a' (D.max (R.supremum r2) (R.supremum s1)) in
+				if R.supremum r2 >= R.infimum r1
+				    then print_endline ("uh-oh left cut" ^ D.to_string (R.supremum r2) ^ "," ^ D.to_string (R.infimum r1) );
+				if R.supremum s1 >= R.infimum s2
+				    then print_endline ("uh-oh right cut" ^ D.to_string (R.supremum s1) ^ "," ^ D.to_string (R.infimum s2) );
+        let a'' = D.max a' (D.max (R.supremum r2) (R.supremum s1)) in
 	      let b'' = D.min b' (D.min (R.infimum  s2) (R.infimum r1)) in
 	      match D.cmp a'' b'' with
 		  | `less ->
@@ -224,9 +259,12 @@ struct
 (*		    print_endline ("Cut: " ^ (S.string_of_name x) ^ ":" ^ (I.to_string i) ^ ":" ^ (I.to_string j) ^ (I.to_string l) ^ (S.string_of_expr q1) ^ (S.string_of_expr q2));*)
 		      S.Cut (x, l, q1, q2)
 		  | `equal ->
+			  print_endline (I.to_string i ^ ", " ^ I.to_string j ^ ", " ^ I.to_string (I.make a'' b''));
+				print_endline (R.to_string r1  ^ ", " ^ R.to_string r2 ^ ", " ^ R.to_string s1 ^ ", " ^ R.to_string s2 );
 		      (* We found an exact value *)
 		    S.Dyadic a''
 		  | `greater ->
+			  print_endline "greater";
 		      (* We have a backwards cut. Do nothing. Someone should think
 			 whether this is ok. It would be nice if cuts could be
 			 overlapping, but I have not thought whether this would break
@@ -241,7 +279,7 @@ struct
 	  | S.False -> S.False
 	  | S.MkBool (e1, e2) -> S.MkBool (refn e1, refn e2)
 	  | S.Less (e1, e2) -> S.Less (refn e1, refn e2)
-		| S.Join (e1, e2) -> S.Join (refn e1, refn e2)
+		| S.Join lst -> S.Join (List.map refn lst)
 	  | S.And lst -> A.fold_and refn lst
 	  | S.Or lst -> A.fold_or refn lst
 	  | S.Exists (x, i, p) ->
@@ -400,11 +438,15 @@ struct
 	| S.MkBool (S.True, e2) -> Step_Done e
 	| S.MkBool (e1, S.True) -> Step_Done e
 	| S.MkBool _ -> Step_Go (p + 1)
-	| S.Join (e1, e2) -> (match step env e1 p, step env e2 p with
-	   | Step_Done e1', Step_Done e2' -> Step_Done (S.Join (e1', e2'))
-	   | Step_Done e1', Step_Go _ -> Step_Done (S.Join (e1', e2))
-		 | Step_Go _, Step_Done e2' -> Step_Done (S.Join (e1, e2'))
-		 | Step_Go p1, Step_Go p2 -> Step_Go (max p1 p2))
+	| S.Join [] -> Step_Go 0
+	| S.Join (e :: es) -> (match step env e p with
+	   | Step_Done e' -> Step_Done (S.Join (e' :: es))
+		 | Step_Go p -> (match step env (S.Join es) p with
+		    | Step_Done (S.Join es') -> Step_Done (S.Join (e :: es'))
+				| Step_Done _ -> error "invalid"
+				| Step_Go p' -> Step_Go (max p p')
+		    )
+	   )
 	| S.Tuple lst -> snd (map_step_result (fun x -> S.Tuple x) (collect_step_result (List.map (fun e' -> (e', step env e' p)) lst)))
 
   let eval_bounded nloop env e =
