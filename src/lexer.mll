@@ -92,6 +92,7 @@ rule token = parse
   | "/\\"                { AND }
   | "\\/"                { OR }
   | "||"                 { JOIN }
+  | "~>"                 { RESTRICT }
   | var             	 { let str = lexeme lexbuf in
 			     try List.assoc str reserved_words with Not_found -> VAR (S.Ident str) }
   | '\"' [^'\"']* '\"'   { let str = lexeme lexbuf in STRING (String.sub str 1 (String.length str - 2)) }

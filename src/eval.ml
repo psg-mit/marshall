@@ -69,6 +69,7 @@ struct
 	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False -> false
 	| S.Cut (x, i, p1, p2) -> x<>y && (free_in y p1 || free_in y p2)
 	| S.Binary (op, e1, e2) -> free_in y e1 || free_in y e2
+	| S.Restrict (e1, e2)
 	| S.MkBool (e1, e2) -> free_in y e1 || free_in y e2
 	| S.Unary (op, e) -> free_in y e
 	| S.Power (e, k) -> free_in y e
@@ -107,6 +108,17 @@ let rec list_prod (f : 'a -> 'b -> 'c) (xs : 'a list) (ys : 'b list) : 'c list =
 let join1 xs = match xs with
   | [x] -> x
 	| _ -> S.Join xs
+
+let rec restrict p e = match e with
+  | S.MkBool (et, ef) -> S.MkBool (S.And [p; et], S.And [p; ef])
+	| S.Cut (x, i, p1, p2) -> S.Cut (x, i, S.And [p; p1], S.And [p; p2])
+	| S.Tuple lst -> S.Tuple (List.map (restrict p) lst)
+	| S.True -> p
+	| S.False -> S.False
+	| S.Or _ -> S.And [p; e]
+	| S.And lst -> S.And (p :: lst)
+	| S.Less (e1, e2) -> S.And [p; e]
+	| _ -> S.Restrict (p, e)
 
   (* The first step of evaluation is to evaluate to head-normal form
      because we want to get rid of local definitions and redexes. This
@@ -168,6 +180,8 @@ let join1 xs = match xs with
 		  list_bind (hnf env e1) (fun e1' ->
 			List.map (fun e2' -> S.Less (e1', e2')) (hnf env e2)
 			)
+	| S.Restrict (e1, e2) ->
+	    List.map (restrict (S.Or (hnf env e1))) (hnf env e2)
 	| S.And lst -> (match (List.map (hnf env) lst) with
 	    | [] -> [S.True]
 			| xs -> [S.And (List.map (fun e -> S.Or e) xs)])
@@ -224,7 +238,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
       else if A.upper prec env e = S.False then S.False
       else
 	match e with
-	  | S.Var x -> refine k prec env (Env.get x env)
+	  | S.Var x -> refn (Env.get x env)
 	  | S.RealVar (x, _) -> S.Var x
 	  | S.Dyadic _ -> e
 	  | S.Interval _ -> e
@@ -277,6 +291,10 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	  | S.Power (e, k) -> S.Power (refn e, k)
 	  | S.True -> S.True
 	  | S.False -> S.False
+		| S.Restrict (e1, e2) -> let e2' = refn e2 in (match refn e1 with
+		   | S.True -> e2'
+			 | e1' -> S.Restrict (e1', e2')
+		   )
 	  | S.MkBool (e1, e2) -> S.MkBool (refn e1, refn e2)
 	  | S.Less (e1, e2) -> S.Less (refn e1, refn e2)
 		| S.Join lst -> S.Join (List.map refn lst)
@@ -435,15 +453,15 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 				   Step_Go (make_prec (p+3) (I.make D.zero !target_precision))
 	       | _ -> assert false)
 	| S.Dyadic _ | S.Interval _ | S.True | S.False | S.Lambda _ -> Step_Done e
-	| S.MkBool (S.True, e2) -> Step_Done e
-	| S.MkBool (e1, S.True) -> Step_Done e
+	| S.MkBool (S.True, e2) -> Step_Done (S.MkBool (S.True, S.False))
+	| S.MkBool (e1, S.True) -> Step_Done (S.MkBool (S.False, S.True))
+	| S.Restrict _
 	| S.MkBool _ -> Step_Go (p + 1)
 	| S.Join [] -> Step_Go 0
 	| S.Join (e :: es) -> (match step env e p with
-	   | Step_Done e' -> Step_Done (S.Join (e' :: es))
+	   | Step_Done e' -> Step_Done e'
 		 | Step_Go p -> (match step env (S.Join es) p with
-		    | Step_Done (S.Join es') -> Step_Done (S.Join (e :: es'))
-				| Step_Done _ -> error "invalid"
+		    | Step_Done e' -> Step_Done e'
 				| Step_Go p' -> Step_Go (max p p')
 		    )
 	   )

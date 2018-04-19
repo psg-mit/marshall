@@ -29,7 +29,7 @@
 %token INFINITY
 %token TRUE FALSE
 %token AND OR
-%token JOIN
+%token JOIN RESTRICT
 %token FORALL EXISTS
 %token LET IN
 %token CUT LEFT RIGHT
@@ -213,16 +213,22 @@ or_expr_list:
   | e = and_expr OR es = or_expr_list
     { e :: es }
 
-join_expr:
+restrict_expr:
   | e = or_expr
     { e }
-  | e = or_expr JOIN es = join_expr_list
+  | e1 = or_expr RESTRICT e2 = or_expr
+    { S.Restrict (e1, e2) }
+
+join_expr:
+  | e = restrict_expr
+    { e }
+  | e = restrict_expr JOIN es = join_expr_list
     { S.Join (e :: es) }
 
 join_expr_list:
-  | e = or_expr
+  | e = restrict_expr
     { [e] }
-  | e = or_expr JOIN es = join_expr_list
+  | e = restrict_expr JOIN es = join_expr_list
     { e :: es }
 
 expr_list:

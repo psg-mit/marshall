@@ -34,6 +34,9 @@ struct
 	check ctx Ty_Real e1 ;
 	check ctx Ty_Real e2 ;
 	Ty_Real
+    | Restrict (e1, e2) ->
+	check ctx Ty_Sigma e1 ;
+	type_of ctx e2
     | Unary (_, e) ->
 	check ctx Ty_Real e ;
 	Ty_Real

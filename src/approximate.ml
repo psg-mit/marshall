@@ -160,6 +160,8 @@ struct
 	| S.App (e1, e2) ->
 	    let x, e = get_lambda (approx e1) in
 	      lower prec (Env.extend x (approx e2) env) e
+	| S.Restrict (e1, e2) -> (* currently assuming we must have a number *)
+	    S.Interval I.bottom
 
 
 
@@ -214,5 +216,7 @@ struct
 	| S.App (e1, e2) ->
 	    let x, e = get_lambda (approx e1) in
 	      upper prec (Env.extend x (approx e2) env) e
+	| S.Restrict (e1, e2) -> (* currently assuming we must have a number *)
+	    S.Interval I.top
 
 end;;
