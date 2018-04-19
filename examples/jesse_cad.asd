@@ -1,41 +1,17 @@
-! Stolen for convenience.
+
 let sqrt =
   fun a : real =>
-    cut x
+    cut x 
       left  (x < 0 \/ x * x < a)
       right (x > 0 /\ x * x > a)
 ;;
 
-! STOLEN!
-! Compute the intersection of two shapes.
-let intersection =
-  fun shape_1 : real -> real -> prop * prop =>
-  fun shape_2 : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  ((shape_1 x y)#0 /\ (shape_2 x y)#0,
-   (shape_1 x y)#1 \/ (shape_2 x y)#1)
-;;
-
-! STOLEN!
-let translate =
-  fun trans_x : real =>
-  fun trans_y : real =>
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-    shape (x - trans_x) (y - trans_y)
-;;
-
-! STOLEN
-let complement =
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  ((shape x y)#1, (shape x y)#0)
-;;
-
-
+! takes two points as tuples and returns their euclidean distance
+let euclidean_dist = 
+    fun p1 : real * real =>
+    fun p2 : real * real =>
+    sqrt ((p1#0-p2#0)*(p1#0-p2#0) + (p1#1-p2#1)*(p1#1-p2#1))
+    ;;
 
 let to_bool =
   fun p : prop * prop =>
@@ -71,7 +47,7 @@ let vertical_line =
     ;;
 
 
-! Create a unit triangle centered at the origin
+! Create a triangle centered at the origin
 let triangle =
     let top_right = translate 0 1 (sloped_line -3) in
     let top_left = translate 0 1 (complement(sloped_line 3)) in

@@ -104,12 +104,14 @@ let help_text = "Toplevel commands:
     to_bool_option v2;;
 
   let plot_shape pixels env e =
+    ! let t = Sys.time() in
     let mypixels = D.of_int ~round:D.down pixels in
     Grapher.plot (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->
       let x : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down i) mypixels in
       let y : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down j) mypixels in
-      color_bool (eval_bool env (E.S.App (E.S.App (e, E.S.Dyadic x), E.S.Dyadic y)))
-      );;
+      color_bool (eval_bool env (E.S.App (E.S.App (e, E.S.Dyadic x), E.S.Dyadic y))));
+    ! Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
+    ;;
 
   (** [exec_cmd interactive (ctx,env) c] executes toplevel command [c] in global
       environment [env] and typing context [ctx]. It prints the result on
