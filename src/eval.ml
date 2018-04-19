@@ -206,7 +206,8 @@ let rec restrict p e = match e with
       list_bind (hnf env e2) (fun e2' ->
 		  list_bind (hnf env e1) (fun e1' -> match e1' with
 			  | S.Lambda (x, ty, e) ->
-		        hnf (Env.extend x e2' env) e
+				    let x',e' = alpha1 x env e in
+		        hnf (Env.extend x' e2' env) e'
 		    | e1' ->
 		      [S.App (e1', e2')]
 			)
