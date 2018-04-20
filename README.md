@@ -1,3 +1,14 @@
+# Marshall with partiality, nondeterminism, and pattern matching
+
+This modified version of the Marshall programming language accompanies
+the paper the LICS 2018 paper "Computable decision-making on the reals and other spaces via partiality and nondeterminism" by Benjamin Sherman, Luke Sciarappa, Michael Carbin, and Adam Chlipala. The two example Marshall programs from the paper are found in `examples/car_LICS.asd` and `examples/roots_LICS.asd`. To use these libraries, run
+
+```
+#use "examples/car_LICS.asd";;
+#use "examples/roots_LICS.asd";;
+```
+in the Marshall interpreter.
+
 # Marshall
 
 Marshall is a programming language for exact real arithmetic based on ideas from
