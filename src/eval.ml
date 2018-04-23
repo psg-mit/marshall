@@ -417,20 +417,26 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	type 'a step_result =
     | Step_Done of 'a
     | Step_Go of int
+		| Step_NoAnswer
 
 	let map_step_result f (x, sx) = (f x, match sx with
 	  | Step_Done e -> Step_Done (f e)
 		| Step_Go p -> Step_Go p
+		| Step_NoAnswer -> Step_NoAnswer
 		)
+
 
 	let pair_step_result (x : 'a * 'a step_result) (y : 'b * 'b step_result) : ('a * 'b) * ('a * 'b) step_result =
 	  let (e1, sx) = x in let (e2, sy) = y in
 		((e1, e2),
 	   match sx, sy with
 	   | Step_Done e1', Step_Done e2' -> Step_Done (e1', e2')
-	   | Step_Done e1', Step_Go _ -> Step_Done (e1', e2)
-		 | Step_Go _, Step_Done e2' -> Step_Done (e1, e2')
+	   | Step_Done e1', _ -> Step_Done (e1', e2)
+		 | _, Step_Done e2' -> Step_Done (e1, e2')
 		 | Step_Go p1, Step_Go p2 -> Step_Go (max p1 p2)
+		 | Step_Go p1, Step_NoAnswer -> Step_Go p1
+		 | Step_NoAnswer, Step_Go p2 -> Step_Go p2
+		 | Step_NoAnswer, Step_NoAnswer -> Step_NoAnswer
 		)
 
 	let rec collect_step_result (xs : ('a * 'a step_result) list) : ('a list) * ('a list) step_result = match xs with
@@ -453,7 +459,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		     else
 				   Step_Go (make_prec (p+3) (I.make D.zero !target_precision))
 	       | _ -> assert false)
-	| S.Dyadic _ | S.Interval _ | S.True | S.False | S.Lambda _ -> Step_Done e
+	| S.Dyadic _ | S.Interval _ | S.True | S.Lambda _ -> Step_Done e
 	| S.MkBool (S.True, e2) -> Step_Done (S.MkBool (S.True, S.False))
 	| S.MkBool (e1, S.True) -> Step_Done (S.MkBool (S.False, S.True))
 	| S.Restrict _
@@ -464,9 +470,12 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		 | Step_Go p -> (match step env (S.Join es) p with
 		    | Step_Done e' -> Step_Done e'
 				| Step_Go p' -> Step_Go (max p p')
+				| Step_NoAnswer -> Step_Go p
 		    )
+			| Step_NoAnswer -> step env (S.Join es) p
 	   )
 	| S.Tuple lst -> snd (map_step_result (fun x -> S.Tuple x) (collect_step_result (List.map (fun e' -> (e', step env e' p)) lst)))
+	| S.False -> Step_NoAnswer
 
   let eval_bounded nloop env e =
     let rec loop k p e =
@@ -475,6 +484,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	    match step env e p with
 			| Step_Done e' -> (e, e')
 			| Step_Go p' -> loop (k+1) p' (refine k p env e)
+			| Step_NoAnswer -> (e, e)
     in
       loop 1 nloop (hnf env e);;
 
@@ -499,6 +509,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	    match step env e p with
 			| Step_Done e' -> (e, e')
 			| Step_Go p' -> loop (k+1) p' (refine k p env e)
+			| Step_NoAnswer -> (e, e)
     in
       loop 1 32 (hnf env e)
 end;;
