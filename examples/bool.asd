@@ -4,10 +4,10 @@
 ! Again, since we don't have sublocales, we will just use reals, and
 ! implicitly require that the input is not 1/2.
 
-let is_true =
+let is_true' =
   fun b : real => b > 0.5;;
 
-let is_false =
+let is_false' =
   fun b : real => b < 0.5;;
 
 let max = fun a : real => fun b : real =>
@@ -54,8 +54,8 @@ let not_0_eps =
 ! predicate over the unit interval.
 let forall_bool_interval =
   fun pred : real -> real =>
-     (forall x : [0,1], is_true (pred x)) ~> tt
-  || (exists x : [0,1], is_false (pred x)) ~> ff
+     (forall x : [0,1], is_true' (pred x)) ~> tt
+  || (exists x : [0,1], is_false' (pred x)) ~> ff
 ;;
 
 ! Do we have any approximate roots of our function `f` on the
@@ -70,8 +70,8 @@ let roots_interval' =
 let roots_interval =
   fun eps : real =>
   fun f : real -> real =>
-     (forall x : [0,1], not_0 (f x))) ~> ff
-  || (exists x : [0,1], is_0_eps eps (f x)) ~> tt
+     ((forall x : [0,1], not_0 (f x)) ~> ff)
+  || ((exists x : [0,1], is_0_eps eps (f x)) ~> tt)
 ;;
 
 let func_with_roots =

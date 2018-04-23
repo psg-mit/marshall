@@ -24,7 +24,7 @@ struct
     | S.Binary (_, e1, e2)
     | S.Less (e1, e2)
     | S.MkBool (e1, e2)
-    | S.Join (e1, e2)
+    | S.Restrict (e1, e2)
     | S.App (e1, e2)  -> free x e1 && free x e2
     | S.Unary (_, e)
     | S.Power (e, _)
@@ -33,6 +33,7 @@ struct
     | S.Proj (e, _) -> free x e
     | S.And lst
     | S.Or lst
+    | S.Join lst
     | S.Tuple lst -> List.for_all (free x) lst
     | S.Lambda (y, _, e)
     | S.Exists (y, _, e)
@@ -61,6 +62,7 @@ struct
     | S.RealVar (y, _) -> if x = y then one else zero
     | S.Dyadic _ -> zero
     | S.Interval _ -> zero
+    | S.Restrict (e1, e2) -> diff x e2 (* Is this okay? *)
     | S.Cut (y, i, p1, p2) ->
         if x = y || S.(free x p1 && free x p2) then
   	zero
@@ -95,8 +97,8 @@ struct
     | S.And _
     | S.Or _
     | S.Exists _
-    | S.Join _ -> failwith "Cannot differentiate a join"
     | S.Forall _ -> Error.runtime "Cannot differentiate a proposition"
+    | S.Join _ -> failwith "Cannot differentiate a join"
     | S.Let (y, e1, e2) -> Error.runtime "Cannot differentiate a local definition"
     | S.Tuple _ -> failwith "Cannot differentiate a tuple"
     | S.Proj (_, _) -> failwith "Cannot differentiate a projection"
@@ -157,11 +159,13 @@ struct
     if not (I.proper i) then
       R.real_line
     else
+      let diffexpr = diff x e in
       let x1 = I.lower i in
       let x2 = I.upper i in
       let y1 = I.lower (A.get_interval (A.upper prec (Env.extend x (S.Dyadic x1) env) e)) in
       let y2 = I.lower (A.get_interval (A.upper prec (Env.extend x (S.Dyadic x2) env) e)) in
-      let lif = A.get_interval (A.upper prec (Env.extend x (S.Interval (I.flip i)) env) (diff x e)) in  (* Lifschitz constant as an interval *)
+      let lif = A.get_interval (A.upper prec (Env.extend x (S.Interval (I.flip i)) env) diffexpr) in  (* Lifschitz constant as an interval *)
+      (*print_endline ("estimate_non_positive:" ^ S.string_of_expr diffexpr);*)
       if not (I.proper (I.flip lif)) then R.real_line else
 	  R.union (estimate_endpoint prec x1 y1 (I.lower lif))
 		 (estimate_endpoint prec x2 y2 (I.upper lif))
@@ -191,7 +195,7 @@ struct
         estimate_true k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
     | S.Forall (y, j, p) ->
         estimate_true k prec (Env.extend y (S.Interval j) env) x i p
-    | S.Join (e1, e2) -> estimate_true k prec env x i (S.Or [e1; e2])
+    | S.Join lst -> estimate_true k prec env x i (S.Or lst)
     | e -> failwith ("Cannot estimate " ^ S.string_of_expr e)
 
   let rec estimate_false k prec env x i = function
@@ -210,18 +214,24 @@ struct
    (* | S.Less (e1, e2) -> estimate_non_positive prec env x i (S.Binary (S.Minus, e2, e1))*)
     | S.Less (e1, e2) ->
        let r = estimate_non_positive k prec env x i (S.Binary (S.Minus, e2, e1)) in
-   (*    print_endline ("Estimated " ^ S.string_of_name x ^ " on " ^ I.to_string i ^ " with " ^ Env.string_of_env env ^ " | " ^ S.string_of_expr (S.Less (e1, e2)) ^ " to be false on " ^ R.to_string r ^ "\n");*)
+       (*print_endline ("Estimated " ^ S.string_of_name x ^ " on " ^ I.to_string i ^ " with " ^ Env.string_of_env env ^ " | " ^ S.string_of_expr (S.Less (e1, e2)) ^ " to be false on " ^ R.to_string r ^ "\n");*)
 	r
     | S.Exists (y, j, p) ->
         estimate_false k prec (Env.extend y (S.Interval (I.flip j)) env) x i p
     | S.Forall (y, j, p) ->
         estimate_false k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
-    | S.Join (e1, e2) -> estimate_false k prec env x i (S.Or [e1; e2])
+    | S.Join lst -> estimate_false k prec env x i (S.Or lst)
     | e -> failwith ("Cannot estimate " ^ S.string_of_expr e)
 
   let estimate k prec env x i p =
-    (R.intersection (R.complement (estimate_false k prec env x i p)) (R.of_interval i),
-     R.intersection (estimate_true k prec env x i p)  (R.of_interval i))
+    let a1' = (estimate_false k prec env x i p) in
+    let a1 = R.complement a1' in
+    let b1 = estimate_true k prec env x i p in
+    let a = R.intersection a1 (R.of_interval i) in
+    let b = R.intersection b1 (R.of_interval i) in
+    (*if (*R.is_inhabited (R.intersection a1 b1)*) true
+       then print_endline ("estimate: " ^ I.to_string i ^ "--" ^ R.to_string a1' ^ ", " ^ R.to_string a1 ^ ", " ^ R.to_string b1);*)
+    (a, b)
 
 end;;
 

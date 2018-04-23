@@ -244,3 +244,13 @@ let is_in_rect_in =
 let is_in_rect_out =
   is_in_bool (grow_out_eps 0.1 (rectangle 2 2)) 1 1;;
 ! ANS: is_in_rect_out : real = 0.0
+
+let to_bool =
+  fun p : prop * prop =>
+  mkbool p#0 p#1 ;;
+
+let shape_to_bool =
+  fun shape : real -> real -> prop * prop =>
+  fun x : real =>
+  fun y : real =>
+  to_bool (shape x y);;

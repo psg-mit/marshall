@@ -34,6 +34,9 @@ struct
 	check ctx Ty_Real e1 ;
 	check ctx Ty_Real e2 ;
 	Ty_Real
+    | Restrict (e1, e2) ->
+	check ctx Ty_Sigma e1 ;
+	type_of ctx e2
     | Unary (_, e) ->
 	check ctx Ty_Real e ;
 	Ty_Real
@@ -44,9 +47,10 @@ struct
     | False -> Ty_Sigma
     | And lst
     | Or lst  -> List.iter (check ctx Ty_Sigma) lst ; Ty_Sigma
-    | Join (e1, e2) ->
-	   let ty = type_of ctx e1 in
-	   check ctx ty e2;
+    | Join [] -> error "cannot infer type of empty join"
+	| Join (e :: es) ->
+	   let ty = type_of ctx e in
+	   List.iter (check ctx ty) es;
 	   ty
     | Less (e1, e2) ->
 	check ctx Ty_Real e1 ;
