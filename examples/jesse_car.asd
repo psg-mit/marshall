@@ -1,3 +1,14 @@
+! #plot 20 (quantified_shape_to_bool (scale_shape_x_y square_quantified 1 0.65));;
+let car = 
+  let wheel = (scale_shape_x_y circle_quantified 0.18 0.18) in 
+  let right_wheel = (translate_shape_x_y wheel 0.5 0.4) in 
+  let left_wheel = (translate_shape_x_y  wheel -0.5 0.4) in
+  let car_body = (scale_shape_x_y square_quantified 1.5 0.75) in
+  let wheels = union_quantified left_wheel right_wheel in
+  union_quantified car_body wheels
+  ;;
+
+! #plot 20 (quantified_shape_to_bool (translate_shape_x_y (scale_shape_x_y circle_quantified 0.3 0.3) -0.5 0.5));;
 let to_bool =
   fun p : prop * prop =>
   mkbool p#0 p#1 ;;
@@ -75,8 +86,8 @@ let translate_shape_x_y =
   (fun x : real => fun y : real =>
     shape#0 (x - tx) (y - ty)
     ,
-  fun p' : real -> real -> prop => 
-  shape#1 (fun x : real => fun y : real => p' (x - tx) (y - ty))
+  fun p'' : real -> real -> prop => 
+  shape#1 (fun x : real => fun y : real => p'' (x - tx) (y - ty))
   )
   ;;
 
@@ -89,9 +100,9 @@ let union_quantified =
    fun y : real =>
    ((shape1#0 x y)#0 \/ (shape2#0 x y)#0, 
     (shape1#0 x y)#1 \/ (shape2#0 x y)#1)),  
-  ((fun p' : real -> real -> prop =>
-   ((shape1#1 p')#0 \/ (shape2#1 p')#0, 
-    (shape1#1 p')#1 \/ (shape2#1 p')#1))))
+  ((fun pr : real -> real -> prop =>
+   ((shape1#1 pr)#0 \/ (shape2#1 pr)#0, 
+    (shape1#1 pr)#1 \/ (shape2#1 pr)#1))))
   ;;
 
 
