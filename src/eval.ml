@@ -186,7 +186,7 @@ let rec restrict p e = match e with
 	| S.And lst -> (match (List.map (hnf env) lst) with
 	    | [] -> [S.True]
 			| xs -> [S.And (List.map (fun e -> S.Or e) xs)])
-	| S.Or lst -> [S.Or (List.map (hnf env) lst)]
+	| S.Or lst -> [S.Or (list_bind lst (hnf env))]
 	| S.Join lst -> list_bind lst (hnf env)
 	| S.MkBool (e1, e2) -> [S.MkBool (S.Or (hnf env e1), S.Or (hnf env e2))]
 	| S.Tuple lst -> List.map (fun e -> S.Tuple e) (List.fold_right
