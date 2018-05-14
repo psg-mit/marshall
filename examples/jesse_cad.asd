@@ -13,17 +13,6 @@ let euclidean_dist =
     sqrt ((p1#0-p2#0)*(p1#0-p2#0) + (p1#1-p2#1)*(p1#1-p2#1))
     ;;
 
-let to_bool =
-  fun p : prop * prop =>
-  mkbool p#0 p#1 ;;
-
-let shape_to_bool =
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  to_bool (shape x y);;
-  
-
 ! Implement line with an interior in the direction of the normal.
 let line =
       fun nx : real =>
@@ -55,16 +44,23 @@ let triangle =
     intersection (intersection top_right top_left) bottom
     ;;  ! intersection take more params
 
+let square = 
+    fun x : real =>
+    fun y : real =>
+    (-0.5 < x /\ x < 0.5 /\ -0.5 < y /\ y < 0.5,
+     -0.5 > x \/ x > 0.5 \/ -0.5 > y \/ y > 0.5)
+    ;;
+
 ! Create a unit square centered at the origin
-let square =
-  let left_side = translate (1/2) 0 vertical_line in
-  let right_side = translate (-1/2) 0 (complement vertical_line) in
-  let top = translate 0 (1/2) (complement (line 0 1)) in
-  let bottom = translate 0 (-1/2) (line 0 1) in
-  let vertical_strip = intersection left_side right_side in
-  let horizontal_strip = intersection top bottom in
-  intersection horizontal_strip vertical_strip
-  ;;
+!let square =
+!  let left_side = translate (1/2) 0 vertical_line in
+!  let right_side = translate (-1/2) 0 (complement vertical_line) in
+!  let top = translate 0 (1/2) (complement (line 0 1)) in
+!  let bottom = translate 0 (-1/2) (line 0 1) in
+!  let vertical_strip = intersection left_side right_side in
+!  let horizontal_strip = intersection top bottom in
+!  intersection horizontal_strip vertical_strip
+!  ;;
 
 ! Dot product
 let dot =
