@@ -1,5 +1,6 @@
 ! #plot 20 (quantified_shape_to_bool (scale_shape_x_y square_quantified 1 0.65));;
 
+! ---------- Set Up the Shapes ---------- 
 let to_bool =
   fun p : prop * prop =>
   mkbool p#0 p#1 ;;
@@ -38,8 +39,6 @@ let forall_exists_square =
 let square_quantified =
   (square , forall_exists_square)
 ;;
-
-
 
 ! create the quantifiers for the unit circles.
 let forall_exists_circle = 
@@ -102,7 +101,17 @@ let union_quantified =
     (shape1#1 pr)#1 \/ (shape2#1 pr)#1))))
   ;;
 
-    
+let max = fun a : real => fun b : real =>
+  cut x  left  (x < a \/ x < b)
+         right (x > a /\ x > b);;
+
+! --------- Make the car --------- 
+
+! Set the starting position and velocity
+let x = -0.5;;
+let v = 0.25;;
+
+! Create the car    
 let car = 
   let wheel = (scale_shape_x_y circle_quantified 0.09 0.09) in 
   let right_wheel = (translate_shape_x_y wheel 0.25 0.125) in 
@@ -111,17 +120,16 @@ let car =
   let car_body2 = (translate_shape_x_y (scale_shape_x_y square_quantified 0.5 0.35)  0 -0.125) in
   let car_body = union_quantified car_body1 car_body2 in 
   let wheels = union_quantified left_wheel right_wheel in
-  translate_shape_x_y (union_quantified car_body wheels) -0.6 0
+  translate_shape_x_y (union_quantified car_body wheels) (-0.375 + x) 0
   ;;
 
-let intersection_for_car = (scale_shape_x_y square_quantified 0.5 0.5);;
+! Create the intersection
+let crossing = (scale_shape_x_y square_quantified 0.5 0.5);;
 
-let system = translate_shape_x_y (union_quantified intersection_for_car car) 0.25 0;;
+! Make the system
+let system = translate_shape_x_y (union_quantified crossing car) 0.25 0;;
 
-let max = fun a : real => fun b : real =>
-  cut x  left  (x < a \/ x < b)
-         right (x > a /\ x > b);;
-
+! --------- Set up and run the simulation --------- 
 let eps = 0.01;;
 let a_max = 5;; 
 let a_min = -5;;
@@ -130,91 +138,125 @@ let a_min = -5;;
 let w = 0.5 + 0.75;;
 let T = 1;;
 
-! compute properties such as the separation distance and to know that it's positive
+! Compute properties such as the separation distance and to know that it's positive
+! Width of the car is not modelled 
+let a_stop = fun x : real => fun v : real =>
+    v * v / (2 * (x + eps)) 
+  ;;
 
-! width of the car is not modelled 
+let a_go = fun x : real => fun v : real =>
+  max 0 (2 * (w + eps - x - v * T) / (T * T)) 
+  ;;
+
 let accel = fun x : real => fun v : real =>
-  let a_go = fun x : real => fun v : real =>
-    max 0 (2 * (w + eps - x - v * T) / (T * T)) in 
-  let a_stop = fun x : real => fun v : real =>
-    v * v / (2 * (x + eps)) in
   (  a_go x v   < a_max  ~>  a_go x v
-  || a_stop x v > a_min  ~>  a_stop x v );;
+  || a_stop x v > a_min  ~>  a_stop x v )
+  ;;
 
-! distance moved by accelerating as per ac.
- 
+! move the car using the given acceleration function, 
+! and initial position and velocity
 let move_car = 
+  fun acceleration : real -> real -> real =>
   fun x : real => 
-  fun v : real =>
+  fun v : real => 
+  
   fun car : (real -> real -> prop * prop)
           * ((real -> real -> prop) -> prop * prop) =>
-  
-  translate_shape_x_y car (((accel x v) * T * T / 2) + v * T)  0;;
+  ! distance moved by accelerating as per acccel.  
+  translate_shape_x_y car (((acceleration x v) * T * T / 2) + v * T)  0;;
 
-let moved_car = move_car car x;;
+let moved_car = move_car accel x v car;;
 
-let updated_system = translate_shape_x_y (union_quantified intersection_for_car moved_car) 0.25 0;;
+let updated_system = translate_shape_x_y (union_quantified crossing moved_car) 0.25 0;;
 
+! ---------- Demonstrate Correctness ----------
+
+! minimum distance between two shapes
 let separation = 
-    fun shape1 : (real -> real -> prop * prop)
-        * ((real -> real -> prop) -> prop * prop) =>         
-    fun shape2 : (real -> real -> prop * prop)
-            * ((real -> real -> prop) -> prop * prop) =>
-    cut cutoff left (cutoff < 0 \/ (shape2#1 (fun x2 : real => fun y2 : real => 
-                    (shape1#1 (fun x1 : real => fun y1 : real => 
-                    (euclidean_dist (x1,y1) (x2,y2)) > cutoff))#0))#0)
-               right (cutoff > 0 /\ (shape2#1 (fun x2 : real => fun y2 : real =>  
-                    (shape1#1 (fun x1 : real => fun y1 : real => 
-                    (euclidean_dist (x1,y1) (x2,y2)) < cutoff))#1))#1)
-    ;;
+  fun shape1 : (real -> real -> prop * prop)
+      * ((real -> real -> prop) -> prop * prop) =>         
+  fun shape2 : (real -> real -> prop * prop)
+          * ((real -> real -> prop) -> prop * prop) =>
+  cut cutoff left (cutoff < 0 \/ (shape2#1 (fun x2 : real => fun y2 : real => 
+                  (shape1#1 (fun x1 : real => fun y1 : real => 
+                  (euclidean_dist (x1,y1) (x2,y2)) > cutoff))#0))#0)
+              right (cutoff > 0 /\ (shape2#1 (fun x2 : real => fun y2 : real =>  
+                  (shape1#1 (fun x1 : real => fun y1 : real => 
+                  (euclidean_dist (x1,y1) (x2,y2)) < cutoff))#1))#1)
+  ;;
 
-let point_set_separation = 
-    fun shape1 : (real -> real -> prop * prop)
-        * ((real -> real -> prop) -> prop * prop) =>    
+! the separation (minimum distance) betweeen a given shape and a point
+let shape_point_separation = 
+  fun shape1 : (real -> real -> prop * prop)
+      * ((real -> real -> prop) -> prop * prop) =>    
 
-    fun p : real*real =>
+  fun p : real*real =>
 
-    cut cutoff left (cutoff < 0 \/
-                (shape1#1 (fun x1 : real => fun y1 : real => 
-                (euclidean_dist (x1,y1) p) > cutoff))#0)
-            right (cutoff > 0 /\ 
-                (shape1#1 (fun x1 : real => fun y1 : real => 
-                (euclidean_dist (x1,y1) p) < cutoff))#1)
-    ;;
+  cut cutoff left (cutoff < 0 \/
+              (shape1#1 (fun x1 : real => fun y1 : real => 
+              (euclidean_dist (x1,y1) p) > cutoff))#0)
+          right (cutoff > 0 /\ 
+              (shape1#1 (fun x1 : real => fun y1 : real => 
+              (euclidean_dist (x1,y1) p) < cutoff))#1)
+  ;;
 
+! compute the hausdorff distance between two shapes. 
+! It is the max over every shape_point_separation
 let hausdorff_distance = 
-    fun shape1 : (real -> real -> prop * prop)
-        * ((real -> real -> prop) -> prop * prop) =>         
-    fun shape2 : (real -> real -> prop * prop)
-            * ((real -> real -> prop) -> prop * prop) =>
+  fun shape1 : (real -> real -> prop * prop)
+      * ((real -> real -> prop) -> prop * prop) =>         
+  fun shape2 : (real -> real -> prop * prop)
+          * ((real -> real -> prop) -> prop * prop) =>
+  
+  ! compute the sup_{x in shape1}(inf_{y in shape2} d(x,y))
+  let sup_inf_distance = 
+      fun shape1 : (real -> real -> prop * prop)
+          * ((real -> real -> prop) -> prop * prop) =>         
+      fun shape2 : (real -> real -> prop * prop)
+              * ((real -> real -> prop) -> prop * prop) =>
 
-    cut cutoff2 
-        left (cutoff2 < 0 \/ 
-                (shape2#1 (fun x2 : real => fun y2 : real =>  
-                  ((point_set_separation shape1 (x2,y2)) > cutoff2) 
-                ))#1                 
-              )
-        right (cutoff2 > 0 /\ 
-                (shape2#1 (fun x2 : real => fun y2 : real =>  
-                    ((point_set_separation shape1 (x2,y2)) < cutoff2)    
-                ))#0                  
-              )
-    ;;
+      cut cutoff2 
+          left (cutoff2 < 0 \/ 
+                  (shape2#1 (fun x2 : real => fun y2 : real =>  
+                    ((shape_point_separation shape1 (x2,y2)) > cutoff2) 
+                  ))#1                 
+                )
+          right (cutoff2 > 0 /\ 
+                  (shape2#1 (fun x2 : real => fun y2 : real =>  
+                      ((shape_point_separation shape1 (x2,y2)) < cutoff2)    
+                  ))#0                  
+                ) in 
+
+  ! compute max (sup_{x in shape1}(inf_{y in shape2} d(x,y)),
+  !              sup_{y in shape2}(inf_{x in shape1} d(x,y)))
+  max (sup_inf_distance shape1 shape2) (sup_inf_distance shape2 shape1)
+  ;;
 
 
 
+! Compute the max velocity as per page 9 of the paper
+let v_max = -a_min * (T + (sqrt (T*T - 2*(T*T/2*a_max - w - 2 * eps)/a_min)));;
 
+! Check that the car is safe for a given acceleration function
+! for starting positions in the range [-2,-1] and velocities in
+! the range [0, v_max], in this case v_max is about 11
+! check if either the acceleration is illegal or we are safe
+let stop_is_safe =
+  forall x : [-2, -1],
+  forall v : [0, 11],
+  let stop_car = (move_car a_stop x v car) in 
+  (((a_stop x v) < a_min) \/ ((separation stop_car crossing) > 0))
+  ;;
+
+let go_is_safe =
+  forall x : [-2, -1],
+  forall v : [0, 11],
+  let go_car = (move_car a_go x v car) in 
+  (((a_go x v) > a_max) \/ ((separation go_car crossing) > 0))
+  ;;
 
 ! #plot 40 (quantified_shape_to_bool system);;
 ! #plot 40 (quantified_shape_to_bool updated_system);;
-
-! Concern?
-!# let x = pos 1 2;;
-!uh-oh left cut-0.00000000000,-0.00000000000
-!uh-oh right cut0.00000000000,0.00000000000
-
-!#use "examples/jesse_bounding_box.asd";;
-!rightmost_extent intersection_for_car;;
 
 let zero_shape = (fun x : real => fun y : real => (False, True),
                   fun P : real -> real -> prop => (P 0 0, P 0 0));;
@@ -224,5 +266,7 @@ let zero_shape = (fun x : real => fun y : real => (False, True),
 !  fun x2 : real =>
 !  x1 < x2
 !  ;;
+
+! Why can't foralls accept variable arguments?
 
                 
