@@ -1,5 +1,3 @@
-! #plot 20 (quantified_shape_to_bool (scale_shape_x_y square_quantified 1 0.65));;
-
 ! ---------- Set Up the Shapes ---------- 
 let to_bool =
   fun p : prop * prop =>
@@ -64,7 +62,7 @@ let circle_quantified =
 let scale_shape_x_y =
   fun shape : (real -> real -> prop * prop)
             * ((real -> real -> prop) -> prop * prop) =>
-  fun cx : real =>
+  fun cx : real =>                
   fun cy : real =>
   (fun x : real => fun y : real =>
     shape#0 (x / cx) (y / cy)
@@ -95,9 +93,9 @@ let union_quantified =
   ((fun x : real =>
    fun y : real =>
    ((shape1#0 x y)#0 \/ (shape2#0 x y)#0, 
-    (shape1#0 x y)#1 \/ (shape2#0 x y)#1)),  
+    (shape1#0 x y)#1 /\ (shape2#0 x y)#1)),  
   ((fun pr : real -> real -> prop =>
-   ((shape1#1 pr)#0 \/ (shape2#1 pr)#0, 
+   ((shape1#1 pr)#0 /\ (shape2#1 pr)#0, 
     (shape1#1 pr)#1 \/ (shape2#1 pr)#1))))
   ;;
 
@@ -108,8 +106,8 @@ let max = fun a : real => fun b : real =>
 ! --------- Make the car --------- 
 
 ! Set the starting position and velocity
-let x = -0.5;;
-let v = 0.25;;
+let x = -1.5;;
+let v = 6;;
 
 ! Create the car    
 let car = 
@@ -180,9 +178,22 @@ let separation =
   cut cutoff left (cutoff < 0 \/ (shape2#1 (fun x2 : real => fun y2 : real => 
                   (shape1#1 (fun x1 : real => fun y1 : real => 
                   (euclidean_dist (x1,y1) (x2,y2)) > cutoff))#0))#0)
-              right (cutoff > 0 /\ (shape2#1 (fun x2 : real => fun y2 : real =>  
+             right (cutoff > 0 /\ (shape2#1 (fun x2 : real => fun y2 : real =>  
                   (shape1#1 (fun x1 : real => fun y1 : real => 
                   (euclidean_dist (x1,y1) (x2,y2)) < cutoff))#1))#1)
+  ;;
+
+! Two shapes are separated if they share no points in common.
+! This is checking that separation is > 0, but is computationally more efficient.
+! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2) 
+let is_separated = 
+  fun shape1 : (real -> real -> prop * prop)
+      * ((real -> real -> prop) -> prop * prop) =>         
+  fun shape2 : (real -> real -> prop * prop)
+          * ((real -> real -> prop) -> prop * prop) =>
+  (shape2#1 (fun x2 : real => fun y2 : real => 
+            (shape1#1 (fun x1 : real => fun y1 : real => 
+                  (x1 < x2 \/ x1 > x2 \/ y1 > y2 \/ y1 < y2)))#0))#0  
   ;;
 
 ! the separation (minimum distance) betweeen a given shape and a point
@@ -241,32 +252,40 @@ let v_max = -a_min * (T + (sqrt (T*T - 2*(T*T/2*a_max - w - 2 * eps)/a_min)));;
 ! for starting positions in the range [-2,-1] and velocities in
 ! the range [0, v_max], in this case v_max is about 11
 ! check if either the acceleration is illegal or we are safe
-let stop_is_safe =
+let go_is_safe =
   forall x : [-2, -1],
   forall v : [0, 11],
-  let stop_car = (move_car a_stop x v car) in 
-  (((a_stop x v) < a_min) \/ ((separation stop_car crossing) > 0))
+  let go_car = (move_car a_go x v car) in 
+  (((a_go x v) > a_max) \/ (is_separated go_car crossing))
   ;;
 
 let go_is_safe =
   forall x : [-2, -1],
   forall v : [0, 11],
   let go_car = (move_car a_go x v car) in 
-  (((a_go x v) > a_max) \/ ((separation go_car crossing) > 0))
+  (((a_go x v) > a_max) \/ (is_separated go_car crossing))
   ;;
 
+
+! Check that both stopping and going is safe. 
+let all_is_safe = go_is_safe /\ stop_is_safe;;
+
+! used to plot the car-crossing system in it's initial and final states. 
 ! #plot 40 (quantified_shape_to_bool system);;
 ! #plot 40 (quantified_shape_to_bool updated_system);;
+
+! ---------- Notes and Test Shapes ---------- 
 
 let zero_shape = (fun x : real => fun y : real => (False, True),
                   fun P : real -> real -> prop => (P 0 0, P 0 0));;
 
-!let test_prop = 
-!  fun x1 : real =>
-!  fun x2 : real =>
-!  x1 < x2
-!  ;;
+let test_prop = 
+  fun x1 : real =>
+  fun x2 : real =>
+  x1 < x2
+  ;;
 
+! How do foralls work 
 ! Why can't foralls accept variable arguments?
 
                 
