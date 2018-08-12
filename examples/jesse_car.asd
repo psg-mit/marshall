@@ -107,7 +107,7 @@ let max = fun a : real => fun b : real =>
 
 ! Set the starting position and velocity
 let x = -1.5;;
-let v = 6;;
+let v = 3;;
 
 ! Create the car    
 let car = 
@@ -131,9 +131,8 @@ let system = translate_shape_x_y (union_quantified crossing car) 0.25 0;;
 let eps = 0.01;;
 let a_max = 5;; 
 let a_min = -5;;
-! add in the length of the car to make sure the whole
-! car clears the intersection.
-let w = 0.5 + 0.75;;
+let w_car = 0.75;;
+let w = 0.5;;
 let T = 1;;
 
 ! Compute properties such as the separation distance and to know that it's positive
@@ -143,7 +142,7 @@ let a_stop = fun x : real => fun v : real =>
   ;;
 
 let a_go = fun x : real => fun v : real =>
-  max 0 (2 * (w + eps - x - v * T) / (T * T)) 
+  max 0 (2 * (w + w_car + eps - x - v * T) / (T * T)) 
   ;;
 
 let accel = fun x : real => fun v : real =>
@@ -246,7 +245,7 @@ let hausdorff_distance =
 
 
 ! Compute the max velocity as per page 9 of the paper
-let v_max = -a_min * (T + (sqrt (T*T - 2*(T*T/2*a_max - w - 2 * eps)/a_min)));;
+let v_max = -a_min * (T + (sqrt (T*T - 2*(T*T/2*a_max - (w + w_car) - 2 * eps)/a_min)));;
 
 ! Check that the car is safe for a given acceleration function
 ! for starting positions in the range [-2,-1] and velocities in
