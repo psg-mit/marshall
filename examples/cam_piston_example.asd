@@ -1,8 +1,8 @@
-#use "examples/cad.asd";;
-#use "examples/jesse_car.asd";;
 #use "examples/sqrt.asd";;
-#use "examples/bounding_box.asd";;
-#use "exampels/jesse_car.asd";; 
+#use "examples/cad.asd";;
+#use "examples/jesse_cad.asd";;
+#use "examples/jesse_bounding_box.asd";;
+#use "examples/jesse_car.asd";; 
 
 ! Create a cam and piston system:
 ! https://en.wikipedia.org/wiki/Camshaft
@@ -20,11 +20,10 @@ let ellipse =
   (x * x / (a * a)  + y * y / (b * b) < 1, x * x / (a * a)  + y * y / (b * b) > 1)
   ;;
 
-let a = 1;
-let b = 0.5;
+let a = 0.75;;
+let b = 0.5;;
 let cam_unquantified = ellipse a b;; 
 
-! TODO IMPLEMENT ROTATION
 ! Rotates the given shape
 let rotate_shape_cos_sin =
   fun shape : (real -> real -> prop * prop)
@@ -32,23 +31,28 @@ let rotate_shape_cos_sin =
   fun cos : real =>
   fun sin : real =>
 
-  ! Apply rotation matrix
-  let x_new = cos * x - sin * y in  
-  let y_new = sin * x + cos * y in 
-
   ! Produce new shape
   (fun x : real => fun y : real =>
+    
+    ! Apply rotation matrix
+    let x_new = cos * x - sin * y in  
+    let y_new = sin * x + cos * y in 
+    
     shape#0 (x_new) (y_new)
     ,
   fun p' : real -> real -> prop => 
-  shape#1 (fun x : real => fun y : real => p' (x_new) (y_new))
+    shape#1 (fun x : real => fun y : real =>
+      ! Apply rotation matrix
+      let x_new = cos * x - sin * y in  
+      let y_new = sin * x + cos * y in         
+      p' (x_new) (y_new))
   )
   ;;
 
 ! A higher order function that computes the quantifiers for a given shape.
 let forall_exists_shape = 
-  fun shape : real -> real -> prop =>
-  fun p : real -> real -> prop =>
+  fun shape : real -> real -> prop * prop =>
+  fun p' : real -> real -> prop =>
   let forall_shape =   
     fun p : real -> real -> prop =>
     forall x : [-1, 1],
@@ -59,13 +63,13 @@ let forall_exists_shape =
     exists x1 : [-1, 1],
     exists y1 : [-1, 1],
     (shape x1 y1)#0 /\ p x1 y1 in 
-  (forall_shape p, exists_shape p)
+  (forall_shape p', exists_shape p')
   ;;
 
 ! Set up the cam and piston
-forall_exists_cam = forall_exists_shape cam_unquantified;;
+let forall_exists_cam = forall_exists_shape cam_unquantified;;
 let cam = (cam_unquantified, forall_exists_cam);;
-let piston = translate_shape_x_y circle_quantified 1.5 0;;
+let piston = translate_shape_x_y (scale_shape_x_y circle_quantified 0.5 0.5) 1.25 0;;
 
 
 let check_conditions = 
@@ -92,7 +96,7 @@ let check_conditions =
   let curr_piston = translate_shape_x_y piston amount_to_translate_cam 0 in
   let other_curr_piston = translate_shape_x_y piston amount_to_translate_cam 0 in
   
-  ! TODO: Check some conditions and note that NOTHING IS TESTED!!!!
+  ! TODO: Check some condition all code tested!
 
   
 
