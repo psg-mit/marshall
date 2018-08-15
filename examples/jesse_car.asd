@@ -81,7 +81,7 @@ let translate_shape_x_y =
     shape#0 (x - tx) (y - ty)
     ,
   fun p' : real -> real -> prop => 
-  shape#1 (fun x : real => fun y : real => p' (x - tx) (y - ty))
+  shape#1 (fun x : real => fun y : real => p' (x + tx) (y + ty))
   )
   ;;
 

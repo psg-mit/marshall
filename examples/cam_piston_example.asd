@@ -42,9 +42,9 @@ let rotate_shape_cos_sin =
     ,
   fun p' : real -> real -> prop => 
     shape#1 (fun x : real => fun y : real =>
-      ! Apply rotation matrix
-      let x_new = cos * x - sin * y in  
-      let y_new = sin * x + cos * y in         
+      ! Apply inverse rotation matrix
+      let x_new = cos * x + sin * y in  
+      let y_new = - sin * x + cos * y in         
       p' (x_new) (y_new))
   )
   ;;
@@ -89,14 +89,19 @@ let check_conditions =
   ! Move the circle around with the ellipse always touching the point
   ! on the positive x-axis 
   let amount_to_translate_piston = 
-    point_on_pos_x_axis - (leftmost_extent piston) in 
+    point_on_pos_x_axis - 0.75 in 
   let other_amount_to_translate_piston = 
-    other_point_on_pos_x_axis - (leftmost_extent piston) in
+    other_point_on_pos_x_axis - 0.75 in
   
-  let curr_piston = translate_shape_x_y piston amount_to_translate_cam 0 in
-  let other_curr_piston = translate_shape_x_y piston amount_to_translate_cam 0 in
+  let curr_piston = translate_shape_x_y piston amount_to_translate_piston 0 in
+  let other_curr_piston = translate_shape_x_y piston amount_to_translate_piston 0 in
   
-  ! TODO: Check some condition all code tested!
+  let cam_piston = union_quantified curr_cam curr_piston in 
+  let other_cam_piston = union_quantified other_curr_cam other_curr_piston in 
 
+  let shifted_square = translate_shape_x_y square_quantified 3 0 in  
+  is_separated cam_piston shifted_square /\
+  is_separated other_cam_piston shifted_square
+  ;;
   
 
