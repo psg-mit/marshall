@@ -1,8 +1,4 @@
-#use "examples/sqrt.asd";;
-#use "examples/cad.asd";;
-#use "examples/jesse_cad.asd";;
-#use "examples/jesse_bounding_box.asd";;
-#use "examples/jesse_car.asd";; 
+#use "examples/car_visualization_example.asd";; 
 
 ! Create a cam and piston system:
 ! https://en.wikipedia.org/wiki/Camshaft
@@ -34,7 +30,7 @@ let rotate_shape_cos_sin =
   ! Produce new shape
   (fun x : real => fun y : real =>
     
-    ! Apply rotation matrix
+    ! Apply inverse rotation matrix
     let x_new = cos * x - sin * y in  
     let y_new = sin * x + cos * y in 
     
@@ -42,7 +38,7 @@ let rotate_shape_cos_sin =
     ,
   fun p' : real -> real -> prop => 
     shape#1 (fun x : real => fun y : real =>
-      ! Apply inverse rotation matrix
+      ! Apply rotation matrix
       let x_new = cos * x + sin * y in  
       let y_new = - sin * x + cos * y in         
       p' (x_new) (y_new))

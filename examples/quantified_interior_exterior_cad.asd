@@ -1,10 +1,5 @@
-
-let sqrt =
-  fun a : real =>
-    cut x 
-      left  (x < 0 \/ x * x < a)
-      right (x > 0 /\ x * x > a)
-;;
+#use "examples/cad.asd";;
+#use "examples/sqrt.asd";;
 
 ! takes two points as tuples and returns their euclidean distance
 let euclidean_dist = 
