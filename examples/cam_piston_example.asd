@@ -67,37 +67,33 @@ let forall_exists_cam = forall_exists_shape cam_unquantified;;
 let cam = (cam_unquantified, forall_exists_cam);;
 let piston = translate_shape_x_y (scale_shape_x_y circle_quantified 0.5 0.5) 1.25 0;;
 
+let forall_circle1d =
+  fun P : real -> real -> prop =>
+  forall cost : [-1, 1],
+  let pos_sint = sqrt (1 - cost*cost) in
+  let neg_sint = - pos_sint in
+  P cost pos_sint /\ P cost neg_sint
+  ;;
 
 let check_conditions =
-  forall cost : [-1,1],
-  let pos_sint = sqrt (1 - cost*cost) in
-  let neg_sint = - sqrt (1 - cost*cost) in
-
-  ! Location of the point on the ellipse intersected with the positive x-axis
-  ! We use the parametric form of the ellipse
-  let point_on_pos_x_axis =  a*cost + b*pos_sint in
-  let other_point_on_pos_x_axis = a*cost + b*neg_sint in
-
-  ! Rotate the piston
-  let curr_cam = rotate_shape_cos_sin cam cost pos_sint in
-  let other_curr_cam = rotate_shape_cos_sin cam cost neg_sint in
-
-  ! Move the circle around with the ellipse always touching the point
-  ! on the positive x-axis
-  let amount_to_translate_piston =
-    point_on_pos_x_axis - 0.75 in
-  let other_amount_to_translate_piston =
-    other_point_on_pos_x_axis - 0.75 in
-
-  let curr_piston = translate_shape_x_y piston amount_to_translate_piston 0 in
-  let other_curr_piston = translate_shape_x_y piston amount_to_translate_piston 0 in
-
-  let cam_piston = union_quantified curr_cam curr_piston in
-  let other_cam_piston = union_quantified other_curr_cam other_curr_piston in
-
   let shifted_square = translate_shape_x_y square_quantified 3 0 in
-  is_separated cam_piston shifted_square /\
-  is_separated other_cam_piston shifted_square
+  forall_circle1d (fun cost : real => fun sint : real =>
+    ! Location of the point on the ellipse intersected with the positive x-axis
+    ! We use the parametric form of the ellipse
+    let point_on_pos_x_axis =  a*cost + b*sint in
+
+    ! Rotate the piston
+    let curr_cam = rotate_shape_cos_sin cam cost sint in
+
+    ! Move the circle around with the ellipse always touching the point
+    ! on the positive x-axis
+    let amount_to_translate_piston = point_on_pos_x_axis - 0.75 in
+
+    let curr_piston = translate_shape_x_y piston amount_to_translate_piston 0 in
+
+    let cam_piston = union_quantified curr_cam curr_piston in
+    is_separated cam_piston shifted_square
+  )
   ;;
 
 
