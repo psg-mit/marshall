@@ -19,6 +19,7 @@ struct
     "exists", EXISTS;
     "False", FALSE;
     "forall", FORALL;
+    "int", INTEGRAL;
     "fun", FUN;
     "in", IN;
     "inf", INFINITY;

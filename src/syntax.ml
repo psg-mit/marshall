@@ -89,6 +89,7 @@ struct
     | Restrict of (expr * expr)
     | Exists of name * I.t * expr (* [exists x : [a,b], p] *)
     | Forall of name * I.t * expr (* [forall x : [a,b], p] *)
+    | Integral of name * I.t * expr
     | Let of name * expr * expr (* [let x = e1 in e2] *)
     | Tuple of expr list (* [(e1, ..., en)] *)
     | Proj of expr * int (* Concrete syntax for $k$-th projection is [e#k] *)
@@ -154,6 +155,8 @@ struct
 	  | Exists (x, t, p) ->  (10, "exists " ^ string_of_name x ^ " : " ^
 				    I.to_string t ^ " , " ^ to_str 9 p)
 	  | Forall (x, t, p) ->  (10, "forall " ^ string_of_name x ^ " : " ^
+				    I.to_string t ^ " , " ^ to_str 9 p)
+	  | Integral (x, t, p) ->  (10, "int " ^ string_of_name x ^ " : " ^
 				    I.to_string t ^ " , " ^ to_str 9 p)
 	  | Let (x, e1, e2)  ->  (10, "let " ^ string_of_name x ^ " = " ^ to_str 10 e1 ^
 				    " in " ^ to_str 9 e2)

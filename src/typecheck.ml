@@ -72,6 +72,10 @@ struct
 	check_compact_segment s ;
 	check ((x,Ty_Real)::ctx) Ty_Sigma p ;
 	Ty_Sigma
+    | Integral (x, s, p) ->
+	check_compact_segment s ;
+	check ((x,Ty_Real)::ctx) Ty_Real p ;
+	Ty_Real
     | Let (x, e1, e2) ->
 	let ty = type_of ctx e1 in
 	  type_of ((x,ty)::ctx) e2

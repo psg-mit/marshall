@@ -87,6 +87,7 @@ struct
 	| S.Lambda (x, ty, e) -> x<>y && (free_in y e)
 	| S.Exists (x, i, e) -> x<>y && (free_in y e)
 	| S.Forall (x, i, e) -> x<>y && (free_in y e)
+	| S.Integral (x, i, e) -> x<>y && (free_in y e)
 	| S.App (e1, e2)  -> free_in y e1 || free_in y e2
 	| S.Let (x, e1, e2) -> free_in y e1 || (x<>y && free_in y e2)
 
@@ -202,6 +203,9 @@ let rec restrict p e = match e with
 	| S.Forall (x, i, e) ->
 	  let x',e' = alpha1 x env e in
 	    [S.Forall (x', i, S.Or (hnf (Env.extend x' (S.Var x') env) e'))]
+	| S.Integral (x, i, e) ->
+	  let x',e' = alpha1 x env e in
+	    [S.Integral (x', i, join1 (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.App (e1, e2)  ->
       list_bind (hnf env e2) (fun e2' ->
 		  list_bind (hnf env e1) (fun e1' -> match e1' with
@@ -413,6 +417,9 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	      (match refn e1 with
 		 | S.Lambda (x, _, e) -> refine k prec (Env.extend x (refn e2) env) e
 		 | e -> S.App (e, e2))
+		| S.Integral (x, i, p) ->
+	      let prec = make_prec prec i in
+	      let (i1, i2) = I.split prec 1 i in S.Binary (S.Plus, S.Integral (x, i1, p), S.Integral (x, i2, p))
 
 	type 'a step_result =
     | Step_Done of 'a
@@ -444,7 +451,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| S.IsTrue _ | S.IsFalse _
 	| S.Let _ | S.Proj _ | S.App _ ->
 	    Step_Go (p + 1)
-	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ ->
+	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ ->
 	    (match A.lower p env e with
 	       | S.Interval i ->
 		   let w = (I.width 10 D.up i) in

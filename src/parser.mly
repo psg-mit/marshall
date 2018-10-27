@@ -30,7 +30,7 @@
 %token TRUE FALSE
 %token AND OR
 %token JOIN RESTRICT
-%token FORALL EXISTS
+%token FORALL EXISTS INTEGRAL
 %token LET IN
 %token CUT LEFT RIGHT
 %token TBOOL MKBOOL
@@ -120,6 +120,8 @@ expr:
     { S.Exists (x, s, e) }
   | FORALL x = VAR COLON s = segment COMMA e = expr
     { S.Forall (x, s, e) }
+  | INTEGRAL x = VAR COLON s = segment COMMA e = expr
+    { S.Integral (x, s, e) }
   | LET x = VAR EQUAL e1 = expr IN e2 = expr
     { S.Let (x, e1, e2) }
   | FUN x = VAR COLON t = ty DARROW e = expr
