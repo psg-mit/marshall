@@ -78,12 +78,13 @@ let forall_circle1d =
 let check_conditions =
   let shifted_square = translate_shape_x_y square_quantified 3 0 in
   forall_circle1d (fun cost : real => fun sint : real =>
+
+    ! Rotate the cam
+    let curr_cam = rotate_shape_cos_sin cam cost sint in
+
     ! Location of the point on the ellipse intersected with the positive x-axis
     ! We use the parametric form of the ellipse
     let point_on_pos_x_axis =  a*cost + b*sint in
-
-    ! Rotate the piston
-    let curr_cam = rotate_shape_cos_sin cam cost sint in
 
     ! Move the circle around with the ellipse always touching the point
     ! on the positive x-axis
