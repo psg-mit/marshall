@@ -419,7 +419,8 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		 | e -> S.App (e, e2))
 		| S.Integral (x, i, p) ->
 	      let prec = make_prec prec i in
-	      let (i1, i2) = I.split prec 1 i in S.Binary (S.Plus, S.Integral (x, i1, p), S.Integral (x, i2, p))
+	      let q = refine k prec (Env.extend x (S.RealVar (x, i)) env) p in
+	      let (i1, i2) = I.split prec 1 i in S.Binary (S.Plus, S.Integral (x, i1, q), S.Integral (x, i2, q))
 
 	type 'a step_result =
     | Step_Done of 'a
