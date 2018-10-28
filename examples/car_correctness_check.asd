@@ -30,8 +30,8 @@ let move_car =
   fun x : real =>
   fun v : real =>
 
-  fun car : (real -> real -> prop * prop)
-          * ((real -> real -> prop) -> prop * prop) =>
+  fun car : ((real -> real -> bool) -> bool)
+          * (real -> real -> bool) =>
   ! distance moved by accelerating as per acccel.
   translate_shape_x_y car (((acceleration x v) * T * T / 2) + v * T)  0;;
 
@@ -43,66 +43,46 @@ let updated_system = translate_shape_x_y (union_quantified crossing moved_car) 0
 
 ! minimum distance between two shapes
 let separation =
-  fun shape1 : (real -> real -> prop * prop)
-      * ((real -> real -> prop) -> prop * prop) =>
-  fun shape2 : (real -> real -> prop * prop)
-          * ((real -> real -> prop) -> prop * prop) =>
-  cut cutoff left (cutoff < 0 \/ (shape2#1 (fun x2 : real => fun y2 : real =>
-                  (shape1#1 (fun x1 : real => fun y1 : real =>
-                  (euclidean_dist (x1,y1) (x2,y2)) > cutoff))#0))#0)
-             right (cutoff > 0 /\ (shape2#1 (fun x2 : real => fun y2 : real =>
-                  (shape1#1 (fun x1 : real => fun y1 : real =>
-                  (euclidean_dist (x1,y1) (x2,y2)) < cutoff))#1))#1)
+  fun shape1 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  fun shape2 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
+     (shape1#0 (fun x : real => fun y : real =>
+      shape2#0 (fun x' : real => fun y' : real =>
+     lt (cutoff^2) ((x' - x)^2 + (y' - y)^2)))))
   ;;
 
 ! the separation (minimum distance) betweeen a given shape and a point
 let shape_point_separation =
-  fun shape1 : (real -> real -> prop * prop)
-      * ((real -> real -> prop) -> prop * prop) =>
-
+  fun shape1 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
   fun p : real*real =>
+  dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
+    (shape1#0 (fun x : real => fun y : real =>
+    lt (cutoff^2) (((p#0) - x)^2 + ((p#1) - y)^2)
+    )));;
 
-  cut cutoff left (cutoff < 0 \/
-              (shape1#1 (fun x1 : real => fun y1 : real =>
-              (euclidean_dist (x1,y1) p) > cutoff))#0)
-          right (cutoff > 0 /\
-              (shape1#1 (fun x1 : real => fun y1 : real =>
-              (euclidean_dist (x1,y1) p) < cutoff))#1)
+let directed_hausdorff_distance =
+  fun shape1 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  fun shape2 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
+     (shape1#0 (fun x : real => fun y : real =>
+      exists_shape shape2 (fun x' : real => fun y' : real =>
+     lt (cutoff^2) ((x' - x)^2 + (y' - y)^2)))))
   ;;
 
 ! compute the hausdorff distance between two shapes.
 ! It is the max over every shape_point_separation
 let hausdorff_distance =
-  fun shape1 : (real -> real -> prop * prop)
-      * ((real -> real -> prop) -> prop * prop) =>
-  fun shape2 : (real -> real -> prop * prop)
-          * ((real -> real -> prop) -> prop * prop) =>
-
-  ! compute the sup_{x in shape1}(inf_{y in shape2} d(x,y))
-  let sup_inf_distance =
-      fun shape1 : (real -> real -> prop * prop)
-          * ((real -> real -> prop) -> prop * prop) =>
-      fun shape2 : (real -> real -> prop * prop)
-              * ((real -> real -> prop) -> prop * prop) =>
-
-      cut cutoff2
-          left (cutoff2 < 0 \/
-                  (shape2#1 (fun x2 : real => fun y2 : real =>
-                    ((shape_point_separation shape1 (x2,y2)) > cutoff2)
-                  ))#1
-                )
-          right (cutoff2 > 0 /\
-                  (shape2#1 (fun x2 : real => fun y2 : real =>
-                      ((shape_point_separation shape1 (x2,y2)) < cutoff2)
-                  ))#0
-                ) in
-
-  ! compute max (sup_{x in shape1}(inf_{y in shape2} d(x,y)),
-  !              sup_{y in shape2}(inf_{x in shape1} d(x,y)))
-  max (sup_inf_distance shape1 shape2) (sup_inf_distance shape2 shape1)
-  ;;
-
-
+  fun shape1 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  fun shape2 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  max (directed_hausdorff_distance shape1 shape2)
+      (directed_hausdorff_distance shape2 shape1);;
 
 ! Compute the max velocity as per page 9 of the paper
 let v_max = -a_min * (T + (sqrt (T*T - 2*(T*T/2*a_max - (w + w_car) - 2 * eps)/a_min)));;
@@ -112,22 +92,30 @@ let v_max = -a_min * (T + (sqrt (T*T - 2*(T*T/2*a_max - (w + w_car) - 2 * eps)/a
 ! the range [0, v_max], in this case v_max is about 11
 ! check if either the acceleration is illegal or we are safe
 let go_is_safe =
-  forall x : [-2, -1],
-  forall v : [0, 11],
+  fun x : real =>
+  fun v : real =>
   let go_car = (move_car a_go x v car) in
-  (((a_go x v) > a_max) \/ (is_separated go_car crossing))
+  (a_go x v > a_max \/ is_true (is_separated go_car crossing))
   ;;
 
-let go_is_safe =
-  forall x : [-2, -1],
-  forall v : [0, 11],
-  let go_car = (move_car a_go x v car) in
-  (((a_go x v) > a_max) \/ (is_separated go_car crossing))
+let stop_is_safe =
+  fun x : real =>
+  fun v : real =>
+  let stop_car = (move_car a_stop x v car) in
+  (a_stop x v < a_min \/ is_true (is_separated stop_car crossing))
   ;;
 
 
 ! Check that both stopping and going is safe.
-let all_is_safe = go_is_safe /\ stop_is_safe;;
+let all_is_safe =
+  forall x : [-2, -1],
+  forall v : [0, 11],
+  ! whenever I may choose to go, I avoid the intersection
+  go_is_safe x v
+  ! whenever I may choose to go, I avoid the intersection
+  /\ stop_is_safe x v
+  ! I always choose at least one option (stop or go)
+  /\ (a_min < a_stop x v \/ a_go x v < a_max);;
 
 ! used to plot the car-crossing system in it's initial and final states.
 ! #plot 40 (quantified_shape_to_bool system);;

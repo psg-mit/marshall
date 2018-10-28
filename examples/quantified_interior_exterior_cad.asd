@@ -1,21 +1,11 @@
 #use "examples/cad.asd";;
 #use "examples/sqrt.asd";;
 
-! takes two points as tuples and returns their euclidean distance
-let euclidean_dist =
-    fun p1 : real * real =>
-    fun p2 : real * real =>
-    sqrt ((p1#0-p2#0)*(p1#0-p2#0) + (p1#1-p2#1)*(p1#1-p2#1))
-    ;;
-
 ! Implement line with an interior in the direction of the normal.
 let line =
-      fun nx : real =>
-      fun ny : real =>
-      fun x  : real =>
-      fun y  : real =>
-      (nx * x + ny * y > 0, nx * x + ny * y < 0)
-  ;;
+      fun nx : real => fun ny : real =>
+      fun x  : real => fun y  : real =>
+      lt 0 (nx * x + ny * y);;
 
 ! Sloped line
 let sloped_line =
@@ -24,11 +14,7 @@ let sloped_line =
   ;;
 
 ! Bad vertical line
-let vertical_line =
-    fun x : real =>
-    fun y : real =>
-    (x<0,x>0)
-    ;;
+let vertical_line = fun x : real => fun y : real => lt x 0;;
 
 
 ! Create a triangle centered at the origin
@@ -42,8 +28,8 @@ let triangle =
 let square =
     fun x : real =>
     fun y : real =>
-    (-0.5 < x /\ x < 0.5 /\ -0.5 < y /\ y < 0.5,
-     -0.5 > x \/ x > 0.5 \/ -0.5 > y \/ y > 0.5)
+    andb (andb (lt (-0.5) x) (lt x 0.5))
+         (andb (lt (-0.5) y) (lt y 0.5))
     ;;
 
 ! Create a unit square centered at the origin with lines
@@ -73,10 +59,10 @@ let reflect =
     fun a : real =>
     fun b : real =>
     fun c : real =>
-    fun shape : real -> real -> prop * prop =>
+    fun shape : real -> real -> bool =>
     fun x : real =>
     fun y : real =>
-    shape ((x * (a*a - b*b) - 2*b*(a*y+c))/(a*a+b*b))    ((y*(b*b-a*a) - 2*a*(b*x+c))/(a*a+b*b))
+    shape ((x * (a^2 - b^2) - 2*b*(a*y+c))/(a^2+b^2))    ((y*(b^2-a^2) - 2*a*(b*x+c))/(a^2+b^2))
     ;;
 
 
@@ -87,120 +73,52 @@ let reflect =
 
 
 ! ---------- Set Up the Shapes ----------
-let to_bool =
-  fun p : prop * prop =>
-  mkbool p#0 p#1 ;;
-
-let shape_to_bool =
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  to_bool (shape x y);;
-
-let quantified_shape_to_bool =
-  fun shape : (real -> real -> prop * prop)
-            * ((real -> real -> prop) -> prop * prop) =>
-  fun x : real =>
-  fun y : real =>
-  to_bool (shape#0 x y)
-  ;;
-
-! create the quantifiers for the unit square.
-let forall_exists_square =
-  fun p : real -> real -> prop =>
-  let forall_square =
-    fun p : real -> real -> prop =>
-    forall x : [-0.5, 0.5],
-    forall y : [-0.5, 0.5],
-    p x y in
-  let exists_square =
-    fun p : real -> real -> prop =>
-    exists x1 : [-0.5, 0.5],
-    exists y1 : [-0.5, 0.5],
-    p x1 y1 in
-  (forall_square p, exists_square p)
-  ;;
 
 ! unit disk centered at origin
-let square_quantified =
-  (square , forall_exists_square)
-;;
-
-! create the quantifiers for the unit circles.
-let forall_exists_circle =
-  fun p : real -> real -> prop =>
-  let forall_circle =
-    fun p : real -> real -> prop =>
-    forall x : [-1, 1],
-    forall y : [-1, 1],
-    (circle x y)#1 \/ p x y in
-  let exists_circle =
-    fun p : real -> real -> prop =>
-    exists x1 : [-1, 1],
-    exists y1 : [-1, 1],
-    (circle x1 y1)#0 /\ p x1 y1 in
-  (forall_circle p, exists_circle p)
-  ;;
+let square_quantified = scale_x_y_shape 0.5 0.5 unit_square;;
 
 ! unit disk centered at origin
 let circle_quantified =
-  (circle , forall_exists_circle)
+  (forall_circle, circle)
 ;;
 
-let scale_shape_x_y =
-  fun shape : (real -> real -> prop * prop)
-            * ((real -> real -> prop) -> prop * prop) =>
-  fun cx : real =>
-  fun cy : real =>
-  (fun x : real => fun y : real =>
-    shape#0 (x / cx) (y / cy)
-    ,
-  fun p' : real -> real -> prop =>
-  shape#1 (fun x : real => fun y : real => p' (x * cx) (y * cy))
-  )
-  ;;
-
 let translate_shape_x_y =
-  fun shape : (real -> real -> prop * prop)
-            * ((real -> real -> prop) -> prop * prop) =>
+  fun shape : ((real -> real -> bool) -> bool)
+            * (real -> real -> bool) =>
   fun tx : real =>
   fun ty : real =>
-  (fun x : real => fun y : real =>
-    shape#0 (x - tx) (y - ty)
-    ,
-  fun p' : real -> real -> prop =>
-  shape#1 (fun x : real => fun y : real => p' (x + tx) (y + ty))
+  (fun p' : real -> real -> bool =>
+  shape#0 (fun x : real => fun y : real => p' (x + tx) (y + ty))
+  , translate tx ty (shape#1)
   )
   ;;
 
 let union_quantified =
-  fun shape1 : (real -> real -> prop * prop)
-        * ((real -> real -> prop) -> prop * prop) =>
-  fun shape2 : (real -> real -> prop * prop)
-            * ((real -> real -> prop) -> prop * prop) =>
-  ((fun x : real =>
-   fun y : real =>
-   ((shape1#0 x y)#0 \/ (shape2#0 x y)#0,
-    (shape1#0 x y)#1 /\ (shape2#0 x y)#1)),
-  ((fun pr : real -> real -> prop =>
-   ((shape1#1 pr)#0 /\ (shape2#1 pr)#0,
-    (shape1#1 pr)#1 \/ (shape2#1 pr)#1))))
+  fun shape1 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  fun shape2 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  (fun pr : real -> real -> bool =>
+   (andb (shape1#0 pr) (shape2#0 pr))
+  , union (shape1#1) (shape2#1))
   ;;
 
 let max = fun a : real => fun b : real =>
-  cut x  left  (x < a \/ x < b)
-         right (x > a /\ x > b);;
+  dedekind_cut (fun x : real => orb (lt x a) (lt x b));;
+
+let neq = fun x : real => fun y : real =>
+  mkbool (x <> y) False;;
 
 ! Two shapes are separated if they share no points in common.
 ! This is checking that separation is > 0, but is computationally more efficient.
 ! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2)
 let is_separated =
-  fun shape1 : (real -> real -> prop * prop)
-      * ((real -> real -> prop) -> prop * prop) =>
-  fun shape2 : (real -> real -> prop * prop)
-          * ((real -> real -> prop) -> prop * prop) =>
-  (shape2#1 (fun x2 : real => fun y2 : real =>
-            (shape1#1 (fun x1 : real => fun y1 : real =>
-                  (x1 < x2 \/ x1 > x2 \/ y1 > y2 \/ y1 < y2)))#0))#0
+  fun shape1 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  fun shape2 : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  shape1#0 (fun x1 : real => fun y1 : real =>
+            shape2#0 (fun x2 : real => fun y2 : real =>
+                  orb (neq x1 x2) (neq y1 y2)))
   ;;
 
