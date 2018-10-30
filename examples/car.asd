@@ -20,21 +20,13 @@ let a_stop = fun x : real => fun v : real =>
     v * v / (2 * (x + eps))
 ;;
 
-let restrict =
-  fun U : prop =>
-  fun x : real =>
-  cut z
-     left U /\ z < x
-     right U /\ x < z
-;;
-
 let a_max = 10;;
 
 let a_min = -10;;
 
 let accel = fun x : real => fun v : real =>
-  (  restrict (a_go x v    < a_max) (a_go x v)
-  || restrict (a_stop x v  > a_min) (a_stop x v)
+  (  a_go x v    < a_max   ~>   a_go x v
+  || a_stop x v  > a_min   ~>   a_stop x v
   )
 ;;
 
