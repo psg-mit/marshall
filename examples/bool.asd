@@ -25,3 +25,6 @@ let dedekind_cut = fun p : real -> bool =>
     left   is_true  (p x)
     right  is_false (p x)
   ;;
+
+let sqrt = fun a : real =>
+  dedekind_cut (fun x : real => orb (lt x 0) (lt (x^2) a));;
