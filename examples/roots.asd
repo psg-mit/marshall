@@ -44,5 +44,5 @@ let l_root = fun f : real -> bool =>
   max (lnp_root f) (lpn_root f);;
 
 ! regular root finding on real-valued functions
-let l_root_real = fun f : real -> bool =>
+let l_root_real = fun f : real -> real =>
   l_root (fun x : real => lt 0 (f x));;
