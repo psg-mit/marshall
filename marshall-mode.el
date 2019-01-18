@@ -9,15 +9,16 @@
     ("\\/" . ?∨)
     ("<>" . ?≠)
     ("real" . ?ℝ)
+    ("prop" . ?Σ)
     ("bool" . ?𝔹))
   "Prettify rules for Marshall.")
 
 (setq marshall-highlights
       (let* (
             ;; define several category of keywords
-            (x-keywords '("let" "default" "fun" "cut" "left" "right" "in"))
+            (x-keywords '("let" "default" "fun" "cut" "left" "right" "in" "forall" "exists" "int"))
             (x-types '("real" "bool" "prop"))
-            (x-constants '("True" "False"))
+            (x-constants '("True" "False" "inf" "mkbool" "is_true" "is_false"))
             (x-events '())
             (x-functions '())
 
@@ -45,6 +46,7 @@
         ;; Marshall style comment: “! …”
         (modify-syntax-entry ?! "<" synTable)
         (modify-syntax-entry ?\n ">" synTable)
+        (modify-syntax-entry ?_ "w" synTable)
         synTable))
 
 (define-derived-mode marshall-mode
