@@ -19,25 +19,23 @@ let forall_interval' =
 
 let lnp_root = fun f : real -> bool =>
   dedekind_cut (fun q : real =>
-  orb (lt q 0)
-    (forall_interval' 0 q (fun x : real => f x))
+  q <b 0 || forall_interval' 0 q f
   );;
 
 let lpn_root = fun f : real -> bool =>
   dedekind_cut (fun q : real =>
-  orb (lt q 0)
-    (forall_interval' 0 q (fun x : real => negb (f x)))
+  q <b 0 || forall_interval' 0 q (fun x : real => negb (f x))
   );;
 
 let min =
   fun a : real =>
   fun b : real =>
-  dedekind_cut (fun x : real => andb (lt x a) (lt x b));;
+  dedekind_cut (fun x : real => x <b a && x <b b);;
 
 let max =
   fun a : real =>
   fun b : real =>
-  dedekind_cut (fun x : real => orb (lt x a) (lt x b));;
+  dedekind_cut (fun x : real => x <b a || x <b b);;
 
 ! find the earliest stable root of f on { x : R | x > 0 }
 let l_root = fun f : real -> bool =>
@@ -45,4 +43,4 @@ let l_root = fun f : real -> bool =>
 
 ! regular root finding on real-valued functions
 let l_root_real = fun f : real -> real =>
-  l_root (fun x : real => lt 0 (f x));;
+  l_root (fun x : real => 0 <b f x);;

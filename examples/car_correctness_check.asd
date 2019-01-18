@@ -50,7 +50,7 @@ let separation =
   dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
      (shape1#0 (fun x : real => fun y : real =>
       shape2#0 (fun x' : real => fun y' : real =>
-     lt (cutoff^2) ((x' - x)^2 + (y' - y)^2)))))
+     (cutoff^2) <b ((x' - x)^2 + (y' - y)^2)))))
   ;;
 
 ! the separation (minimum distance) betweeen a given shape and a point
@@ -60,7 +60,7 @@ let shape_point_separation =
   fun p : real*real =>
   dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
     (shape1#0 (fun x : real => fun y : real =>
-    lt (cutoff^2) (((p#0) - x)^2 + ((p#1) - y)^2)
+    (cutoff^2) <b (((p#0) - x)^2 + ((p#1) - y)^2)
     )));;
 
 let directed_hausdorff_distance =
@@ -71,7 +71,7 @@ let directed_hausdorff_distance =
   dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
      (shape1#0 (fun x : real => fun y : real =>
       exists_shape shape2 (fun x' : real => fun y' : real =>
-     lt (cutoff^2) ((x' - x)^2 + (y' - y)^2)))))
+     (cutoff^2) <b ((x' - x)^2 + (y' - y)^2)))))
   ;;
 
 ! compute the hausdorff distance between two shapes.

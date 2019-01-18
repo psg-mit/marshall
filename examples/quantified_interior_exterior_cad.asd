@@ -28,8 +28,7 @@ let triangle =
 let square =
     fun x : real =>
     fun y : real =>
-    andb (andb (lt (-0.5) x) (lt x 0.5))
-         (andb (lt (-0.5) y) (lt y 0.5))
+     ((-0.5) <b x && x <b 0.5) && ((-0.5) <b y && y <b 0.5)
     ;;
 
 ! Create a unit square centered at the origin with lines
@@ -99,12 +98,12 @@ let union_quantified =
   fun shape2 : ((real -> real -> bool) -> bool)
              * (real -> real -> bool) =>
   (fun pr : real -> real -> bool =>
-   (andb (shape1#0 pr) (shape2#0 pr))
+   (shape1#0 pr && shape2#0 pr)
   , union (shape1#1) (shape2#1))
   ;;
 
 let max = fun a : real => fun b : real =>
-  dedekind_cut (fun x : real => orb (lt x a) (lt x b));;
+  dedekind_cut (fun x : real => (x <b a) || (x <b b));;
 
 let neq = fun x : real => fun y : real =>
   mkbool (x <> y) False;;
@@ -119,6 +118,6 @@ let is_separated =
              * (real -> real -> bool) =>
   shape1#0 (fun x1 : real => fun y1 : real =>
             shape2#0 (fun x2 : real => fun y2 : real =>
-                  orb (neq x1 x2) (neq y1 y2)))
+                  neq x1 x2 || neq y1 y2))
   ;;
 

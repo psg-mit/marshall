@@ -27,4 +27,4 @@ let dedekind_cut = fun p : real -> bool =>
   ;;
 
 let sqrt = fun a : real =>
-  dedekind_cut (fun x : real => orb (lt x 0) (lt (x^2) a));;
+  dedekind_cut (fun x : real => x <b 0 || x^2 <b a);;

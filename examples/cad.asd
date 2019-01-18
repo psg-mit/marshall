@@ -66,12 +66,12 @@ let forall_circle =
   fun p : real -> real -> bool =>
   forall_interval_sym (fun x : real =>
   forall_interval_sym (fun y : real =>
-  orb (negb (circle x y)) (p x y)))
-;;
+  negb (circle x y) || p x y
+  ));;
 
 let rightmost_extent_2 =
   fun shape : (real -> real -> bool) -> bool =>
-  dedekind_cut (fun x : real => negb (shape (fun x' : real => fun y' : real => lt x' x)))
+  dedekind_cut (fun x : real => negb (shape (fun x' : real => fun y' : real => x' <b x)))
   ;;
 
 let rightmost_extent =
@@ -101,7 +101,7 @@ let union =
   fun shape_2 : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
-  orb (shape_1 x y) (shape_2 x y)
+  shape_1 x y || shape_2 x y
   ;;
 
 ! The set-theoretic complement of a shape. Not sure where
@@ -232,7 +232,7 @@ let peq = fun x : real => fun y : real => mkbool False (x <> y);;
 let point =
   fun x : real => fun y : real =>
   (fun p : real -> real -> bool => p x y
-  , fun x_test : real => fun y_test : real => andb (peq x x_test) (peq y y_test))
+  , fun x_test : real => fun y_test : real => peq x x_test && peq y y_test)
   ;;
 
 let empty_shape =
