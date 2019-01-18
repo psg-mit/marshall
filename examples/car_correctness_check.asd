@@ -20,7 +20,7 @@ let a_go = fun x : real => fun v : real =>
 
 let accel = fun x : real => fun v : real =>
   (  a_go x v   < a_max  ~>  a_go x v
-  || a_stop x v > a_min  ~>  a_stop x v )
+  ||| a_stop x v > a_min  ~>  a_stop x v )
   ;;
 
 ! move the car using the given acceleration function,
