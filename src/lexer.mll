@@ -19,6 +19,7 @@ struct
     "exists", EXISTS;
     "False", FALSE;
     "forall", FORALL;
+    "int", INTEGRAL;
     "fun", FUN;
     "in", IN;
     "inf", INFINITY;
@@ -91,7 +92,10 @@ rule token = parse
   | ']'             	 { RBRACK }
   | "/\\"                { AND }
   | "\\/"                { OR }
-  | "||"                 { JOIN }
+  | "|||"                 { JOIN }
+  | "&&"                 { ANDB }
+  | "||"                 { ORB }
+  | "<b"                 { LTB }
   | "~>"                 { RESTRICT }
   | var             	 { let str = lexeme lexbuf in
 			     try List.assoc str reserved_words with Not_found -> VAR (S.Ident str) }

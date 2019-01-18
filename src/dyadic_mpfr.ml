@@ -63,7 +63,7 @@ let half ?prec ~round = make_int ?prec ~round 1 (-1)
 
 (* \subsection{Order} *)
 
-let min a b = 
+let min a b =
   if Mpfr.cmp a b < 0 then a else b
 
 let max a b =
@@ -143,7 +143,7 @@ let classify a =
   else `negative_infinity
 
 
-(* \subsection{Arithmetic} *)  
+(* \subsection{Arithmetic} *)
 
 (* Arithmetic operations need to take care of infinite operands when
    the result would be [nan] (not a number). *)
@@ -234,7 +234,7 @@ let shift ?prec ~round a k =
     ignore (Mpfr.mul_2si q q k round) ;
     q
 
-let halve ?prec ~round a = 
+let halve ?prec ~round a =
   let prec = (match prec with None -> Mpfr.get_prec a | Some p -> p) in
     shift ~prec ~round a (-1)
 
@@ -262,7 +262,7 @@ let trim_right ?(min_length = 0) str chr =
       n := !n - 1
     done;
     String.sub str 0 !n
-    
+
 let string_insert a pos b =
   (String.sub a 0 pos) ^ b ^ (String.sub a pos (String.length a - pos))
 
@@ -276,14 +276,14 @@ let to_string2 x =
       | `negative_infinity -> "-inf"
       | `number ->
 	let m = Mpz.init () in
-	  let e = Mpfr.get_z_exp m x in	  
-	  let m = Mpz.get_str ~base:10 m in	  
+	  let e = Mpfr.get_z_exp m x in
+	  let m = Mpz.get_str ~base:10 m in
 	    m ^ "p" ^ (string_of_int e) ^ "(p=" ^ string_of_int (Mpfr.get_prec x) ^ ")"
 
 (* [Mpfr.to_string] produces rather unreadable results. This is an improved version. *)
 let to_string x =
   let exp_notation = 4 in
-  let trim = false in
+  let trim = true in
     match classify x with
       | `nan -> "nan"
       | `positive_infinity -> "inf"

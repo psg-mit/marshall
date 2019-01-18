@@ -1,3 +1,5 @@
+#use "examples/bool.asd";;
+
 ! A shape is a function from R^2 to a pair of predicates.
 ! The first predicate says if a point in the plane is strictly
 ! *inside* the shape, and the second says it if it strictly *outside*
@@ -5,7 +7,7 @@
 let translate =
   fun trans_x : real =>
   fun trans_y : real =>
-  fun shape : real -> real -> prop * prop =>
+  fun shape : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
     shape (x - trans_x) (y - trans_y)
@@ -17,70 +19,65 @@ let rectangle =
   fun height : real =>
   fun x : real =>
   fun y : real =>
-  (  - width  / 2 < x /\ x < width  / 2
-  /\ - height / 2 < y /\ y < height / 2
-  ,  - width  / 2 > x \/ x > width  / 2
-  \/ - height / 2 > y \/ y > height / 2
-  )
+  andb (andb (lt (- width  / 2) x) (lt x (width / 2)))
+       (andb (lt (- height / 2) y) (lt y (height / 2)))
 ;;
 
+let forall_interval_sym =
+  fun p : real -> bool =>
+  mkbool (forall x : [-1, 1], is_true (p x)) (exists x : [-1, 1], is_false (p x))
+  ;;
+
 let quantify_unit_square =
-  fun p : real -> real -> prop =>
-  ( forall x : [-1, 1], forall y : [-1, 1], p x y
-  , exists x : [-1, 1], exists y : [-1, 1], p x y
+  fun p : real -> real -> bool =>
+  forall_interval_sym (fun x : real =>
+  forall_interval_sym (fun y : real => p x y)
   );;
 
 let unit_square =
   (quantify_unit_square, rectangle 2 2)
   ;;
 
+! scaling centered at the origin!
+! factor should be a *positive* real number
+let scale =
+  fun factor : real =>
+  fun shape : real -> real -> bool =>
+  fun x : real =>
+  fun y : real =>
+  shape (x / factor) (y / factor)
+;;
+
 let scale_x_y_shape =
   fun cx : real =>
   fun cy : real =>
-  fun shape : ((real -> real -> prop) -> prop * prop)
-            * (real -> real -> prop * prop) =>
-  (fun p : real -> real -> prop =>
-    shape#0 (fun x : real => fun y : real => (p x y))
+  fun shape : ((real -> real -> bool) -> bool)
+            * (real -> real -> bool) =>
+  (fun p : real -> real -> bool =>
+    shape#0 (fun x : real => fun y : real => p (cx * x) (cy * y))
   , fun x : real => fun y : real =>
     shape#1 (x / cx) (y / cy)
   );;
 
 ! unit disk centered at origin
-let circle =
-  fun x : real =>
-  fun y : real =>
-  (x * x + y * y < 1, x * x + y * y > 1)
-;;
+let circle = fun x : real => fun y : real => lt (x^2 + y^2) 1;;
 
 let forall_circle =
-  fun p : real -> real -> prop =>
-  forall x : [-1, 1],
-  forall y : [-1, 1],
-  (circle x y)#1 \/ p x y
-;;
-
-! Can't get the border - would need sine and cosine.
-let exists_circle_int =
-  fun p : real -> real -> prop =>
-  exists x : [-1, 1],
-  exists y : [-1, 1],
-  (circle x y)#0 /\ p x y
-;;
-
-let rightmost_extent =
-  fun shape : ((real -> real -> prop) -> prop * prop)
-            * (real -> real -> prop * prop) =>
-  cut x
-     left  (((shape#0) (fun x' : real => fun y' : real => x < x'))#1)
-     right (((shape#0) (fun x' : real => fun y' : real => x' < x))#0)
-;;
+  fun p : real -> real -> bool =>
+  forall_interval_sym (fun x : real =>
+  forall_interval_sym (fun y : real =>
+  negb (circle x y) || p x y
+  ));;
 
 let rightmost_extent_2 =
-  fun shape : ((real -> real -> prop) -> prop * prop) =>
-  cut x
-     left  ((shape (fun x' : real => fun y' : real => x < x'))#1)
-     right ((shape (fun x' : real => fun y' : real => x' < x))#0)
-;;
+  fun shape : (real -> real -> bool) -> bool =>
+  dedekind_cut (fun x : real => negb (shape (fun x' : real => fun y' : real => x' <b x)))
+  ;;
+
+let rightmost_extent =
+  fun shape : ((real -> real -> bool) -> bool)
+            * (real -> real -> bool) =>
+  rightmost_extent_2 (shape#0);;
 
 let rightmost_extent_3 =
   fun shape : real -> real -> prop * prop =>
@@ -91,74 +88,69 @@ let rightmost_extent_3 =
 
 ! Compute the intersection of two shapes.
 let intersection =
-  fun shape_1 : real -> real -> prop * prop =>
-  fun shape_2 : real -> real -> prop * prop =>
+  fun shape_1 : real -> real -> bool =>
+  fun shape_2 : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
-  ((shape_1 x y)#0 /\ (shape_2 x y)#0,
-   (shape_1 x y)#1 \/ (shape_2 x y)#1)
-;;
+  andb (shape_1 x y) (shape_2 x y)
+  ;;
 
 ! Compute the union of two shapes.
 let union =
-  fun shape_1 : real -> real -> prop * prop =>
-  fun shape_2 : real -> real -> prop * prop =>
+  fun shape_1 : real -> real -> bool =>
+  fun shape_2 : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
-  ((shape_1 x y)#0 \/ (shape_2 x y)#0,
-   (shape_1 x y)#1 /\ (shape_2 x y)#1)
-;;
+  shape_1 x y || shape_2 x y
+  ;;
 
 ! The set-theoretic complement of a shape. Not sure where
 ! this may come in handy.
 let complement =
-  fun shape : real -> real -> prop * prop =>
+  fun shape : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
-  ((shape x y)#1, (shape x y)#0)
-;;
-
-! scaling centered at the origin!
-! factor should be a *positive* real number
-let scale =
-  fun factor : real =>
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  shape (x / factor) (y / factor)
-;;
+  negb (shape x y)
+  ;;
 
 ! this is only upper semicomputable
 let distance_from_point =
-  fun shape_in : real -> real -> prop =>
-  fun shape_out : real -> real -> prop =>
+  fun shape : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
     cut z
       left  (z < 0)
-      right (z > 0 /\ (exists dx : real, exists dy : real, shape_in (x + dx) (y + dy) /\ (dx * dx + dy * dy < z)))
+      right (z > 0 /\ (exists dx : real, exists dy : real, is_true (shape (x + dx) (y + dy)) /\ (dx * dx + dy * dy < z)))
 ;;
 
 ! Is a shape nonempty?
 let nonempty =
-  fun shape : real -> real -> prop * prop =>
-  exists x : real, exists y : real, (shape x y)#0
+  fun shape : real -> real -> bool =>
+  exists x : real, exists y : real, is_true (shape x y)
 ;;
+
+! existential quantifier for a shape
+let exists_shape =
+  fun shape : ((real -> real -> bool) -> bool)
+             * (real -> real -> bool) =>
+  fun p : real -> real -> bool =>
+  negb (shape#0 (fun x : real => fun y : real => negb (p x y)))
+  ;;
 
 ! Do two shapes overlap?
 let overlaps =
-  fun shape_1 : real -> real -> prop * prop =>
-  fun shape_2 : real -> real -> prop * prop =>
+  fun shape_1 : real -> real -> bool =>
+  fun shape_2 : real -> real -> bool =>
   nonempty (intersection shape_1 shape_2)
 ;;
 
 ! Does one shape lie strictly inside another?
-!let shape_inside =
-!  fun shape_1 : ((real -> real -> prop) -> prop * prop)
-!            * (real -> real -> prop * prop) =>
-!  fun shape_2 : ((real -> real -> prop) -> prop * prop)
-!            * (real -> real -> prop * prop) =>
-!  shape_1#0 (fun x : real => fun y : real => (shape_2#0 x y)#0);;
+let shape_inside =
+  fun shape_1 : ((real -> real -> bool) -> bool)
+            * (real -> real -> bool) =>
+  fun shape_2 : ((real -> real -> bool) -> bool)
+            * (real -> real -> bool) =>
+  (shape_1#0) (fun x : real => fun y : real => (shape_2#1) x y);;
 
 ! The unit disk is nonempty
 let disk_nonempty = nonempty circle;;
@@ -189,7 +181,7 @@ let minkowski_ball =
 
 ! (3/4, 0) is in the unit disk but not the unit square
 let test_point =
-  (circle (3/4) 0)#0 /\ (rectangle 1 1 (3/4) 0)#1;;
+  is_true (circle (3/4) 0) /\ is_false (rectangle 1 1 (3/4) 0);;
 ! ANS: test_point : prop = True
 
 let restrict =
@@ -206,51 +198,43 @@ let restrictb =
   mkbool (U /\ is_true x) (U /\ is_false x)
   ;;
 
-let is_in_bool =
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  (  restrictb ((shape x y)#0) (mkbool True False)
-  || restrictb ((shape x y)#1) (mkbool False True)
-  )
-;;
-
 let grow_in_eps =
   fun eps : real =>
-  fun shape : real -> real -> prop * prop =>
+  fun shape : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
-  (minkowski_ball eps (fun x' : real => fun y' : real => (shape x' y')#0) x y,
-   (shape x y)#1)
+  mkbool (minkowski_ball eps (fun x' : real => fun y' : real => is_true (shape x' y')) x y)
+         (is_false (shape x y))
 ;;
 
 let grow_out_eps =
   fun eps : real =>
-  fun shape : real -> real -> prop * prop =>
+  fun shape : real -> real -> bool =>
   fun x : real =>
   fun y : real =>
-  ((shape x y)#0,
-   minkowski_ball eps (fun x' : real => fun y' : real => (shape x' y')#1) x y)
+  mkbool (is_true (shape x y))
+         (minkowski_ball eps (fun x' : real => fun y' : real => is_false (shape x' y')) x y)
 ;;
 
 ! Try a point on the border of the rectangle, having
 ! thickened the "in" part by a radius of 0.1.
-let is_in_rect_in =
-  is_in_bool (grow_in_eps 0.1 (rectangle 2 2)) 1 1;;
-! ANS: is_in_rect_in : real = 1.0
+let is_in_rect_in = grow_in_eps 0.1 (rectangle 2 2) 1 1;;
+! ANS: is_in_rect_in : bool = mkbool True False
 
 ! Try a point on the border of the rectangle, having
 ! thickened the "out" part by a radius of 0.1.
-let is_in_rect_out =
-  is_in_bool (grow_out_eps 0.1 (rectangle 2 2)) 1 1;;
-! ANS: is_in_rect_out : real = 0.0
+let is_in_rect_out = grow_out_eps 0.1 (rectangle 2 2) 1 1;;
+! ANS: is_in_rect_out : real = mkbool False True
 
-let to_bool =
-  fun p : prop * prop =>
-  mkbool p#0 p#1 ;;
+let peq = fun x : real => fun y : real => mkbool False (x <> y);;
 
-let shape_to_bool =
-  fun shape : real -> real -> prop * prop =>
-  fun x : real =>
-  fun y : real =>
-  to_bool (shape x y);;
+! interior and exterior for points
+let point =
+  fun x : real => fun y : real =>
+  (fun p : real -> real -> bool => p x y
+  , fun x_test : real => fun y_test : real => peq x x_test && peq y y_test)
+  ;;
+
+let empty_shape =
+   (fun p : real -> real -> bool => tt
+   , fun x : real => fun y : real => ff);;

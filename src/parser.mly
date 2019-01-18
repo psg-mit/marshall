@@ -29,8 +29,9 @@
 %token INFINITY
 %token TRUE FALSE
 %token AND OR
+%token ANDB ORB LTB
 %token JOIN RESTRICT
-%token FORALL EXISTS
+%token FORALL EXISTS INTEGRAL
 %token LET IN
 %token CUT LEFT RIGHT
 %token TBOOL MKBOOL
@@ -120,6 +121,8 @@ expr:
     { S.Exists (x, s, e) }
   | FORALL x = VAR COLON s = segment COMMA e = expr
     { S.Forall (x, s, e) }
+  | INTEGRAL x = VAR COLON s = segment COMMA e = expr
+    { S.Integral (x, s, e) }
   | LET x = VAR EQUAL e1 = expr IN e2 = expr
     { S.Let (x, e1, e2) }
   | FUN x = VAR COLON t = ty DARROW e = expr
@@ -186,19 +189,33 @@ bin_expr:
     { apart e1 e2 }
   | e1 = bin_expr LESS e2 = bin_expr
     { S.Less (e1, e2) }
+  | e1 = bin_expr LTB e2 = bin_expr
+    { S.App (S.App (S.Var (S.Ident "lt"), e1), e2) }
   | e1 = bin_expr GREATER e2 = bin_expr
     { S.Less (e2, e1) }
 
-and_expr:
+andb_expr:
   | e = bin_expr
     { e }
-  | e1 = bin_expr AND e2 = and_expr_list
+  | e1 = bin_expr ANDB e2 = bin_expr
+    { S.App (S.App (S.Var (S.Ident "andb"), e1), e2) }
+
+orb_expr:
+  | e = andb_expr
+    { e }
+  | e1 = andb_expr ORB e2 = andb_expr
+    { S.App (S.App (S.Var (S.Ident "orb"), e1), e2) }
+
+and_expr:
+  | e = orb_expr
+    { e }
+  | e1 = orb_expr AND e2 = and_expr_list
     { S.And (e1 :: e2) }
 
 and_expr_list:
-  | e = bin_expr
+  | e = orb_expr
     { [e] }
-  | e = bin_expr AND es = and_expr_list
+  | e = orb_expr AND es = and_expr_list
     { e :: es }
 
 or_expr:

@@ -87,6 +87,7 @@ struct
 	| S.Lambda (x, ty, e) -> x<>y && (free_in y e)
 	| S.Exists (x, i, e) -> x<>y && (free_in y e)
 	| S.Forall (x, i, e) -> x<>y && (free_in y e)
+	| S.Integral (x, i, e) -> x<>y && (free_in y e)
 	| S.App (e1, e2)  -> free_in y e1 || free_in y e2
 	| S.Let (x, e1, e2) -> free_in y e1 || (x<>y && free_in y e2)
 
@@ -118,7 +119,7 @@ let rec restrict p e = match e with
 	| S.Or _ -> S.And [p; e]
 	| S.And lst -> S.And (p :: lst)
 	| S.Less (e1, e2) -> S.And [p; e]
-	| S.Restrict (q, e') -> restrict (S.And [p; q], e')
+	| S.Restrict (q, e') -> restrict (S.And [p; q]) e'
 	| _ -> S.Restrict (p, e)
 
   (* The first step of evaluation is to evaluate to head-normal form
@@ -186,7 +187,7 @@ let rec restrict p e = match e with
 	| S.And lst -> (match (List.map (hnf env) lst) with
 	    | [] -> [S.True]
 			| xs -> [S.And (List.map (fun e -> S.Or e) xs)])
-	| S.Or lst -> [S.Or (List.map (hnf env) lst)]
+  | S.Or lst -> [S.Or (list_bind lst (hnf env))]
 	| S.Join lst -> list_bind lst (hnf env)
 	| S.MkBool (e1, e2) -> [S.MkBool (S.Or (hnf env e1), S.Or (hnf env e2))]
 	| S.Tuple lst -> List.map (fun e -> S.Tuple e) (List.fold_right
@@ -203,6 +204,9 @@ let rec restrict p e = match e with
 	| S.Forall (x, i, e) ->
 	  let x',e' = alpha1 x env e in
 	    [S.Forall (x', i, S.Or (hnf (Env.extend x' (S.Var x') env) e'))]
+	| S.Integral (x, i, e) ->
+	  let x',e' = alpha1 x env e in
+	    [S.Integral (x', i, join1 (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.App (e1, e2)  ->
       list_bind (hnf env e2) (fun e2' ->
 		  list_bind (hnf env e1) (fun e1' -> match e1' with
@@ -259,9 +263,9 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	      	(* Newton's method *)
 	      let (r1, r2) = N.estimate k prec env x j p1 in
 	      let (s1, s2) = N.estimate k prec env x j p2 in
-				if R.supremum r2 >= R.infimum r1
+				if R.supremum r2 > R.infimum r1
 				    then print_endline ("uh-oh left cut" ^ D.to_string (R.supremum r2) ^ "," ^ D.to_string (R.infimum r1) );
-				if R.supremum s1 >= R.infimum s2
+				if R.supremum s1 > R.infimum s2
 				    then print_endline ("uh-oh right cut" ^ D.to_string (R.supremum s1) ^ "," ^ D.to_string (R.infimum s2) );
         let a'' = D.max a' (D.max (R.supremum r2) (R.supremum s1)) in
 	      let b'' = D.min b' (D.min (R.infimum  s2) (R.infimum r1)) in
@@ -275,11 +279,14 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 (*		    print_endline ("Cut: " ^ (S.string_of_name x) ^ ":" ^ (I.to_string i) ^ ":" ^ (I.to_string j) ^ (I.to_string l) ^ (S.string_of_expr q1) ^ (S.string_of_expr q2));*)
 		      S.Cut (x, l, q1, q2)
 		  | `equal ->
-			  print_endline (I.to_string i ^ ", " ^ I.to_string j ^ ", " ^ I.to_string (I.make a'' b''));
+			  (* print_endline (I.to_string i ^ ", " ^ I.to_string j ^ ", " ^ I.to_string (I.make a'' b''));
 				print_endline (R.to_string r1  ^ ", " ^ R.to_string r2 ^ ", " ^ R.to_string s1 ^ ", " ^ R.to_string s2 );
+				print_endline "equal"; *)
 		      (* We found an exact value *)
 		    S.Dyadic a''
 		  | `greater ->
+			  print_endline (I.to_string (I.make a'' b''));
+				print_endline (R.to_string r1  ^ ", " ^ R.to_string r2 ^ ", " ^ R.to_string s1 ^ ", " ^ R.to_string s2 );
 			  print_endline "greater";
 		      (* We have a backwards cut. Do nothing. Someone should think
 			 whether this is ok. It would be nice if cuts could be
@@ -414,6 +421,10 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	      (match refn e1 with
 		 | S.Lambda (x, _, e) -> refine k prec (Env.extend x (refn e2) env) e
 		 | e -> S.App (e, e2))
+		| S.Integral (x, i, p) ->
+	      let prec = make_prec prec i in
+	      let q = refine k prec (Env.extend x (S.RealVar (x, i)) env) p in
+	      let (i1, i2) = I.split prec 1 i in S.Binary (S.Plus, S.Integral (x, i1, q), S.Integral (x, i2, q))
 
 	type 'a step_result =
     | Step_Done of 'a
@@ -451,7 +462,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| S.IsTrue _ | S.IsFalse _
 	| S.Let _ | S.Proj _ | S.App _ ->
 	    Step_Go (p + 1)
-	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ ->
+	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ ->
 	    (match A.lower p env e with
 	       | S.Interval i ->
 		   let w = (I.width 10 D.up i) in

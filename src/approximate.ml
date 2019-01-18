@@ -129,6 +129,9 @@ struct
 	| S.Unary (op, e) ->
 	    let i = get_interval (approx e) in
 	      S.Interval (unary_apply ~prec ~round:D.down op i)
+	| S.Integral (x, i, e) ->
+	    let ie = get_interval (lower prec (Env.extend x (S.Interval i) env) e) in
+		    S.Interval (I.mul ~prec ~round:D.down (I.of_dyadic (I.width ~prec ~round:D.down i)) ie)
 	| S.Power (e, k) ->
 	    let i = get_interval (approx e) in
 	      S.Interval (I.pow ~prec ~round:D.down i k)
@@ -184,6 +187,9 @@ struct
 	| S.Unary (op, e) ->
 	    let i = get_interval (approx e) in
 	      S.Interval (unary_apply ~prec ~round:D.up op i)
+	| S.Integral (x, i, e) ->
+	    let ie = get_interval (upper prec (Env.extend x (S.Interval i) env) e) in
+		    S.Interval (I.mul ~prec ~round:D.up (I.of_dyadic (I.width ~prec ~round:D.up i)) ie)
 	| S.Power (e, k) ->
 	    let i = get_interval (approx e) in
 	      S.Interval (I.pow ~prec ~round:D.up i k)
