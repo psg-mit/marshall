@@ -186,21 +186,25 @@ bin_expr:
     { S.Binary (S.Times, e1, e2) }
   | e1 = bin_expr QUOTIENT e2 = bin_expr
     { S.Binary (S.Quotient, e1, e2) }
-  | e1 = bin_expr EQUAL LBRACE r = expr RBRACE EQUAL e2 = bin_expr
+
+bbin_expr:
+  | e = bin_expr
+    { e }
+  | e1 = bbin_expr EQUAL LBRACE r = expr RBRACE EQUAL e2 = bbin_expr
     { equal r e1 e2 }
-  | e1 = bin_expr UNEQUAL e2 = bin_expr
+  | e1 = bbin_expr UNEQUAL e2 = bbin_expr
     { apart e1 e2 }
-  | e1 = bin_expr LESS e2 = bin_expr
+  | e1 = bbin_expr LESS e2 = bbin_expr
     { S.Less (e1, e2) }
-  | e1 = bin_expr LTB e2 = bin_expr
+  | e1 = bbin_expr LTB e2 = bbin_expr
     { S.App (S.App (S.Var (S.Ident "lt"), e1), e2) }
-  | e1 = bin_expr GREATER e2 = bin_expr
+  | e1 = bbin_expr GREATER e2 = bbin_expr
     { S.Less (e2, e1) }
 
 andb_expr:
-  | e = bin_expr
+  | e = bbin_expr
     { e }
-  | e1 = bin_expr ANDB e2 = bin_expr
+  | e1 = bbin_expr ANDB e2 = bbin_expr
     { S.App (S.App (S.Var (S.Ident "andb"), e1), e2) }
 
 orb_expr:

@@ -92,7 +92,7 @@ let check_conditions =
 
     let curr_piston = translate_shape_x_y piston amount_to_translate_piston 0 in
 
-    let cam_piston = union_quantified curr_cam curr_piston in
+    let cam_piston = union_ok curr_cam curr_piston in
     is_separated cam_piston shifted_square
   )
   ;;
