@@ -92,7 +92,22 @@ commandline:
 (* Things that can be defined at toplevel. *)
 topdef:
   | LET x = VAR EQUAL e = expr       { S.Definition (x, e, None) }
-  | LET x = VAR COLON t = ty EQUAL e = expr { S.Definition(x, e, Some t) }
+  | LET x = VAR t = ty_sig EQUAL e = expr { S.Definition(x, e, Some t) }
+  | LET x = VAR args = arglist EQUAL e = expr
+    { S.Definition (x, List.fold_right (fun (x, t) e' -> S.Lambda (x, t, e')) args e, None)}
+  | LET x = VAR args = arglist t = ty_sig EQUAL e = expr
+    { S.Definition (x, List.fold_right (fun (x, t) e' -> S.Lambda (x, t, e')) args e,
+      Some (List.fold_right (fun (x, targ) t' -> S.Ty_Arrow (targ, t')) args t)) }
+
+ty_sig:
+  | COLON t = ty
+    { t }
+
+arglist:
+  | LPAREN x = VAR COLON t = ty RPAREN args = arglist
+    { (x, t) :: args }
+  |
+    { [] }
 
 (* Toplevel directives. *)
 topdirective:

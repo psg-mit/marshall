@@ -95,14 +95,14 @@ let go_is_safe =
   fun x : real =>
   fun v : real =>
   let go_car = (move_car a_go x v car) in
-  (a_go x v > a_max \/ is_true (is_separated go_car crossing))
+  (a_go x v > a_max \/ is_true (is_separated go_car#0 crossing#0))
   ;;
 
 let stop_is_safe =
   fun x : real =>
   fun v : real =>
   let stop_car = (move_car a_stop x v car) in
-  (a_stop x v < a_min \/ is_true (is_separated stop_car crossing))
+  (a_stop x v < a_min \/ is_true (is_separated stop_car#0 crossing#0))
   ;;
 
 

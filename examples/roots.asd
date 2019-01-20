@@ -5,10 +5,6 @@ let forall_interval =
   mkbool (forall x : [0, 1], is_true (p x)) (exists x : [0, 1], is_false (p x))
   ;;
 
-let exists_interval =
-  fun p : real -> bool =>
-  ~ (forall_interval (fun x : real => ~ p x));;
-
 let forall_interval' =
   fun a : real =>
   fun b : real =>
@@ -17,19 +13,17 @@ let forall_interval' =
   forall_interval (fun x : real => p (a + x * range))
   ;;
 
-let lnp_root = fun f : real -> bool =>
+let lft_root = fun f : real -> bool =>
   dedekind_cut (fun q : real =>
   q <b 0 || forall_interval' 0 q f
   );;
 
-let lpn_root = fun f : real -> bool =>
+let ltf_root = fun f : real -> bool =>
   dedekind_cut (fun q : real =>
   q <b 0 || forall_interval' 0 q (fun x : real => ~ f x)
   );;
 
-let min =
-  fun a : real =>
-  fun b : real =>
+let min (a : real) (b : real) : real =
   dedekind_cut (fun x : real => x <b a && x <b b);;
 
 let max =
@@ -39,8 +33,13 @@ let max =
 
 ! find the earliest stable root of f on { x : R | x > 0 }
 let l_root = fun f : real -> bool =>
-  max (lnp_root f) (lpn_root f);;
+  max (lft_root f) (ltf_root f);;
 
 ! regular root finding on real-valued functions
 let l_root_real = fun f : real -> real =>
   l_root (fun x : real => 0 <b f x);;
+
+
+!let exists_interval =
+! fun p : real -> bool =>
+!  ~ (forall_interval (fun x : real => ~ p x));;

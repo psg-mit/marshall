@@ -117,11 +117,10 @@ let nonempty =
 ;;
 
 ! existential quantifier for a shape
-let exists_shape =
-  fun shape : ((real * real -> bool) -> bool)
-             * (real * real -> bool) =>
+let exists_k =
+  fun shape : (real * real -> bool) -> bool =>
   fun p : real * real -> bool =>
-  ~ (shape#0 (fun x : real * real => ~ (p x)))
+  ~ (shape (fun x : real * real => ~ (p x)))
   ;;
 
 ! Do two shapes overlap?

@@ -42,15 +42,6 @@ let square =
   intersection horizontal_strip vertical_strip
   ;;
 
-! Dot product
-let dot =
-    fun x1 : real =>
-    fun y1 : real =>
-    fun x2 : real =>
-    fun y2 : real =>
-    x1 * x2 + y1 * y2
-    ;;
-
 ! Implementation of reflection of a shape across a line
 ! The line is ax + by + c = 0
 ! https://drive.google.com/file/d/0By83v5TWkGjvb2tuekNSUFo3cFE/view
@@ -111,12 +102,10 @@ let neq = fun x : real => fun y : real =>
 ! This is checking that separation is > 0, but is computationally more efficient.
 ! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2)
 let is_separated =
-  fun shape1 : ((real * real -> bool) -> bool)
-             * (real * real -> bool) =>
-  fun shape2 : ((real * real -> bool) -> bool)
-             * (real * real -> bool) =>
-  shape1#0 (fun x1 : real * real =>
-            shape2#0 (fun x2 : real * real =>
-                  neq x1#0 x2#0 || neq x1#1 x2#1))
+  fun shape1 : (real * real -> bool) -> bool =>
+  fun shape2 : (real * real -> bool) -> bool =>
+  shape1 (fun x1 : real * real =>
+  shape2 (fun x2 : real * real =>
+          neq x1#0 x2#0 || neq x1#1 x2#1))
   ;;
 
