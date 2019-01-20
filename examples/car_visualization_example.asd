@@ -8,7 +8,7 @@ let v = 3;;
 
 ! Create the car
 let car =
-  let wheel = scale_x_y_ok 0.09 0.09 circle_quantified in
+  let wheel = scale_x_y_ok 0.09 0.09 unit_disk_ok in
   let right_wheel = translate_ok (0.25, 0.125) wheel in
   let left_wheel = translate_ok (-0.25, 0.125) wheel in
   let car_body1 = scale_x_y_ok 0.75 0.15 square_quantified in

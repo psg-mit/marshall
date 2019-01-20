@@ -58,29 +58,30 @@ let reflect =
 
 ! ---------- Set Up the Shapes ----------
 
-! unit disk centered at origin
 let square_quantified = scale_x_y_ok 0.5 0.5 unit_square;;
 
 ! unit disk centered at origin
-let circle_quantified =
-  (forall_circle, circle)
+let unit_disk_ok =
+  (unit_disk_k, unit_disk)
 ;;
 
+let translate_k (tx : real * real) (shape : (real * real -> bool) -> bool)
+    : (real * real -> bool) -> bool =
+    fun p : real * real -> bool => shape (fun x : real * real => p (x#0 + tx#0, x#1 + tx#1));;
+
 let translate_ok (tx : real * real)
-           (shape : ((real * real -> bool) -> bool) * (real * real -> bool)) =
-  (fun p' : real * real -> bool =>
-  shape#0 (fun x : real * real => p' (x#0 + tx#0, x#1 + tx#1))
-  , translate tx (shape#1)
-  )
-  ;;
+    (shape : ((real * real -> bool) -> bool) * (real * real -> bool)) =
+  (translate_k tx shape#0, translate tx shape#1);;
+
+let union_k
+    (shape1 : (real * real -> bool) -> bool)
+    (shape2 : (real * real -> bool) -> bool) =
+  fun P : real * real -> bool => shape1 P && shape2 P;;
 
 let union_ok
     (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
     (shape2 : ((real * real -> bool) -> bool) * (real * real -> bool)) =
-  (fun pr : real * real -> bool =>
-   (shape1#0 pr && shape2#0 pr)
-  , union (shape1#1) (shape2#1))
-  ;;
+  (union_k shape1#0 shape2#0, union shape1#1 shape2#1);;
 
 let max (a : real) (b : real) : real =
   dedekind_cut (fun x : real => (x <b a) || (x <b b));;
@@ -98,3 +99,11 @@ let is_separated (shape1 : (real * real -> bool) -> bool)
           neq x1#0 x2#0 || neq x1#1 x2#1))
   ;;
 
+! minimum distance between two shapes
+let separation (shape1 : (real * real -> bool) -> bool)
+               (shape2 : (real * real -> bool) -> bool) : real =
+  dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
+     (shape1 (fun x : real * real =>
+      shape2 (fun x' : real * real =>
+     (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
+  ;;

@@ -20,14 +20,12 @@ let forall_interval_sym (p : real -> bool) : bool =
   mkbool (forall x : [-1, 1], is_true (p x)) (exists x : [-1, 1], is_false (p x))
   ;;
 
-let quantify_unit_square (p : real * real -> bool) : bool =
+let unit_square_k (p : real * real -> bool) : bool =
   forall_interval_sym (fun x : real =>
   forall_interval_sym (fun y : real => p (x, y))
   );;
 
-let unit_square =
-  (quantify_unit_square, rectangle 2 2)
-  ;;
+let unit_square = (unit_square_k, rectangle 2 2);;
 
 ! scaling centered at the origin!
 ! factor should be a *positive* real number
@@ -36,22 +34,28 @@ let scale (factor : real) (shape : real * real -> bool) =
   shape (x#0 / factor, x#1 / factor)
 ;;
 
+let scale_x_y (cx : real) (cy : real)
+    (shape : real * real -> bool) =
+    fun x : real * real => shape (x#0 / cx, x#1 / cy);;
+
+let scale_x_y_k (cx : real) (cy : real)
+    (shape : (real * real -> bool) -> bool) =
+  fun p : real * real -> bool =>
+  shape (fun x : real * real => p (cx * x#0, cy * x#1));;
+
+
 let scale_x_y_ok (cx : real) (cy : real)
   (shape : ((real * real -> bool) -> bool) * (real * real -> bool)) =
-  (fun p : real * real -> bool =>
-    shape#0 (fun x : real * real => p (cx * x#0, cy * x#1))
-  , fun x : real * real =>
-    shape#1 (x#0 / cx, x#1 / cy)
-  );;
+  (scale_x_y_k cx cy shape#0, scale_x_y cx cy shape#1);;
 
 ! unit disk centered at origin
-let circle = fun x : real * real => x#0^2 + x#1^2 <b 1;;
+let unit_disk = fun x : real * real => x#0^2 + x#1^2 <b 1;;
 
-let forall_circle =
+let unit_disk_k =
   fun p : real * real -> bool =>
   forall_interval_sym (fun x : real =>
   forall_interval_sym (fun y : real =>
-  negb (circle (x, y)) || p (x, y)
+  negb (unit_disk (x, y)) || p (x, y)
   ));;
 
 let rightmost_extent_2 (shape : (real * real -> bool) -> bool) : real =
@@ -96,6 +100,9 @@ let nonempty (shape : real * real -> bool) : prop =
 ;;
 
 ! existential quantifier for a shape
+
+let forall_k (shape : (real * real -> bool) -> bool) (p : real * real -> bool) : bool = shape p;;
+
 let exists_k (shape : (real * real -> bool) -> bool) (p : real * real -> bool) : bool =
   ~ (shape (fun x : real * real => ~ (p x)))
   ;;
@@ -112,20 +119,20 @@ let shape_inside
       (shape_1#0) (fun x : real * real => (shape_2#1) x);;
 
 ! The unit disk is nonempty
-let disk_nonempty = nonempty circle;;
+let disk_nonempty = nonempty unit_disk;;
 ! ANS: disk_nonempty : prop = True
 
 
 ! The intersection of the unit disk and unit square, translated
 ! by (5,5) is nonempty
 let disk_int_square_nonempty =
-  nonempty (translate (5, 5) (intersection circle (rectangle 1 1)));;
+  nonempty (translate (5, 5) (intersection unit_disk (rectangle 1 1)));;
 ! ANS: disk_int_square_nonempty : prop = True
 
 ! The intersection of the unit square at the origin, and
 ! a unit disk centered at (5,5) is empty
 let disk_int_square_empty =
-  overlaps (translate (5, 5) circle) (rectangle 1 1);;
+  overlaps (translate (5, 5) unit_disk) (rectangle 1 1);;
 ! ANS: disk_int_square_empty : prop = False
 
 let minkowski_ball (eps : real) (u : real * real -> prop) : real * real -> prop =
@@ -137,7 +144,7 @@ let minkowski_ball (eps : real) (u : real * real -> prop) : real * real -> prop 
 
 ! (3/4, 0) is in the unit disk but not the unit square
 let test_point =
-  is_true (circle (3/4, 0)) /\ is_false (rectangle 1 1 (3/4, 0));;
+  is_true (unit_disk (3/4, 0)) /\ is_false (rectangle 1 1 (3/4, 0));;
 ! ANS: test_point : prop = True
 
 let restrict (U : prop) (x : real) : real =

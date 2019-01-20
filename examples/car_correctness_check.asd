@@ -36,15 +36,6 @@ let updated_system = translate_ok (0.25, 0) (union_ok crossing moved_car);;
 
 ! ---------- Demonstrate Correctness ----------
 
-! minimum distance between two shapes
-let separation (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
-               (shape2 : ((real * real -> bool) -> bool) * (real * real -> bool)) : real =
-  dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
-     (shape1#0 (fun x : real * real =>
-      shape2#0 (fun x' : real * real =>
-     (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
-  ;;
-
 ! the separation (minimum distance) betweeen a given shape and a point
 let shape_point_separation
     (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
