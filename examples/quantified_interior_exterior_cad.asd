@@ -2,16 +2,12 @@
 #use "examples/sqrt.asd";;
 
 ! Implement line with an interior in the direction of the normal.
-let line =
-      fun nx : real => fun ny : real =>
+let line (nx : real) (ny : real) =
       fun x : real * real =>
       0 <b (nx * x#0 + ny * x#1);;
 
 ! Sloped line
-let sloped_line =
-      fun m : real =>
-      line -1 (1/m)
-  ;;
+let sloped_line (m : real) = line -1 (1/m) ;;
 
 ! Bad vertical line
 let vertical_line = fun x : real * real => x#0 <b 0;;
@@ -25,9 +21,7 @@ let triangle =
     intersection (intersection top_right top_left) bottom
     ;;  ! intersection take more params
 
-let square =
-    fun x : real =>
-    fun y : real =>
+let square (x : real) (y : real) : bool =
      ((-0.5) <b x && x <b 0.5) && ((-0.5) <b y && y <b 0.5)
     ;;
 
@@ -72,38 +66,33 @@ let circle_quantified =
   (forall_circle, circle)
 ;;
 
-let translate_ok =
-  fun tx : real * real =>
-  fun shape : ((real * real -> bool) -> bool)
-            * (real * real -> bool) =>
+let translate_ok (tx : real * real)
+           (shape : ((real * real -> bool) -> bool) * (real * real -> bool)) =
   (fun p' : real * real -> bool =>
   shape#0 (fun x : real * real => p' (x#0 + tx#0, x#1 + tx#1))
   , translate tx (shape#1)
   )
   ;;
 
-let union_ok =
-  fun shape1 : ((real * real -> bool) -> bool)
-             * (real * real -> bool) =>
-  fun shape2 : ((real * real -> bool) -> bool)
-             * (real * real -> bool) =>
+let union_ok
+    (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
+    (shape2 : ((real * real -> bool) -> bool) * (real * real -> bool)) =
   (fun pr : real * real -> bool =>
    (shape1#0 pr && shape2#0 pr)
   , union (shape1#1) (shape2#1))
   ;;
 
-let max = fun a : real => fun b : real =>
+let max (a : real) (b : real) : real =
   dedekind_cut (fun x : real => (x <b a) || (x <b b));;
 
-let neq = fun x : real => fun y : real =>
+let neq (x : real) (y : real) : bool =
   mkbool (x <> y) False;;
 
 ! Two shapes are separated if they share no points in common.
 ! This is checking that separation is > 0, but is computationally more efficient.
 ! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2)
-let is_separated =
-  fun shape1 : (real * real -> bool) -> bool =>
-  fun shape2 : (real * real -> bool) -> bool =>
+let is_separated (shape1 : (real * real -> bool) -> bool)
+                 (shape2 : (real * real -> bool) -> bool) : bool =
   shape1 (fun x1 : real * real =>
   shape2 (fun x2 : real * real =>
           neq x1#0 x2#0 || neq x1#1 x2#1))

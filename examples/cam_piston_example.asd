@@ -8,9 +8,7 @@
 
 ! NOTE: Quantifiers should be generalized to all a and b, but
 ! cannot because marshall doesn't all variables in foralls.
-let ellipse =
-  fun a : real =>
-  fun b : real =>
+let ellipse (a : real) (b : real) =
   fun x : real * real =>
   x#0^2 / a^2  + x#1^2 / b^2  <b 1
   ;;
@@ -44,9 +42,7 @@ let rotate =
   )
   ;;
 
-let closed_of_compact =
-  fun oshape : real * real -> bool =>
-  fun kshape : (real * real -> bool) -> bool =>
+let closed_of_compact (oshape : real * real -> bool) (kshape : (real * real -> bool) -> bool) =
   fun P : real * real -> bool =>
   kshape (fun x : real * real =>
     oshape x || P x
@@ -66,7 +62,7 @@ let forall_circle1d =
   )
   ;;
 
-let check_conditions =
+let check_conditions : bool =
   let shifted_square = translate_ok (3, 0) square_quantified in
   forall_circle1d (fun angle : real * real =>
 
