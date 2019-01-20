@@ -109,7 +109,7 @@ let help_text = "Toplevel commands:
     Grapher.plot (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->
       let x : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down i) mypixels in
       let y : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down j) mypixels in
-      color_bool (eval_bool env (E.S.App (E.S.App (e, E.S.Dyadic x), E.S.Dyadic y))));
+      color_bool (eval_bool env (E.S.App (e, E.S.Tuple [E.S.Dyadic x; E.S.Dyadic y]))));
     ;;
 
   (** [exec_cmd interactive (ctx,env) c] executes toplevel command [c] in global

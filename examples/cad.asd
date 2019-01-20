@@ -16,8 +16,8 @@ let rectangle =
   fun width : real =>
   fun height : real =>
   fun x : real * real =>
-  andb (andb (lt (- width  / 2) x#0) (lt x#0 (width / 2)))
-       (andb (lt (- height / 2) x#1) (lt x#1 (height / 2)))
+      (- width  / 2) <b x#0  &&  x#0 <b (width  / 2)
+  &&  (- height / 2) <b x#1  &&  x#1 <b (height / 2)
 ;;
 
 let forall_interval_sym =
@@ -82,7 +82,7 @@ let intersection =
   fun shape_1 : real * real -> bool =>
   fun shape_2 : real * real -> bool =>
   fun x : real * real =>
-  andb (shape_1 x) (shape_2 x)
+  shape_1 x && shape_2 x
   ;;
 
 ! Compute the union of two shapes.
@@ -98,7 +98,7 @@ let union =
 let complement =
   fun shape : real * real -> bool =>
   fun x : real * real =>
-  negb (shape x)
+  ~ (shape x)
   ;;
 
 ! this is only upper semicomputable
@@ -121,7 +121,7 @@ let exists_shape =
   fun shape : ((real * real -> bool) -> bool)
              * (real * real -> bool) =>
   fun p : real * real -> bool =>
-  negb (shape#0 (fun x : real * real => negb (p x)))
+  ~ (shape#0 (fun x : real * real => ~ (p x)))
   ;;
 
 ! Do two shapes overlap?

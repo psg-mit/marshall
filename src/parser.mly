@@ -50,9 +50,10 @@
 %start <Syntax.Make(D).toplevel_cmd> commandline
 
 %right TARROW
-%nonassoc EQUAL LESS GREATER UNEQUAL
+%nonassoc EQUAL LESS GREATER UNEQUAL LTB
 %left PLUS MINUS
 %left TIMES QUOTIENT
+%left ANDB ORB
 
 %%
 
@@ -204,13 +205,13 @@ bbin_expr:
 andb_expr:
   | e = bbin_expr
     { e }
-  | e1 = bbin_expr ANDB e2 = bbin_expr
+  | e1 = andb_expr ANDB e2 = andb_expr
     { S.App (S.App (S.Var (S.Ident "andb"), e1), e2) }
 
 orb_expr:
   | e = andb_expr
     { e }
-  | e1 = andb_expr ORB e2 = andb_expr
+  | e1 = orb_expr ORB e2 = orb_expr
     { S.App (S.App (S.Var (S.Ident "orb"), e1), e2) }
 
 and_expr:
