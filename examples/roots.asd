@@ -7,7 +7,7 @@ let forall_interval =
 
 let exists_interval =
   fun p : real -> bool =>
-  negb (forall_interval (fun x : real => negb (p x)));;
+  ~ (forall_interval (fun x : real => ~ p x));;
 
 let forall_interval' =
   fun a : real =>
@@ -24,7 +24,7 @@ let lnp_root = fun f : real -> bool =>
 
 let lpn_root = fun f : real -> bool =>
   dedekind_cut (fun q : real =>
-  q <b 0 || forall_interval' 0 q (fun x : real => negb (f x))
+  q <b 0 || forall_interval' 0 q (fun x : real => ~ f x)
   );;
 
 let min =

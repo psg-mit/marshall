@@ -103,7 +103,7 @@ struct
   type toplevel_cmd =
     | Expr of expr * bool       (* Expression, should it be traced? *)
     | Use of string             (* Include file [$use "<filename>"] *)
-    | Definition of name * expr (* Top-level definition [let x = e] *)
+    | Definition of name * expr * ty option (* Top-level definition [let x = e] *)
     | Precision of D.t          (* Target precision [$precision d] *)
     | Hnf of expr               (* Compute head-normal form *)
     | Help                      (* Print help *)

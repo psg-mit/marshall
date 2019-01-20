@@ -29,7 +29,7 @@
 %token INFINITY
 %token TRUE FALSE
 %token AND OR
-%token ANDB ORB LTB
+%token ANDB ORB LTB NEGB
 %token JOIN RESTRICT
 %token FORALL EXISTS INTEGRAL
 %token LET IN
@@ -90,7 +90,8 @@ commandline:
 
 (* Things that can be defined at toplevel. *)
 topdef:
-  | LET x = VAR EQUAL e = expr       { S.Definition (x, e) }
+  | LET x = VAR EQUAL e = expr       { S.Definition (x, e, None) }
+  | LET x = VAR COLON t = ty EQUAL e = expr { S.Definition(x, e, Some t) }
 
 (* Toplevel directives. *)
 topdirective:
@@ -171,6 +172,8 @@ unary_expr:
     { S.Unary (S.Opposite, e) }
   | INVERSE e = pow_expr
     { S.Unary (S.Inverse, e) }
+  | NEGB e = pow_expr
+    { S.App (S.Var (S.Ident "negb"), e) }
 
 bin_expr:
   | e = unary_expr

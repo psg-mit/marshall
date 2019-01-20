@@ -10,7 +10,8 @@
     ("<>" . ?≠)
     ("real" . ?ℝ)
     ("prop" . ?Σ)
-    ("bool" . ?𝔹))
+    ("bool" . ?𝔹)
+    ("~" . ?¬))
   "Prettify rules for Marshall.")
 
 (setq marshall-highlights

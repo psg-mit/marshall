@@ -60,7 +60,7 @@ let scale_x_y_shape =
   );;
 
 ! unit disk centered at origin
-let circle = fun x : real => fun y : real => lt (x^2 + y^2) 1;;
+let circle = fun x : real => fun y : real => x^2 + y^2 <b 1;;
 
 let forall_circle =
   fun p : real -> real -> bool =>

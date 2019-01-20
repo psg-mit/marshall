@@ -123,9 +123,12 @@ let help_text = "Toplevel commands:
 	     print_endline ("- : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v2) ;
 	     (ctx, env)
 	 with error -> (Message.report error; (ctx, env)))
-    | E.S.Definition (x, e) ->
+    | E.S.Definition (x, e, ot) ->
 	(try
 	   let ty = TC.type_of ctx e in
+     (match ot with
+       | None -> ()
+       | Some ty' -> TC.check_same ty' ty);
 	   let v1, v2 = E.eval false env e in
 	     print_endline
 	       (E.S.string_of_name x ^ " : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v2) ;

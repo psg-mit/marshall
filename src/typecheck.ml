@@ -14,6 +14,10 @@ struct
   let check_compact_segment i =
     if not (I.proper i) then error "not a compact interval"
 
+  let check_same ty ty' =
+	if ty <> ty' then
+		error (string_of_type ty ^ " expected but got " ^ string_of_type ty')
+
   (* [type_of ctx e] computes the type of expression [e] in context [ctx]. *)
   let rec type_of ctx = function
     | Var x ->
@@ -98,6 +102,5 @@ struct
   (* Does [e] have type [ty] in context [ctx]? *)
   and check ctx ty e =
     let ty' = type_of ctx e in
-      if ty <> ty' then
-	error (string_of_type ty ^ " expected but got " ^ string_of_type ty')
+      check_same ty ty'
 end;;

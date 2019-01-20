@@ -96,6 +96,7 @@ rule token = parse
   | "&&"                 { ANDB }
   | "||"                 { ORB }
   | "<b"                 { LTB }
+  | "~"                 { NEGB }
   | "~>"                 { RESTRICT }
   | var             	 { let str = lexeme lexbuf in
 			     try List.assoc str reserved_words with Not_found -> VAR (S.Ident str) }
