@@ -292,12 +292,12 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 			  print_endline (I.to_string (I.make a'' b''));
 				print_endline (R.to_string r1  ^ ", " ^ R.to_string r2 ^ ", " ^ R.to_string s1 ^ ", " ^ R.to_string s2 );
 			  print_endline "greater";
+				S.Dyadic (D.average a'' b'')
 		      (* We have a backwards cut. Do nothing. Someone should think
 			 whether this is ok. It would be nice if cuts could be
 			 overlapping, but I have not thought whether this would break
 			 anything else.
 		      *)
-		    e
 	    end
 	  | S.Binary (op, e1, e2) -> S.Binary (op, refn e1, refn e2)
 	  | S.Unary (op, e) -> S.Unary (op, refn e)
