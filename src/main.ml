@@ -98,18 +98,46 @@ let help_text = "Toplevel commands:
     | _ -> None
   ;;
 
+  let to_dyadic e =
+    match e with
+    | E.S.Interval i -> D.average (E.I.lower i) (E.I.upper i)
+    | E.S.Dyadic d -> d
+    | _ -> Message.runtime_error "Didn't return real number answer"
+    ;;
+
+  let one_half = D.average D.zero D.one;;
+
+  let rec dyadic_to_int' max d =
+    if max <= 0 then 0 else
+    if D.leq d D.zero
+      then 0
+      else if D.leq D.one d
+        then max - 1
+        else let max' = max / 2 in
+          if D.lt d one_half
+            then dyadic_to_int' max' (D.double ~round:D.up d)
+            else max' + dyadic_to_int' max' (D.double ~round:D.up (D.sub ~round:D.up d one_half))
+
 
   (* should only be called when `e` has type `bool` *)
   let eval_bool env e =
 	let v1, v2 = E.eval_bounded 10 env e in
-    to_bool_option v2;;
+    color_bool (to_bool_option v2);;
 
-  let plot_shape pixels env e =
+  let eval_real env e =
+  let v1, v2 = E.eval false env e in
+    dyadic_to_int' 256 (to_dyadic v2);;
+
+  let plot_shape pixels ctx env e =
     let mypixels = D.of_int ~round:D.down pixels in
+    let evaluate = match TC.type_of ctx e with
+      | E.S.Ty_Arrow (_, E.S.Ty_Real) -> eval_real
+      | E.S.Ty_Arrow (_, E.S.Ty_Bool) -> eval_bool
+    in
     Grapher.plot (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->
       let x : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down i) mypixels in
       let y : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down j) mypixels in
-      color_bool (eval_bool env (E.S.App (e, E.S.Tuple [E.S.Dyadic x; E.S.Dyadic y]))));
+      evaluate env (E.S.App (e, E.S.Tuple [E.S.Dyadic x; E.S.Dyadic y])));
     ;;
 
   (** [exec_cmd interactive (ctx,env) c] executes toplevel command [c] in global
@@ -144,7 +172,8 @@ let help_text = "Toplevel commands:
 	  (ctx, env)
     | E.S.Help -> print_endline help_text ; (ctx, env)
     | E.S.Quit -> raise End_of_file
-    | E.S.Plot (pixels, e) -> plot_shape pixels env e;
+    | E.S.Plot (pixels, e) -> (try plot_shape pixels ctx env e
+      with error -> Message.report error);
       (ctx, env)
     | E.S.Use fn -> use_file (ctx, env) (fn, interactive)
 
