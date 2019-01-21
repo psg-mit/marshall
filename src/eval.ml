@@ -110,6 +110,10 @@ let join1 xs = match xs with
   | [x] -> x
 	| _ -> S.Join xs
 
+let or1 xs = match xs with
+  | [x] -> x
+	| _ -> S.Or xs
+
 let rec restrict p e = match e with
   | S.MkBool (et, ef) -> S.MkBool (S.And [p; et], S.And [p; ef])
 	| S.Cut (x, i, p1, p2) -> S.Cut (x, i, S.And [p; p1], S.And [p; p2])
@@ -155,7 +159,7 @@ let rec restrict p e = match e with
 	| S.Cut (x, i, p1, p2) ->
 	    let x', p1', p2' = alpha2 x env p1 p2 in
 	    let env' = Env.extend x' (S.Var x') env in
-	      [S.Cut (x', i, S.Or (hnf env' p1'), S.Or (hnf env' p2'))]
+	      [S.Cut (x', i, or1 (hnf env' p1'), or1 (hnf env' p2'))]
 	| S.Binary (op, e1, e2) ->
 		  list_bind (hnf env e1) (fun e1' ->
 			List.map (fun e2' -> S.Binary (op, e1', e2')) (hnf env e2))
@@ -183,13 +187,13 @@ let rec restrict p e = match e with
 			List.map (fun e2' -> S.Less (e1', e2')) (hnf env e2)
 			)
 	| S.Restrict (e1, e2) ->
-	    List.map (restrict (S.Or (hnf env e1))) (hnf env e2)
+	    List.map (restrict (or1 (hnf env e1))) (hnf env e2)
 	| S.And lst -> (match (List.map (hnf env) lst) with
 	    | [] -> [S.True]
-			| xs -> [S.And (List.map (fun e -> S.Or e) xs)])
-  | S.Or lst -> [S.Or (list_bind lst (hnf env))]
+			| xs -> [S.And (List.map or1 xs)])
+  | S.Or lst -> [or1 (list_bind lst (hnf env))]
 	| S.Join lst -> list_bind lst (hnf env)
-	| S.MkBool (e1, e2) -> [S.MkBool (S.Or (hnf env e1), S.Or (hnf env e2))]
+	| S.MkBool (e1, e2) -> [S.MkBool (or1 (hnf env e1), or1 (hnf env e2))]
 	| S.Tuple lst -> List.map (fun e -> S.Tuple e) (List.fold_right
 	    (fun e (acc : S.expr list list) -> list_prod (fun x xs -> x :: xs) (hnf env e) acc)
 			lst
