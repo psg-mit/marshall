@@ -249,13 +249,17 @@ struct
 	| `negative_infinity, `positive_infinity
 	| `positive_infinity, `negative_infinity -> D.zero
 	| `negative_infinity, `number ->
-	    if D.leq b D.negative_one then D.shift ~prec ~round:D.down b k else D.negative_one
+	    if D.leq b D.negative_one then D.shift ~prec ~round:D.down b k
+			else if D.leq b D.zero then D.sub ~prec ~round:D.down b D.one else D.negative_one
 	| `positive_infinity, `number ->
-	    if D.geq b D.one then D.shift ~prec ~round:D.up b k else D.one
+	    if D.geq b D.one then D.shift ~prec ~round:D.up b k
+			else if D.geq b D.zero then D.add ~prec ~round:D.up b D.one else D.one
 	| `number, `positive_infinity ->
-	    if D.geq a D.one then D.shift ~prec ~round:D.up a k else D.one
+	    if D.geq a D.one then D.shift ~prec ~round:D.up a k
+			else if D.geq a D.zero then D.add ~prec ~round:D.up a D.one else D.one
 	| `number, `negative_infinity ->
-	    if D.leq a D.negative_one then D.shift ~prec ~round:D.down a k else D.negative_one
+	    if D.leq a D.negative_one then D.shift ~prec ~round:D.down a k
+			else if D.leq a D.zero then D.sub ~prec ~round:D.down a D.one else D.negative_one
 	| _ -> raise (Invalid_argument ("Interval.midpoint: " ^ to_string i))
 
   (* Split an interval into two smaller ones. *)
