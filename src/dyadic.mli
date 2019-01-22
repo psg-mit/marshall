@@ -47,7 +47,7 @@ sig
   val halve : ?prec:int -> round:rounding_mode -> t -> t
   val double : ?prec:int -> round:rounding_mode -> t -> t
   val average : t -> t -> t
-  val of_string : string -> t
+  val of_string : ?prec:int -> round:rounding_mode -> string -> t
   val to_string : t -> string
   val get_exp : t -> int
 end;;

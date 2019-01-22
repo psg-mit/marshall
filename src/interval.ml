@@ -36,6 +36,8 @@ struct
 
   let of_dyadic q = make q q
 
+	let of_string ?prec str = make (D.of_string ?prec ~round:D.down str) (D.of_string ?prec ~round:D.up str)
+
   let bottom = make D.negative_infinity D.positive_infinity
 
   let top = make D.positive_infinity D.negative_infinity

@@ -1,7 +1,7 @@
 (* \section{Dyadic numbers with [Num] (module [Dyadic_num])} *)
 
 (* Dyadic numbers with the Ocaml [Num] package. This is a lot slower
-   than [Dyadic_mpfr] but is independent of any third-party libraries.   
+   than [Dyadic_mpfr] but is independent of any third-party libraries.
 
    The [Dyadic_mpfr] package measures output preceision with bits of
    mantissa [prec], and uses rounding modes. This makes less sense
@@ -18,7 +18,7 @@ open Ratio
 
 type t =
   | NegativeInfinity
-  | Ratio of ratio 
+  | Ratio of ratio
   | PositiveInfinity
   | NaN
 
@@ -38,34 +38,36 @@ let anti = function
 (* \subsection{Constructors} *)
 
 (* XXX: Not finished, should make numerator smaller. *)
-let normalize (prec:int) (round:rounding_mode) m = m
+let normalize ?(prec:int option) (round:rounding_mode) m = m
 
-let of_int ?prec ?round k = Ratio (ratio_of_int k)
+let of_int ?(prec : int option) ~(round : rounding_mode) k = Ratio (ratio_of_int k)
 
 (* Big integer of type [Big_int] to dyadic. *)
 let of_integer ~prec ~round k = Ratio (ratio_of_big_int k)
 
 let pow2 e = Big_int.power_int_positive_int 2 e
-  
+
 let make ~prec ~round m e =
   if e >= 0 then
     of_integer ~prec:prec ~round:round (Big_int.mult_big_int m (pow2 e))
   else Ratio (create_ratio m (pow2 (-e)))
 
-let make_int ~prec ~round m e =
+let make_int ?(prec: int option) ~(round : rounding_mode) m e =
   make ~prec:prec ~round:round (Big_int.big_int_of_int m) e
 
 (* \subsection{Constants} *)
 
-let zero = of_int 0
+let of_int' k = Ratio (ratio_of_int k)
 
-let one = of_int 1
+let zero = of_int' 0
 
-let negative_one = of_int (-1)
+let one = of_int' 1
 
-let two = of_int 2
+let negative_one = of_int' (-1)
 
-let half = make_int 1 (-1)
+let two = of_int' 2
+
+let half ?(prec : int option) = make_int 1 (-1)
 
 (* \subsection{Order} *)
 
@@ -77,7 +79,7 @@ let cmp a b =
     | NegativeInfinity, NegativeInfinity -> `equal
     | NegativeInfinity, (Ratio _ | PositiveInfinity) -> `less
     | Ratio _, NegativeInfinity -> `greater
-    | Ratio a, Ratio b -> 
+    | Ratio a, Ratio b ->
 	let c = compare_ratio a b in
 	  if c < 0 then `less
 	  else if c > 0 then `greater
@@ -86,7 +88,7 @@ let cmp a b =
     | PositiveInfinity, (NegativeInfinity | Ratio _) -> `greater
     | PositiveInfinity, PositiveInfinity -> `equal
 
-let min a b = 
+let min a b =
   match a, b with
     | NaN, _ | _, NaN -> raise nan_exc
     | NegativeInfinity, _
@@ -171,41 +173,41 @@ let classify = function
   | PositiveInfinity -> `positive_infinity
   | NaN -> `nan
 
-(* \subsection{Arithmetic} *)  
+(* \subsection{Arithmetic} *)
 
 (* Arithmetic operations need to take care of infinite operands when
    the result would be [nan] (not a number). *)
 
 (* Addition. *)
-let add ~prec ~round a b =
+let add ?(prec : int option) ~round a b =
   match a, b with
     | (NaN, _) | (_, NaN) -> infinity round
     | NegativeInfinity, NegativeInfinity -> NegativeInfinity
     | NegativeInfinity, Ratio _ -> NegativeInfinity
     | NegativeInfinity, PositiveInfinity -> infinity round
     | Ratio _, NegativeInfinity -> NegativeInfinity
-    | Ratio a, Ratio b -> Ratio (normalize prec round (add_ratio a b))
+    | Ratio a, Ratio b -> Ratio (normalize ?prec round (add_ratio a b))
     | Ratio _, PositiveInfinity -> PositiveInfinity
     | PositiveInfinity, NegativeInfinity -> infinity round
     | PositiveInfinity, Ratio _ -> PositiveInfinity
     | PositiveInfinity, PositiveInfinity -> PositiveInfinity
 
 (* Subtraction. *)
-let sub ~prec ~round a b =
+let sub ?prec ~round a b =
   match a, b with
     | NaN, _ | _, NaN -> infinity round
     | NegativeInfinity, NegativeInfinity -> infinity round
     | NegativeInfinity, Ratio _ -> NegativeInfinity
     | NegativeInfinity, PositiveInfinity -> NegativeInfinity
     | Ratio _, NegativeInfinity -> PositiveInfinity
-    | Ratio a, Ratio b -> Ratio (normalize prec round (sub_ratio a b))
+    | Ratio a, Ratio b -> Ratio (normalize ?prec round (sub_ratio a b))
     | Ratio _, PositiveInfinity -> NegativeInfinity
     | PositiveInfinity, NegativeInfinity -> PositiveInfinity
     | PositiveInfinity, Ratio _ -> PositiveInfinity
     | PositiveInfinity, PositiveInfinity -> infinity round
 
 (* Negation. *)
-let neg ~prec ~round = function
+let neg ?(prec : int option) ~round = function
   | NaN -> infinity round
   | NegativeInfinity -> PositiveInfinity
   | Ratio a -> Ratio (minus_ratio a)
@@ -213,7 +215,7 @@ let neg ~prec ~round = function
 
 (* Multiplication. Special cases: $\pm\infty \times 0$ and $0 \times
    \pm\infty$. *)
-let mul ~prec ~round a b =
+let mul ?prec ~round a b =
   match a, b with
     | NaN, _ | _, NaN -> infinity round
     | NegativeInfinity, NegativeInfinity -> PositiveInfinity
@@ -225,7 +227,7 @@ let mul ~prec ~round a b =
 	   else infinity round)
     | NegativeInfinity, PositiveInfinity
     | PositiveInfinity, NegativeInfinity -> NegativeInfinity
-    | Ratio a, Ratio b -> Ratio (normalize prec round (mult_ratio a b))
+    | Ratio a, Ratio b -> Ratio (normalize ?prec round (mult_ratio a b))
     | Ratio a, PositiveInfinity
     | PositiveInfinity, Ratio a ->
 	(let s = sign_ratio a in
@@ -235,12 +237,12 @@ let mul ~prec ~round a b =
     | PositiveInfinity, PositiveInfinity -> PositiveInfinity
 
 (* Powers with non-negative exponents. *)
-let pow ~prec ~round a k =
+let pow ?prec ~round a k =
   match a with
     | NaN -> infinity round
     | NegativeInfinity ->
 	if k mod 2 = 0 then PositiveInfinity else NegativeInfinity
-    | Ratio a -> Ratio (normalize prec round (power_ratio_positive_int a k))
+    | Ratio a -> Ratio (normalize ?prec round (power_ratio_positive_int a k))
     | PositiveInfinity -> PositiveInfinity
 
 (* Division. *)
@@ -253,11 +255,11 @@ let div ~prec ~round a b =
 	   if s < 0 then PositiveInfinity
 	   else if s > 0 then NegativeInfinity
 	   else infinity round)
-    | Ratio a, Ratio b -> 
+    | Ratio a, Ratio b ->
 	if sign_ratio b = 0 then
 	  infinity round
 	else
-	  Ratio (normalize prec round (div_ratio a b))
+	  Ratio (normalize ~prec round (div_ratio a b))
     | PositiveInfinity, Ratio a ->
 	(let s = sign_ratio a in
 	   if s < 0 then NegativeInfinity
@@ -273,16 +275,16 @@ let inv ~prec ~round = function
       if sign_ratio a = 0 then
 	infinity round
       else
-	Ratio (normalize prec round (inverse_ratio a))
+	Ratio (normalize ~prec round (inverse_ratio a))
 
 (* Shift by a power of two. *)
-let shift ~prec ~round a k =
+let shift ?prec ~round a k =
   match a with
     | NaN -> NaN
     | NegativeInfinity -> NegativeInfinity
     | PositiveInfinity -> PositiveInfinity
     | Ratio a ->
-	Ratio (normalize prec round (
+	Ratio (normalize ?prec round (
 	  if k = 0 then a
 	  else if k > 0 then
 	    mult_big_int_ratio (Big_int.power_int_positive_int 2 k) a
@@ -294,7 +296,7 @@ let shift ~prec ~round a k =
 				(Big_int.power_int_positive_int 2 (-k)))
 	))
 
-let halve ~prec ~round = function
+let halve ?(prec : int option) ~(round : rounding_mode) = function
   | NaN -> NaN
   | NegativeInfinity -> NegativeInfinity
   | PositiveInfinity -> PositiveInfinity
@@ -304,13 +306,13 @@ let halve ~prec ~round = function
 	create_ratio p (Big_int.mult_int_big_int 2 q)
     )
 
-let double ?prec ~round a =     
+let double ?prec ~round a =
   let prec = (match prec with None -> 0 | Some p -> p) in
   match a with
      NaN -> NaN
     | NegativeInfinity -> NegativeInfinity
     | PositiveInfinity -> PositiveInfinity
-    | Ratio a -> Ratio (normalize prec round (mult_int_ratio 2 a))
+    | Ratio a -> Ratio (normalize ~prec round (mult_int_ratio 2 a))
 
 (* [average a b] returns a dyadic which is guaranteed to be strictly
    between [a] and [b], close to the average. This only works for
@@ -331,7 +333,7 @@ let average a b =
 
 (* \subsection{String conversions} *)
 
-let of_string str = Ratio (ratio_of_string str)
+let of_string ?prec ~round str = Ratio (ratio_of_string str)
 
 let to_string = function
   | NaN -> "nan"

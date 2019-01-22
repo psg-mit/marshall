@@ -3,6 +3,7 @@ module Make = functor (D : Dyadic.DYADIC) ->
 struct
   module S = Syntax.Make(D)
   module P = Parser.Make(D)
+  module I = Interval.Make(D)
   open Lexing
   open P
 
@@ -57,8 +58,8 @@ rule token = parse
   | '!' [^'\n']* '\n'    { incr_linenum lexbuf; token lexbuf }
   | '!' [^'\n']* eof     { incr_linenum lexbuf; token lexbuf }
   | ['0'-'9']+           { NATURAL (int_of_string (lexeme lexbuf)) }
-  | mpfr_dec             { DYADIC (D.of_string (lexeme lexbuf)) }
-  | mpfr_hex             { DYADIC (D.of_string (lexeme lexbuf)) }
+  | mpfr_dec             { DYADIC (I.of_string (lexeme lexbuf)) }
+  | mpfr_hex             { DYADIC (I.of_string (lexeme lexbuf)) }
   | "#precision"         { PRECISION } (* Pragmas must come before projection. *)
   | "#use"               { USE }
   | "#trace"             { TRACE }

@@ -23,7 +23,7 @@
 %token TSIGMA TREAL
 %token TARROW
 %token <Syntax.Make(D).name> VAR
-%token <D.t> DYADIC
+%token <Interval.Make(D).t> DYADIC
 %token <int> NATURAL
 %token <int> PROJECT
 %token INFINITY
@@ -151,7 +151,7 @@ simple_expr:
   | n = NATURAL
     { S.Dyadic (D.of_int ~round:D.down n) }
   | q = DYADIC
-    { S.Dyadic q }
+    { S.Interval q }
   | TRUE
     { S.True }
   | FALSE
@@ -329,4 +329,4 @@ numconst:
   | n = NATURAL
     { D.of_int ~round:D.down n }
   | q = DYADIC
-    { q }
+    { I.lower q }

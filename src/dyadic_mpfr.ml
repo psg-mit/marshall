@@ -254,7 +254,11 @@ let average a b =
 
 (* \subsection{String conversions} *)
 
-let of_string str = Mpfr.init_set_str str 0 Mpfr.Near
+let of_string ?prec ~round str =
+  let prec = (match prec with None -> 4 * (String.length str) | Some p -> p) in
+  let q = Mpfr.init2 prec in
+  ignore (Mpfr.set_str q str 0 round) ;
+  q
 
 let trim_right ?(min_length = 0) str chr =
   let n = ref (String.length str) in
