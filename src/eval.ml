@@ -184,7 +184,16 @@ let rec restrict p e = match e with
 	    ) (hnf env e)
 	| S.Less (e1, e2) ->
 		  list_bind (hnf env e1) (fun e1' ->
-			List.map (fun e2' -> S.Less (e1', e2')) (hnf env e2)
+			match e1' with
+			| S.Cut (x, i, p1, p2) ->
+			      hnf env (S.App (S.Lambda (x, S.Ty_Real, p2), e2))
+			| _ ->
+				list_bind (hnf env e2) (fun e2' ->
+					match e2' with
+					| S.Cut (x, i, p1, p2) ->
+								hnf env (S.App (S.Lambda (x, S.Ty_Real, p1), e1'))
+					| _ -> [S.Less (e1', e2')]
+				)
 			)
 	| S.Restrict (e1, e2) ->
 	    List.map (restrict (or1 (hnf env e1))) (hnf env e2)
