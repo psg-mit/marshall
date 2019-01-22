@@ -181,7 +181,7 @@ struct
 		    lpow a k
 	    ) ;
 	    upper = lazy (
-	      let upow = D.pow ~prec ~round in
+	      let upow = D.pow ~prec ~round:dnuor in
 		if D.negative a then
 		  if D.negative b then
 		    upow a k
