@@ -133,6 +133,7 @@ let help_text = "Toplevel commands:
     let evaluate = match TC.type_of ctx e with
       | E.S.Ty_Arrow (_, E.S.Ty_Real) -> eval_real
       | E.S.Ty_Arrow (_, E.S.Ty_Bool) -> eval_bool
+      | _ -> Message.runtime_error "Must be function type with return type real or bool"
     in
     Grapher.plot (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->
       let x : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down i) mypixels in
