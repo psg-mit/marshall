@@ -109,17 +109,17 @@ struct
     | S.IsFalse _ -> failwith "Cannot differentiate is_true/is_false"
 
 
-  let estimate_endpoint prec x y d =
+  let estimate_endpoint prec round x y d =
         match D.sgn d with
   	| `negative ->
-  	    let b' = D.sub ~prec ~round:D.down x (D.div ~prec ~round:D.up y d) in
+  	    let b' = D.sub ~prec ~round x (D.div ~prec ~round:(D.anti round) y d) in
   		R.open_left_ray b'
   	| `zero ->
   	    (match D.sgn y with
   	       | `negative | `zero -> R.empty
   	       | `positive -> R.real_line)
   	| `positive ->
-  	    let a' = D.sub ~prec ~round:D.up x (D.div ~prec ~round:D.down y d) in
+  	    let a' = D.sub ~prec ~round:(D.anti round) x (D.div ~prec ~round y d) in
   		R.open_right_ray a'
 
   (* The function [estimate_positive env x i e] returns a set such that
@@ -142,8 +142,8 @@ struct
       let y2 = I.lower (A.get_interval (A.lower prec (Env.extend x (S.Dyadic x2) env) e)) in
       let lif = A.get_interval (A.lower prec (Env.extend x (S.Interval i) env) (diff x e)) in  (* Lifschitz constant as an interval *)
 	(R.union
-	  (estimate_endpoint prec x1 y1 (I.lower lif)) (* estimate at i.lower *)
-	  (estimate_endpoint prec x2 y2 (I.upper lif)))  (* estimate at i.upper*)
+	  (estimate_endpoint prec D.down x1 y1 (I.lower lif)) (* estimate at i.lower *)
+	  (estimate_endpoint prec D.down x2 y2 (I.upper lif)))  (* estimate at i.upper*)
 
   (* The function [estimate_non_positive env x i e] returns a
      set such that in environment [env] the expression [e] with
@@ -165,10 +165,10 @@ struct
       let y1 = I.lower (A.get_interval (A.upper prec (Env.extend x (S.Dyadic x1) env) e)) in
       let y2 = I.lower (A.get_interval (A.upper prec (Env.extend x (S.Dyadic x2) env) e)) in
       let lif = A.get_interval (A.upper prec (Env.extend x (S.Interval (I.flip i)) env) diffexpr) in  (* Lifschitz constant as an interval *)
-      (*print_endline ("estimate_non_positive:" ^ S.string_of_expr diffexpr);*)
+      (* print_endline ("estimate_non_positive:" ^ S.string_of_expr diffexpr ^ " | lif: " ^ I.to_string lif); *)
       if not (I.proper (I.flip lif)) then R.real_line else
-	  R.union (estimate_endpoint prec x1 y1 (I.lower lif))
-		 (estimate_endpoint prec x2 y2 (I.upper lif))
+	  R.union (estimate_endpoint prec D.up x1 y1 (I.lower lif))
+		 (estimate_endpoint prec D.up x2 y2 (I.upper lif))
 
 
   (* The function [estimate prec env i x p] returns a pair of sets [(a,b)]
@@ -214,7 +214,7 @@ struct
    (* | S.Less (e1, e2) -> estimate_non_positive prec env x i (S.Binary (S.Minus, e2, e1))*)
     | S.Less (e1, e2) ->
        let r = estimate_non_positive k prec env x i (S.Binary (S.Minus, e2, e1)) in
-       (*print_endline ("Estimated " ^ S.string_of_name x ^ " on " ^ I.to_string i ^ " with " ^ Env.string_of_env env ^ " | " ^ S.string_of_expr (S.Less (e1, e2)) ^ " to be false on " ^ R.to_string r ^ "\n");*)
+       (* print_endline ("Estimated " ^ S.string_of_name x ^ " on " ^ I.to_string i ^ " with " ^ Env.string_of_env env ^ " | " ^ S.string_of_expr (S.Less (e1, e2)) ^ " to be false on " ^ R.to_string r ^ "\n"); *)
 	r
     | S.Exists (y, j, p) ->
         estimate_false k prec (Env.extend y (S.Interval (I.flip j)) env) x i p
