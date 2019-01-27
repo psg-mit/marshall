@@ -48,9 +48,9 @@ let ray (disp : real * real) =
   fun t : real => 
   (t / mag, t * disp1, t * disp2);;
 
-let ray' (disp : real * real) =
+let ray_unnorm (disp : real * real) =
   fun t : real => 
-  (t, t * disp#0, t * disp#1);;
+  (t, t * disp#0, t * -disp#1);;
 
 let lta (x : real) (y : real) : bool =
   mkbool (x < y + 0.01) (y < x);;
@@ -59,7 +59,7 @@ let table (x : real * real * real) : bool =
   lta x#2 -1 && lta -1 x#1 && lta x#1 1;;
 
 let ball (x : real * real * real) : bool =
-  ((x#0 - 3)^2 + (x#1 - 0.1)^2 + x#2^2) <b 1;;
+  lta ((x#0 - 2)^2 + (x#1 - 0.7)^2 + x#2^2) 1;;
 
 let lft_root_max_depth (mx : real) (f : real -> bool) : real =
   dedekind_cut (fun q : real =>
@@ -68,3 +68,9 @@ let lft_root_max_depth (mx : real) (f : real -> bool) : real =
 
 let ray_scene (disp : real * real) =
   1 - (lft_root_max_depth 20 (fun t : real => let r = ray disp t in table r || ball r) / 20);;
+
+let ray_scene' (disp : real * real) =
+  let mag = sqrt (1 + disp#0^2 + disp#1^2) in
+  let md = 20 * mag in
+  1 - (lft_root_max_depth 50 (fun t : real => let r = ray_unnorm disp t in table r || ball r) / md);;
+
