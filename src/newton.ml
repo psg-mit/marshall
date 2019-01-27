@@ -223,15 +223,14 @@ struct
     | S.Join lst -> estimate_false k prec env x i (S.Or lst)
     | e -> failwith ("Cannot estimate " ^ S.string_of_expr e)
 
+  let estimate_true' k prec env x i p =
+    R.intersection (estimate_true k prec env x i p) (R.of_interval i)
+
+  let estimate_false' k prec env x i p =
+    R.intersection (R.complement (estimate_false k prec env x i p)) (R.of_interval i)
+
   let estimate k prec env x i p =
-    let a1' = (estimate_false k prec env x i p) in
-    let a1 = R.complement a1' in
-    let b1 = estimate_true k prec env x i p in
-    let a = R.intersection a1 (R.of_interval i) in
-    let b = R.intersection b1 (R.of_interval i) in
-    (*if (*R.is_inhabited (R.intersection a1 b1)*) true
-       then print_endline ("estimate: " ^ I.to_string i ^ "--" ^ R.to_string a1' ^ ", " ^ R.to_string a1 ^ ", " ^ R.to_string b1);*)
-    (a, b)
+    (estimate_false' k prec env x i p, estimate_true' k prec env x i p)
 
 end;;
 
