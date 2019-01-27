@@ -288,15 +288,12 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 (*		    print_endline ("Cut: " ^ (S.string_of_name x) ^ ":" ^ (I.to_string i) ^ ":" ^ (I.to_string j) ^ (I.to_string l) ^ (S.string_of_expr q1) ^ (S.string_of_expr q2));*)
 		      S.Cut (x, l, q1, q2)
 		  | `equal ->
-			  (* print_endline (I.to_string i ^ ", " ^ I.to_string j ^ ", " ^ I.to_string (I.make a'' b''));
-				print_endline (R.to_string r1  ^ ", " ^ R.to_string r2 ^ ", " ^ R.to_string s1 ^ ", " ^ R.to_string s2 );
-				print_endline "equal"; *)
 		      (* We found an exact value *)
 		    S.Dyadic a''
 		  | `greater ->
 				let l = I.make a'' b'' in
 			  print_endline (I.to_string l);
-				print_endline (R.to_string r2 ^ ", " ^ R.to_string s2 );
+				print_endline (R.to_string r2 ^ " || " ^ R.to_string s2 );
 			  print_endline "greater";
 				S.Interval l
 		      (* We have a backwards cut. Do nothing. Someone should think
