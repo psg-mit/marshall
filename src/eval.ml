@@ -280,8 +280,8 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 				    then print_endline ("uh-oh left cut" ^ D.to_string (R.supremum r2) ^ "," ^ D.to_string (R.infimum r1) );
 				if R.supremum s1 > R.infimum s2
 				    then print_endline ("uh-oh right cut" ^ D.to_string (R.supremum s1) ^ "," ^ D.to_string (R.infimum s2) );
-        let a'' = D.max a' (D.max (R.supremum r2) (R.supremum s1)) in
-	      let b'' = D.min b' (D.min (R.infimum  s2) (R.infimum r1)) in
+        let a'' = D.max a' (R.supremum r2) in
+	      let b'' = D.min b' (R.infimum  s2) in
 	      match D.cmp a'' b'' with
 		  | `less ->
 		      (* The new interval *)
