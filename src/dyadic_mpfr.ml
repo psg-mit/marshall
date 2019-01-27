@@ -255,7 +255,7 @@ let average a b =
 (* \subsection{String conversions} *)
 
 let of_string ?prec ~round str =
-  let prec = (match prec with None -> 4 * (String.length str) | Some p -> p) in
+  let prec = (match prec with None -> Pervasives.max (4 * (String.length str)) Sys.word_size | Some p -> p) in
   let q = Mpfr.init2 prec in
   ignore (Mpfr.set_str q str 0 round) ;
   q
