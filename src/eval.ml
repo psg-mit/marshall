@@ -296,7 +296,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		  | `greater ->
 				let l = I.make a'' b'' in
 			  print_endline (I.to_string l);
-				print_endline (R.to_string r1  ^ ", " ^ R.to_string r2 ^ ", " ^ R.to_string s1 ^ ", " ^ R.to_string s2 );
+				print_endline (R.to_string r2 ^ ", " ^ R.to_string s2 );
 			  print_endline "greater";
 				S.Interval l
 		      (* We have a backwards cut. Do nothing. Someone should think
@@ -333,14 +333,14 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	              A.fold_or (fun i -> make_exists x i q) [i1; i2])*)
 	      let i1, i2 = I.split prec 1 i in
 		(* Newton's method *)
-	      let b1 = N.estimate_true' k prec env x i1 q in
+	      let (a1, b1) = N.estimate k prec env x i1 q in
 
 (*	      print_endline ("Exists: " ^ (S.string_of_name x) ^ ":" ^ (I.to_string i) ^ ":" ^ (R.to_string a1) ^ (R.to_string b1));*)
 	      if R.is_inhabited b1 then
 		(* We could collect [b1] as a witness here. *)
 		S.True
 	      else
-		let b2 = N.estimate_true' k prec env x i2 q in
+		let (a2, b2) = N.estimate k prec env x i2 q in
 (*		  print_endline ("Exists: " ^ (S.string_of_name x) ^ ":" ^ (I.to_string i) ^ ":" ^ (R.to_string a2) ^ (R.to_string b2));*)
 		  if R.is_inhabited b2 then
 		    (* We could collect [b2] as a witness here. *)
@@ -379,13 +379,13 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 
 	       let i1, i2 = I.split prec 1 i in
 		(* Newton's method *)
-              let a1 = N.estimate_false' k prec env x i1 q in
+              let (a1, b1) = N.estimate k prec env x i1 q in
 (*	      print_endline ("Forall: " ^ (S.string_of_name x) ^ ":" ^ (I.to_string i) ^ ":" ^ (R.to_string a1) ^ (R.to_string b1));*)
 	      if R.is_inhabited a1 then
 		(* We could take [a1] as witness for quantifier being false. *)
 		S.False
 	      else
-		let a2 = N.estimate_false' k prec env x i2 q in
+		let (a2, b2) = N.estimate k prec env x i2 q in
 (*		print_endline ("Forall: " ^ (S.string_of_name x) ^ ":" ^ (I.to_string i) ^ ":" ^ (R.to_string a2) ^ (R.to_string b2));*)
 		  if R.is_inhabited a2 then
 		    (* We could take [a2] as witness for quantifier being false. *)
