@@ -147,9 +147,9 @@ struct
 	  | Tuple lst ->         (100, "(" ^ (String.concat ", " (List.map (to_str 10) lst)) ^ ")")
 	  | Proj (e, k) ->       (90, to_str 90 e ^ "#" ^ string_of_int k)
 	  | App (e1, e2) ->      (85, to_str 84 e1 ^ " " ^ to_str 85 e2)
-    | MkBool (et, ef) ->   (80, "mkbool " ^ to_str 80 et ^ " " ^ to_str 80 ef)
-    | IsTrue e ->          (80, "is_true " ^ to_str 80 e)
-    | IsFalse e ->         (80, "is_true " ^ to_str 80 e)
+    | MkBool (et, ef) ->   (85, "mkbool " ^ to_str 85 et ^ " " ^ to_str 85 ef)
+    | IsTrue e ->          (85, "is_true " ^ to_str 85 e)
+    | IsFalse e ->         (85, "is_true " ^ to_str 85 e)
 	  | Power (e, k) ->      (83, to_str 82 e ^ " ^ " ^ string_of_int k)
 	  | Unary (op, e) ->     (80, string_of_unary op ^ " " ^ to_str 80 e)
 	  | Binary (op, e1, e2) ->
