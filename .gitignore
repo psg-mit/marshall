@@ -12,6 +12,7 @@ config.log
 config.status
 marshall
 marshall.native
+marshall.p.native
 marshall.byte
 configure
 
