@@ -213,10 +213,10 @@ let rec restrict p e = match e with
 	    [S.Lambda (x', ty, join1 (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.Exists (x, i, e) ->
 	  let x',e' = alpha1 x env e in
-	    [S.Exists (x', i, S.Or (hnf (Env.extend x' (S.Var x') env) e'))]
+	    [S.Exists (x', i, or1 (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.Forall (x, i, e) ->
 	  let x',e' = alpha1 x env e in
-	    [S.Forall (x', i, S.Or (hnf (Env.extend x' (S.Var x') env) e'))]
+	    [S.Forall (x', i, or1 (hnf (Env.extend x' (S.Var x') env) e'))]
 	| S.Integral (x, i, e) ->
 	  let x',e' = alpha1 x env e in
 	    [S.Integral (x', i, join1 (hnf (Env.extend x' (S.Var x') env) e'))]
