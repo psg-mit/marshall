@@ -25,9 +25,11 @@ struct
   type ty =
     | Ty_Sigma (* [prop] *)
     | Ty_Real  (* [real] *)
-    | Ty_Arrow of ty * ty (* [t1 -> t2] *)
+    | Ty_Arrow of (name option * ty * ty) (* [t1 -> t2] *)
     | Ty_Tuple of ty list (* [t1 * t2 * ... * tn] *)
     | Ty_Bool
+    | Ty_Var of name
+    | Ty_Type
 
   (** Binary arithmetical operations. *)
   type binary =
@@ -98,6 +100,7 @@ struct
     | MkBool of expr * expr
     | IsTrue of expr
     | IsFalse of expr
+    | TyExpr of ty
 
   (** Toplevel commands *)
   type toplevel_cmd =
@@ -118,8 +121,12 @@ struct
 	  | Ty_Sigma            -> (3, "prop")
 	  | Ty_Real             -> (3, "real")
     | Ty_Bool             -> (3, "bool")
+    | Ty_Type             -> (3, "type")
+    | Ty_Var v            -> (3, string_of_name v)
 	  | Ty_Tuple lst        -> (2, String.concat "*" (List.map (to_str 2) lst))
-	  | Ty_Arrow (ty1, ty2) -> (1, to_str 1 ty1 ^ " -> " ^ to_str 0 ty2)
+	  | Ty_Arrow (mv, ty1, ty2) -> (1, match mv with
+        | None -> to_str 1 ty1 ^ " -> " ^ to_str 0 ty2
+        | Some v -> "(" ^ string_of_name v ^ " : " ^ to_str 1 ty1 ^ ") -> " ^ to_str 0 ty2)
       in
 	if m > n then str else "(" ^ str ^ ")"
     in
@@ -136,6 +143,7 @@ struct
 	  | Interval i ->        (100, I.to_string_number i)
 	  | True | And [] ->     (100, "True")
 	  | False | Or [] ->     (100, "False")
+    | TyExpr t ->          (100, "{" ^ string_of_type t ^ "}")
 	  | Tuple lst ->         (100, "(" ^ (String.concat ", " (List.map (to_str 10) lst)) ^ ")")
 	  | Proj (e, k) ->       (90, to_str 90 e ^ "#" ^ string_of_int k)
 	  | App (e1, e2) ->      (85, to_str 84 e1 ^ " " ^ to_str 85 e2)

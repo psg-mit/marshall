@@ -155,7 +155,7 @@ let rec restrict p e = match e with
 	       [List.assoc x env]
 	     with Not_found ->
 	       if free then [S.Var x] else error ("Unknown variable " ^ S.string_of_name x))
-	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False) as e -> [e]
+	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False | S.TyExpr _ ) as e -> [e]
 	| S.Cut (x, i, p1, p2) ->
 	    let x', p1', p2' = alpha2 x env p1 p2 in
 	    let env' = Env.extend x' (S.Var x') env in

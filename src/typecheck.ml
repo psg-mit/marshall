@@ -18,6 +18,17 @@ struct
 	if ty <> ty' then
 		error (string_of_type ty ^ " expected but got " ^ string_of_type ty')
 
+  let rec ty_subst v t = function
+    | Ty_Var v' -> if v = v' then t else Ty_Var v'
+    | Ty_Arrow (mv, t1, t2) ->
+	  let t1' = ty_subst v t t1 in
+	  let t2' = match mv with
+	    | None -> ty_subst v t t2
+		| Some v' -> if v = v' then t2 else ty_subst v t t2
+	  in Ty_Arrow (mv, t1', t2')
+    | Ty_Tuple ts -> Ty_Tuple (List.map (ty_subst v t) ts)
+	| ty -> ty
+
   (* [type_of ctx e] computes the type of expression [e] in context [ctx]. *)
   let rec type_of ctx = function
     | Var x ->
@@ -92,11 +103,19 @@ struct
 			   " components but got " ^ string_of_type ty))
 	   | ty -> error ("Expected a tuple but got " ^ string_of_type ty)
 	)
-    | Lambda (x, ty, e) ->
-	Ty_Arrow (ty, type_of ((x,ty)::ctx) e)
+    | Lambda (x, ty, e) -> (match ty with
+	    | Ty_Type -> Ty_Arrow (Some x, Ty_Type, type_of ctx e)
+		| _ -> let ty' = match ty with
+	    	| Ty_Var v -> (try List.assoc v ctx with Not_found -> ty)
+			| _ -> ty
+			in Ty_Arrow (None, ty', type_of ((x,ty')::ctx) e))
     | App (e1, e2) ->
 	(match type_of ctx e1 with
-	   | Ty_Arrow (ty1, ty2) -> check ctx ty1 e2 ; ty2
+	   | Ty_Arrow (mv, ty1, ty2) -> (match mv with
+	      | None -> check ctx ty1 e2 ; ty2
+		  | Some v -> (match e2 with
+		    | TyExpr t -> ty_subst v t ty2
+			| _ -> error ("Expected type argument but got " ^ string_of_expr e2)))
 	   | ty -> error ("Expected a function but got " ^ string_of_type ty))
 
   (* Does [e] have type [ty] in context [ctx]? *)

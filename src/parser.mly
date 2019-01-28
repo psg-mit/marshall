@@ -42,6 +42,7 @@
 %token COLON COMMA SEMISEMI
 %token LPAREN RPAREN
 %token LBRACK RBRACK LBRACE RBRACE
+%token TYPE
 %token USE QUIT TRACE PRECISION HNF HELP PLOT
 %token <string> STRING
 %token EOF
@@ -97,7 +98,7 @@ topdef:
     { S.Definition (x, List.fold_right (fun (x, t) e' -> S.Lambda (x, t, e')) args e, None)}
   | LET x = VAR args = arglist t = ty_sig EQUAL e = expr
     { S.Definition (x, List.fold_right (fun (x, t) e' -> S.Lambda (x, t, e')) args e,
-      Some (List.fold_right (fun (x, targ) t' -> S.Ty_Arrow (targ, t')) args t)) }
+      Some (List.fold_right (fun (x, targ) t' -> S.Ty_Arrow ((if targ = S.Ty_Type then Some x else None), targ, t')) args t)) }
 
 ty_sig:
   | COLON t = ty
@@ -168,6 +169,8 @@ simple_expr:
     { e }
   | LPAREN es = expr_list RPAREN
     { S.Tuple es }
+  | LBRACE t = ty RBRACE
+    { S.TyExpr t }
 
 apply_expr:
   | e1 = apply_expr e2 = simple_expr
@@ -284,6 +287,10 @@ ty_simple:
     { S.Ty_Real }
   | TBOOL
     { S.Ty_Bool }
+  | TYPE
+    { S.Ty_Type }
+  | v = VAR
+    { S.Ty_Var v }
   | LPAREN t = ty RPAREN
     { t }
 
@@ -301,7 +308,9 @@ ty_prod_list:
 
 ty:
   | t1 = ty TARROW t2 = ty
-    { S.Ty_Arrow (t1, t2) }
+    { S.Ty_Arrow (None, t1, t2) }
+  | LPAREN v = VAR COLON t1 = ty RPAREN TARROW t2 = ty
+    { S.Ty_Arrow (Some v, t1, t2) }
   | t = ty_prod
     { t }
 

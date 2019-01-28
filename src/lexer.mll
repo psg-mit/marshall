@@ -35,6 +35,7 @@ struct
     "mkbool", MKBOOL;
     "is_true", ISTRUE;
     "is_false", ISFALSE;
+    "type", TYPE;
   ]
 
   let position_of_lex lex =
