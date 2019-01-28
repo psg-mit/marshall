@@ -16,7 +16,7 @@ let ellipse (a : real) (b : real) =
 let closed_of_compact (oshape : real * real -> bool) (kshape : (real * real -> bool) -> bool) =
   fun P : real * real -> bool =>
   kshape (fun x : real * real =>
-    oshape x || P x
+    ~ oshape x || P x
   );;
 
 let ellipse_k (a : real) (b : real) =
@@ -88,7 +88,7 @@ let amount_to_translate_piston (angle : real * real) : real * real =
     ! on the positive x-axis
     (point_on_pos_x_axis - 0.75, 0)
     ;;
-  
+
 
 let check_conditions : bool =
   let shifted_square = translate_k (3, 0) square_quantified#0 in
