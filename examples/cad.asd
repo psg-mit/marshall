@@ -69,21 +69,21 @@ let rightmost_extent_3 (shape : real * real -> bool) : real =
 ;;
 
 ! Compute the intersection of two shapes.
-let intersection (shape_1 : real * real -> bool) (shape_2 : real * real -> bool) =
-  fun x : real * real =>
+let intersection (A : type) (shape_1 : A -> bool) (shape_2 : A -> bool) =
+  fun x : A =>
   shape_1 x && shape_2 x
   ;;
 
 ! Compute the union of two shapes.
-let union (shape_1 : real * real -> bool) (shape_2 : real * real -> bool) =
-  fun x : real * real =>
+let union (A : type) (shape_1 : A -> bool) (shape_2 : A -> bool) =
+  fun x : A =>
   shape_1 x || shape_2 x
   ;;
 
 ! The set-theoretic complement of a shape. Not sure where
 ! this may come in handy.
-let complement (shape : real * real -> bool) =
-  fun x : real * real =>
+let complement (A : type) (shape : A -> bool) =
+  fun x : A =>
   ~ (shape x)
   ;;
 
@@ -109,14 +109,14 @@ let exists_k (shape : (real * real -> bool) -> bool) (p : real * real -> bool) :
 
 ! Do two shapes overlap?
 let overlaps (shape_1 : real * real -> bool) (shape_2 : real * real -> bool) : prop =
-  nonempty (intersection shape_1 shape_2)
+  nonempty (intersection {real * real} shape_1 shape_2)
 ;;
 
 ! Does one shape lie strictly inside another?
-let shape_inside
-    (shape_1 : ((real * real -> bool) -> bool) * (real * real -> bool))
-    (shape_2 : ((real * real -> bool) -> bool) * (real * real -> bool)) =
-      (shape_1#0) (fun x : real * real => (shape_2#1) x);;
+let shape_inside (A : type)
+    (shape_1 : ((A -> bool) -> bool) * (A -> bool))
+    (shape_2 : ((A-> bool) -> bool) * (A -> bool)) =
+      (shape_1#0) (fun x : A => (shape_2#1) x);;
 
 ! The unit disk is nonempty
 let disk_nonempty = nonempty unit_disk;;
@@ -126,7 +126,7 @@ let disk_nonempty = nonempty unit_disk;;
 ! The intersection of the unit disk and unit square, translated
 ! by (5,5) is nonempty
 let disk_int_square_nonempty =
-  nonempty (translate (5, 5) (intersection unit_disk (rectangle 1 1)));;
+  nonempty (translate (5, 5) (intersection {real * real} unit_disk (rectangle 1 1)));;
 ! ANS: disk_int_square_nonempty : prop = True
 
 ! The intersection of the unit square at the origin, and
@@ -187,6 +187,6 @@ let point (x : real) (y : real) =
   , fun x_test : real * real => peq x x_test#0 && peq y x_test#1)
   ;;
 
-let empty_shape =
-   (fun p : real * real -> bool => tt
-   , fun x : real * real => ff);;
+let empty_shape (A : type) =
+   (fun p : A -> bool => tt
+   , fun x : A => ff);;

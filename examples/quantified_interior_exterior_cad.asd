@@ -16,9 +16,9 @@ let vertical_line = fun x : real * real => x#0 <b 0;;
 ! Create a triangle centered at the origin
 let triangle =
     let top_right = translate (0, 1) (sloped_line -3) in
-    let top_left = translate (0, 1) (complement(sloped_line 3)) in
+    let top_left = translate (0, 1) (complement {real * real} (sloped_line 3)) in
     let bottom = translate (0 , -(sqrt 3) / 6) (line 0 1) in
-    intersection (intersection top_right top_left) bottom
+    intersection {real * real} (intersection {real * real} top_right top_left) bottom
     ;;  ! intersection take more params
 
 let square (x : real) (y : real) : bool =
@@ -28,12 +28,12 @@ let square (x : real) (y : real) : bool =
 ! Create a unit square centered at the origin with lines
 let square =
   let right_side = translate (1/2, 0) vertical_line in
-  let left_side = translate (-1/2, 0) (complement vertical_line) in
-  let top = translate (0, 1/2) (complement (line 0 1)) in
+  let left_side = translate (-1/2, 0) (complement {real * real} vertical_line) in
+  let top = translate (0, 1/2) (complement {real * real} (line 0 1)) in
   let bottom = translate (0, -1/2) (line 0 1) in
-  let vertical_strip = intersection left_side right_side in
-  let horizontal_strip = intersection top bottom in
-  intersection horizontal_strip vertical_strip
+  let vertical_strip = intersection {real * real} left_side right_side in
+  let horizontal_strip = intersection {real * real} top bottom in
+  intersection {real * real} horizontal_strip vertical_strip
   ;;
 
 ! Implementation of reflection of a shape across a line
@@ -81,7 +81,7 @@ let union_k
 let union_ok
     (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
     (shape2 : ((real * real -> bool) -> bool) * (real * real -> bool)) =
-  (union_k shape1#0 shape2#0, union shape1#1 shape2#1);;
+  (union_k shape1#0 shape2#0, union {real * real} shape1#1 shape2#1);;
 
 let max (a : real) (b : real) : real =
   dedekind_cut (fun x : real => (x <b a) || (x <b b));;
