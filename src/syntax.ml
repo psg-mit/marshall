@@ -149,7 +149,7 @@ struct
 	  | App (e1, e2) ->      (85, to_str 84 e1 ^ " " ^ to_str 85 e2)
     | MkBool (et, ef) ->   (85, "mkbool " ^ to_str 85 et ^ " " ^ to_str 85 ef)
     | IsTrue e ->          (85, "is_true " ^ to_str 85 e)
-    | IsFalse e ->         (85, "is_true " ^ to_str 85 e)
+    | IsFalse e ->         (85, "is_false " ^ to_str 85 e)
 	  | Power (e, k) ->      (83, to_str 82 e ^ " ^ " ^ string_of_int k)
 	  | Unary (op, e) ->     (80, string_of_unary op ^ " " ^ to_str 80 e)
 	  | Binary (op, e1, e2) ->
