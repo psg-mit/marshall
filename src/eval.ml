@@ -64,6 +64,15 @@ struct
      the user happy). A $\lambda$-abstraction is not evaluated.
   *)
 
+	  let rec free_in_ty y = function
+		  | S.Ty_Var x -> x = y
+			| S.Ty_Arrow (mv, t1, t2) -> free_in_ty y t1 || (match mv with
+			  | None -> free_in_ty y t2
+				| Some x -> x<>y && (free_in_ty y t2)
+			)
+			| S.Ty_Tuple ts -> List.fold_left (fun p e -> p || free_in_ty y e) false ts
+			| ty -> false
+
     let rec free_in y e = match e with
 	| S.Var x -> x = y
 	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False -> false
@@ -90,6 +99,7 @@ struct
 	| S.Integral (x, i, e) -> x<>y && (free_in y e)
 	| S.App (e1, e2)  -> free_in y e1 || free_in y e2
 	| S.Let (x, e1, e2) -> free_in y e1 || (x<>y && free_in y e2)
+	| S.TyExpr t -> free_in_ty y t
 
     let rec free_in_env x env e =
       match env with
