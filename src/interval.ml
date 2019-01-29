@@ -58,7 +58,11 @@ struct
   (* \subsection{String conversion} *)
 
   let to_string i =
-    "[" ^ D.to_string (lower i) ^ ", " ^ D.to_string (upper i) ^ "]"
+	  let l = lower i in
+		let lbrack = if D.is_negative_infinity l then "(" else "[" in
+		let r = upper i in
+		let rbrack = if D.is_positive_infinity r then ")" else "]" in
+    lbrack ^ D.to_string (lower i) ^ ", " ^ D.to_string (upper i) ^ rbrack
 
   let to_string_number i =
     let a = lower i in
