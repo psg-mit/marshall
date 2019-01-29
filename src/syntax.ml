@@ -101,6 +101,7 @@ struct
     | IsTrue of expr
     | IsFalse of expr
     | TyExpr of ty
+    | Random of int * (int * D.t * D.rand_state) ref
 
   (** Toplevel commands *)
   type toplevel_cmd =
@@ -143,6 +144,7 @@ struct
 	  | Interval i ->        (100, I.to_string_number i)
 	  | True | And [] ->     (100, "True")
 	  | False | Or [] ->     (100, "False")
+    | Random (n, r) ->     (100, "random " ^ string_of_int n)
     | TyExpr t ->          (100, "{" ^ string_of_type t ^ "}")
 	  | Tuple lst ->         (100, "(" ^ (String.concat ", " (List.map (to_str 10) lst)) ^ ")")
 	  | Proj (e, k) ->       (90, to_str 90 e ^ "#" ^ string_of_int k)

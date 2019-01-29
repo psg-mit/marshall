@@ -36,6 +36,7 @@ struct
     "is_true", ISTRUE;
     "is_false", ISFALSE;
     "type", TYPE;
+    "random", RANDOM;
   ]
 
   let position_of_lex lex =

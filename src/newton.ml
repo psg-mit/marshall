@@ -62,6 +62,7 @@ struct
     | S.RealVar (y, _) -> if x = y then one else zero
     | S.Dyadic _ -> zero
     | S.Interval _ -> zero
+    | S.Random _ -> zero
     | S.Restrict (e1, e2) -> diff x e2 (* Is this okay? *)
     | S.Cut (y, i, p1, p2) ->
         if x = y || S.(free x p1 && free x p2) then

@@ -43,6 +43,7 @@
 %token LPAREN RPAREN
 %token LBRACK RBRACK LBRACE RBRACE
 %token TYPE
+%token RANDOM
 %token USE QUIT TRACE PRECISION HNF HELP PLOT
 %token <string> STRING
 %token EOF
@@ -171,6 +172,8 @@ simple_expr:
     { S.Tuple es }
   | LBRACE t = ty RBRACE
     { S.TyExpr t }
+  | RANDOM n = NATURAL
+    { S.Random (n, ref (0, D.zero, D.new_rand_state n)) }
 
 apply_expr:
   | e1 = apply_expr e2 = simple_expr

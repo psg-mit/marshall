@@ -40,6 +40,7 @@ struct
 		 ". This should not happen")
     | Dyadic _ -> Ty_Real
     | Interval _ -> Ty_Real
+	| Random _ -> Ty_Real
     | Cut (x, i, p1, p2) ->
 	check_segment i ;
 	check ((x, Ty_Real)::ctx) Ty_Sigma p1 ;

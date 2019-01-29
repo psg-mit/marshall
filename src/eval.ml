@@ -75,7 +75,8 @@ struct
 
     let rec free_in y e = match e with
 	| S.Var x -> x = y
-	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False -> false
+	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False
+	| S.Random _ -> false
 	| S.Cut (x, i, p1, p2) -> x<>y && (free_in y p1 || free_in y p2)
 	| S.Binary (op, e1, e2) -> free_in y e1 || free_in y e2
 	| S.Restrict (e1, e2)
@@ -165,7 +166,7 @@ let rec restrict p e = match e with
 	       [List.assoc x env]
 	     with Not_found ->
 	       if free then [S.Var x] else error ("Unknown variable " ^ S.string_of_name x))
-	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False | S.TyExpr _ ) as e -> [e]
+	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False | S.TyExpr _ | S.Random _ ) as e -> [e]
 	| S.Cut (x, i, p1, p2) ->
 	    let x', p1', p2' = alpha2 x env p1 p2 in
 	    let env' = Env.extend x' (S.Var x') env in
@@ -442,6 +443,18 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	      let prec = make_prec prec i in
 	      let q = refine k prec (Env.extend x (S.RealVar (x, i)) env) p in
 	      let (i1, i2) = I.split prec 1 i in S.Binary (S.Plus, S.Integral (x, i1, q), S.Integral (x, i2, q))
+		| S.Random (n, r) ->
+		    let (prec', x, s) = !r in
+				let prec_r = prec - prec' in
+				(if prec_r >= 1 then
+					let rand_val = D.rand prec_r s in
+					(* print_endline ("prec'=" ^ string_of_int prec');
+					print_endline ("prec_r=" ^ string_of_int prec_r);
+					print_endline ("random value: " ^ D.to_string rand_val); *)
+					let x' = D.add ~prec:(prec' + prec_r) ~round:D.down x (D.shift ~prec:(prec' + prec_r) ~round:D.down rand_val (-prec')) in
+					r := (prec' + prec_r, x', s));
+				S.Random (n, r)
+
 
 	type 'a step_result =
     | Step_Done of 'a
@@ -479,7 +492,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| S.IsTrue _ | S.IsFalse _
 	| S.Let _ | S.Proj _ | S.App _ ->
 	    Step_Go (p + 1)
-	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ ->
+	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ | S.Random _ ->
 	    (match A.lower p env e with
 	       | S.Interval i ->
 		   let w = (I.width 10 D.up i) in

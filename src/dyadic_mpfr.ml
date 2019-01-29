@@ -14,6 +14,8 @@ type t = Mpfr.t
 
 type rounding_mode = Mpfr.round
 
+type rand_state = Gmp_random.state
+
 let down = Mpfr.Down
 
 let up = Mpfr.Up
@@ -308,3 +310,13 @@ let to_string x =
 	      sign ^ "0." ^ String.make (-e) '0' ^ str
 let get_exp x =
   Mpfr.get_exp x
+
+let rand ~prec s =
+  let q = Mpfr.init2 prec in
+    ignore (Gmp_random.Mpfr.urandomb q s) ;
+    q
+
+let new_rand_state i =
+  let s = Gmp_random.init_default () in
+  ignore (Gmp_random.seed_ui s i);
+  s

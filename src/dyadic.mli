@@ -2,6 +2,7 @@ module type DYADIC =
 sig
   type t
   type rounding_mode
+  type rand_state
 
   val down : rounding_mode
   val up : rounding_mode
@@ -50,4 +51,6 @@ sig
   val of_string : ?prec:int -> round:rounding_mode -> string -> t
   val to_string : t -> string
   val get_exp : t -> int
+  val rand : prec:int -> rand_state -> t
+  val new_rand_state : int -> rand_state
 end;;

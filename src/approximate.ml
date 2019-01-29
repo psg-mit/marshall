@@ -122,6 +122,9 @@ struct
 	| S.Dyadic q -> S.Interval (I.of_dyadic q)
 	| S.Interval _ as e -> e
 	| S.Cut (_, i, _, _) -> S.Interval i
+	| S.Random (_, r) -> let (p, d, _) = !r in
+	  let d' = D.add ~prec ~round:D.up d (D.make_int ~prec ~round:D.up 1 (-p)) in
+		S.Interval (I.make d d')
 	| S.Binary (op, e1, e2) ->
 	    let i1 = get_interval (approx e1) in
 	    let i2 = get_interval (approx e2) in
@@ -180,6 +183,9 @@ struct
 	| S.Dyadic q -> S.Interval (I.of_dyadic q)
 	| S.Interval _ as e -> e
 	| S.Cut (_, i, _, _) -> S.Interval (I.flip i)
+	| S.Random (_, r) -> let (p, d, _) = !r in
+	  let d' = D.add ~prec ~round:D.up d (D.make_int ~prec ~round:D.up 1 (-p)) in
+		S.Interval (I.make d' d)
 	| S.Binary (op, e1, e2) ->
 	    let i1 = get_interval (approx e1) in
 	    let i2 = get_interval (approx e2) in
