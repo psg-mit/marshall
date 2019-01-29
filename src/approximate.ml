@@ -61,7 +61,7 @@ struct
     match op with
       | S.Opposite -> I.neg ~prec ~round i
       | S.Inverse -> I.inv ~prec ~round i
-	  (*| Exp -> I.exp ~prec ~round i*)
+	    | Exp -> I.exp ~prec ~round i
 
   (* [Break] is used to shortcircuit evaluation of conjunctions and
      disjunctions. *)

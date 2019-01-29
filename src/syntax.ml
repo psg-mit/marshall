@@ -56,11 +56,13 @@ struct
   type unary =
     | Opposite
     | Inverse
+    | Exp
 
   (** Convert a unary operation to its string representation. *)
   let string_of_unary = function
     | Opposite -> "-"
     | Inverse -> "inv"
+    | Exp -> "exp"
 
   (** The abstract syntax of Marshall terms. *)
   type expr =

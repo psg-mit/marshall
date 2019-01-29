@@ -1,0 +1,1 @@
+let log (x : real) : real = dedekind_cut (fun q : real => q <b 0 || exp q <b x);;

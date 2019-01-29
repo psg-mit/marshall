@@ -42,7 +42,7 @@ sig
   val mul : ?prec:int -> round:rounding_mode -> t -> t -> t
   val pow : ?prec:int -> round:rounding_mode -> t -> int -> t
   val div : prec:int -> round:rounding_mode -> t -> t -> t
-  (*val exp : prec:int -> round:rounding_mode -> t -> t*)
+  val exp : prec:int -> round:rounding_mode -> t -> t
   val inv : prec:int -> round:rounding_mode -> t -> t
   val shift : ?prec:int -> round:rounding_mode -> t -> int -> t
   val halve : ?prec:int -> round:rounding_mode -> t -> t

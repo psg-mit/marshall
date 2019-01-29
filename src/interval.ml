@@ -233,10 +233,10 @@ struct
 
   let div ~prec ~round i j = mul ~prec ~round i (inv ~prec ~round j)
 
-  (*let exp ~prec ~round i =
+  let exp ~prec ~round i =
     let dnuor = D.anti round in
     { lower = lazy (D.exp prec round (lower i)) ;
-    upper = lazy (D.exp prec dnuor (upper i)) }*)
+    upper = lazy (D.exp prec dnuor (upper i)) }
 
   (* \subsection{Interval splitting} *)
 

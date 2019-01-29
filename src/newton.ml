@@ -83,7 +83,7 @@ struct
   	      S.Power (e2, 2))
     | S.Unary (S.Opposite, e) -> S.Unary (S.Opposite, diff x e)
     | S.Unary (S.Inverse, e) -> S.Binary (S.Quotient, diff x e, S.Power (e, 2))
-    (*| S.Unary (S.Exp, e) -> S.Binary (S.Times, S.Unary (S.Exp, e), diff x e)*)
+    | S.Unary (S.Exp, e) -> S.Binary (S.Times, S.Unary (S.Exp, e), diff x e)
     | S.Power (e, 0) -> zero
     | S.Power (e, 1) -> diff x e
     | S.Power (e, k) ->
