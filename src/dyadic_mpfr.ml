@@ -210,13 +210,17 @@ let div ~prec ~round a b =
       ignore (Mpfr.div q a b round) ;
       q
 
+let unop f ~prec ~round a =
+  let q = Mpfr.init2 prec in
+    ignore (f q a round) ;
+    q
+
 (* Just for fun we inlude the exponetial function. There are two
    special cases, but somebody should think about what happens in the
    case of underflow and overflow. *)
-let exp ~prec ~round a =
-  let q = Mpfr.init2 prec in
-    ignore (Mpfr.exp q a round) ;
-    q
+let exp ~prec ~round = unop Mpfr.exp ~prec ~round
+let sin ~prec ~round = unop Mpfr.sin ~prec ~round
+let cos ~prec ~round = unop Mpfr.cos ~prec ~round
 
 (* Inverse. Special cases not handled by MPFR: $0^{-1}$ and
    $(\pm\infty)^{-1}$. *)

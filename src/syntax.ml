@@ -57,12 +57,16 @@ struct
     | Opposite
     | Inverse
     | Exp
+    | Sin
+    | Cos
 
   (** Convert a unary operation to its string representation. *)
   let string_of_unary = function
     | Opposite -> "-"
     | Inverse -> "inv"
     | Exp -> "exp"
+    | Sin -> "sin"
+    | Cos -> "cos"
 
   (** The abstract syntax of Marshall terms. *)
   type expr =

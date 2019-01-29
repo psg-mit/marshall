@@ -233,10 +233,14 @@ struct
 
   let div ~prec ~round i j = mul ~prec ~round i (inv ~prec ~round j)
 
-  let exp ~prec ~round i =
+  let unop f ~prec ~round i =
     let dnuor = D.anti round in
-    { lower = lazy (D.exp prec round (lower i)) ;
-    upper = lazy (D.exp prec dnuor (upper i)) }
+    { lower = lazy (f prec round (lower i)) ;
+    upper = lazy (f prec dnuor (upper i)) }
+
+  let exp = unop (fun p r -> D.exp ~prec:p ~round:r)
+  let sin = unop (fun p r -> D.sin ~prec:p ~round:r)
+  let cos = unop (fun p r -> D.cos ~prec:p ~round:r)
 
   (* \subsection{Interval splitting} *)
 

@@ -38,6 +38,8 @@ struct
     "type", TYPE;
     "random", RANDOM;
     "exp", EXP;
+    "sin", SINE;
+    "cos", COSINE;
   ]
 
   let position_of_lex lex =
