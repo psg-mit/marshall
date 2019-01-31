@@ -27,22 +27,22 @@ let b = 0.5;;
 let cam_unquantified = ellipse a b;;
 
 let rotate_k (angle : real * real) (shape : (real * real -> bool) -> bool) =
-  let cos = angle#0 in
-  let sin = angle#1 in
+  let cost = angle#0 in
+  let sint = angle#1 in
   fun P : real * real -> bool =>
     shape (fun x : real * real =>
       ! Apply rotation matrix
-      let x_new = cos * x#0 + sin * x#1 in
-      let y_new = - sin * x#0 + cos * x#1 in
+      let x_new = cost * x#0 + sint * x#1 in
+      let y_new = - sint * x#0 + cost * x#1 in
       P (x_new, y_new));;
 
 let rotate (angle : real * real) (shape : real * real -> bool) =
-  let cos = angle#0 in
-  let sin = angle#1 in
+  let cost = angle#0 in
+  let sint = angle#1 in
     fun x : real * real =>
     ! Apply inverse rotation matrix
-    let x_new = cos * x#0 - sin * x#1 in
-    let y_new = sin * x#0 + cos * x#1 in
+    let x_new = cost * x#0 - sint * x#1 in
+    let y_new = sint * x#0 + cost * x#1 in
     shape (x_new, y_new);;
 
 
@@ -89,6 +89,7 @@ let amount_to_translate_piston (angle : real * real) : real * real =
     (point_on_pos_x_axis - 0.75, 0)
     ;;
 
+let square_quantified = scale_x_y_ok 0.5 0.5 unit_square;;
 
 let check_conditions : bool =
   let shifted_square = translate_k (3, 0) square_quantified#0 in
