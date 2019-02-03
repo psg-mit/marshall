@@ -105,6 +105,8 @@ rule token = parse
   | "<b"                 { LTB }
   | "~"                 { NEGB }
   | "~>"                 { RESTRICT }
+  | '`' var '`'        { let str = lexeme lexbuf in
+			     try List.assoc str reserved_words with Not_found -> INFIXVAR (S.Ident (String.sub str 1 (String.length str - 2))) }
   | var             	 { let str = lexeme lexbuf in
 			     try List.assoc str reserved_words with Not_found -> VAR (S.Ident str) }
   | '\"' [^'\"']* '\"'   { let str = lexeme lexbuf in STRING (String.sub str 1 (String.length str - 2)) }

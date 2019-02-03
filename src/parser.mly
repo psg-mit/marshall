@@ -23,6 +23,7 @@
 %token TSIGMA TREAL
 %token TARROW
 %token <Syntax.Make(D).name> VAR
+%token <Syntax.Make(D).name> INFIXVAR
 %token <Interval.Make(D).t> DYADIC
 %token <int> NATURAL
 %token <int> PROJECT
@@ -57,6 +58,7 @@
 %left PLUS MINUS
 %left TIMES QUOTIENT
 %left ANDB ORB
+%left INFIXVAR
 
 %%
 
@@ -215,6 +217,8 @@ bin_expr:
     { S.Binary (S.Times, e1, e2) }
   | e1 = bin_expr QUOTIENT e2 = bin_expr
     { S.Binary (S.Quotient, e1, e2) }
+  | e1 = bin_expr v = INFIXVAR e2 = bin_expr
+    { S.App (S.App (S.Var v, e1), e2) }
 
 bbin_expr:
   | e = bin_expr
