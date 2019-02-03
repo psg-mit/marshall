@@ -233,14 +233,75 @@ struct
 
   let div ~prec ~round i j = mul ~prec ~round i (inv ~prec ~round j)
 
-  let unop f ~prec ~round i =
+  let unop_monotone f ~prec ~round i =
     let dnuor = D.anti round in
     { lower = lazy (f prec round (lower i)) ;
     upper = lazy (f prec dnuor (upper i)) }
 
-  let exp = unop (fun p r -> D.exp ~prec:p ~round:r)
-  let sin = unop (fun p r -> D.sin ~prec:p ~round:r)
-  let cos = unop (fun p r -> D.cos ~prec:p ~round:r)
+  let exp = unop_monotone (fun p r -> D.exp ~prec:p ~round:r)
+	let sin_monotone = unop_monotone (fun p r -> D.sin ~prec:p ~round:r)
+	let cos_monotone = unop_monotone (fun p r -> D.cos ~prec:p ~round:r)
+
+
+  (* I haven't carefully checked that this is correct! *)
+	let sin_down ~prec i =
+	  assert (forward i);
+		if D.lt (D.of_int ~round:D.up 3) (width ~prec ~round:D.down i)
+		  then make D.negative_one D.one
+			else
+			let a = lower i in
+			let b = upper i in
+			let deriva1 = D.cos ~prec ~round:D.down a in
+			let derivb1 = D.cos ~prec ~round:D.down b in
+			if D.nonnegative deriva1 && D.nonnegative derivb1 then
+			   sin_monotone ~prec ~round:D.down i
+			else
+			let deriva2 = D.cos ~prec ~round:D.up a in
+			let derivb2 = D.cos ~prec ~round:D.up b in
+			if D.nonpositive deriva2 && D.nonpositive derivb2 then
+			   sin_monotone ~prec ~round:D.down (flip i)
+			else if D.nonnegative deriva1 && D.nonpositive derivb2 then
+			  make (D.min (D.sin ~prec ~round:D.down a) (D.sin ~prec ~round:D.down b))
+				      D.one
+			else if D.nonpositive deriva1 && D.nonnegative derivb2 then
+			  make D.negative_one
+				     (D.max (D.sin ~prec ~round:D.up a) (D.sin ~prec ~round:D.up b))
+			(* Not sure about the sign of either of the derivatives *)
+			else make D.negative_one D.one
+
+	(* I haven't carefully checked that this is correct! *)
+	let cos_down ~prec i =
+	  assert (forward i);
+		if D.lt (D.of_int ~round:D.up 3) (width ~prec ~round:D.down i)
+		  then make D.negative_one D.one
+			else
+			let a = lower i in
+			let b = upper i in
+			let negderiva1 = D.sin ~prec ~round:D.up a in
+			let negderivb1 = D.sin ~prec ~round:D.up b in
+			if D.nonpositive negderiva1 && D.nonpositive negderivb1 then
+			   cos_monotone ~prec ~round:D.down i
+			else
+			let negderiva2 = D.sin ~prec ~round:D.down a in
+			let negderivb2 = D.sin ~prec ~round:D.down b in
+			if D.nonnegative negderiva2 && D.nonnegative negderivb2 then
+			   cos_monotone ~prec ~round:D.down (flip i)
+			else if D.nonpositive negderiva1 && D.nonnegative negderivb2 then
+			  make (D.min (D.cos ~prec ~round:D.down a) (D.cos ~prec ~round:D.down b))
+				      D.one
+			else if D.nonnegative negderiva1 && D.nonpositive negderivb2 then
+			  make D.negative_one
+				     (D.max (D.cos ~prec ~round:D.up a) (D.cos ~prec ~round:D.up b))
+			(* Not sure about the sign of either of the derivatives *)
+			else make D.negative_one D.one
+
+	let sin ~prec ~round i = if round = D.down
+	  then sin_down ~prec i
+		else flip (sin_down ~prec (flip i))
+
+	let cos ~prec ~round i = if round = D.down
+	  then cos_down ~prec i
+		else flip (cos_down ~prec (flip i))
 
   (* \subsection{Interval splitting} *)
 

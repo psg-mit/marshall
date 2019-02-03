@@ -85,8 +85,8 @@ struct
     | S.Unary (S.Inverse, e) -> S.Binary (S.Quotient, diff x e, S.Power (e, 2))
     | S.Unary (S.Exp, e) -> S.Binary (S.Times, S.Unary (S.Exp, e), diff x e)
     (* For some reason, Newton seems to be broken for sine, at least trying to compute pi that way *)
-    | S.Unary (S.Sin, e) -> S.Interval I.bottom (*S.Binary (S.Times, S.Unary (S.Cos, e), diff x e)*)
-    | S.Unary (S.Cos, e) -> S.Interval I.bottom (*S.Binary (S.Times, S.Unary (S.Opposite, S.Unary (S.Sin, e)), diff x e)*)
+    | S.Unary (S.Sin, e) -> S.Binary (S.Times, S.Unary (S.Cos, e), diff x e)
+    | S.Unary (S.Cos, e) -> S.Binary (S.Times, S.Unary (S.Opposite, S.Unary (S.Sin, e)), diff x e)
     | S.Power (e, 0) -> zero
     | S.Power (e, 1) -> diff x e
     | S.Power (e, k) ->
@@ -145,6 +145,7 @@ struct
       let y1 = I.lower (A.get_interval (A.lower prec (Env.extend x (S.Dyadic x1) env) e)) in
       let y2 = I.lower (A.get_interval (A.lower prec (Env.extend x (S.Dyadic x2) env) e)) in
       let lif = A.get_interval (A.lower prec (Env.extend x (S.Interval i) env) (diff x e)) in  (* Lifschitz constant as an interval *)
+      (* print_endline ("estimate_positive:" ^ S.string_of_expr (diff x e) ^ " | lif: " ^ I.to_string lif ^ "| i: " ^ I.to_string i); *)
 	(R.union
 	  (estimate_endpoint prec D.down x1 y1 (I.lower lif)) (* estimate at i.lower *)
 	  (estimate_endpoint prec D.down x2 y2 (I.upper lif)))  (* estimate at i.upper*)
@@ -194,7 +195,13 @@ struct
   	(fun r p -> R.union r (estimate_true k prec env x i p))
   	R.empty
   	lst
-    | S.Less (e1, e2) -> estimate_positive prec env x i (S.Binary (S.Minus, e2, e1))
+    | S.Less (e1, e2) -> (match e1, e2 with
+      (* Quick special cases to cut down a Dedekind cut
+         Useful for my ray  tracing example
+      *)
+      | S.Var x', S.Dyadic d when x = x' -> R.open_left_ray d
+      | S.Dyadic d, S.Var x' when x = x' -> R.open_right_ray d
+      | _ -> estimate_positive prec env x i (S.Binary (S.Minus, e2, e1)))
     | S.Exists (y, j, p) ->
         estimate_true k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
     | S.Forall (y, j, p) ->
