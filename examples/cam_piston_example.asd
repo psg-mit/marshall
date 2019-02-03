@@ -1,4 +1,4 @@
-#use "examples/quantified_interior_exterior_cad.asd";;
+#use "examples/cad.asd";;
 
 ! Create a cam and piston system:
 ! https://en.wikipedia.org/wiki/Camshaft
@@ -12,12 +12,6 @@ let ellipse (a : real) (b : real) =
   fun x : real * real =>
   x#0^2 / a^2  + x#1^2 / b^2  <b 1
   ;;
-
-let closed_of_compact (oshape : real * real -> bool) (kshape : (real * real -> bool) -> bool) =
-  fun P : real * real -> bool =>
-  kshape (fun x : real * real =>
-    ~ oshape x || P x
-  );;
 
 let ellipse_k (a : real) (b : real) =
   closed_of_compact (ellipse a b) (scale_x_y_k a b unit_square_k);;

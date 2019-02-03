@@ -1,4 +1,4 @@
-#use "examples/quantified_interior_exterior_cad.asd";;
+#use "examples/cad.asd";;
 
 ! --------- Make the car ---------
 

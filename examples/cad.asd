@@ -100,6 +100,12 @@ let unit_square_k (p : real * real -> bool) : bool =
   forall_interval_sym (fun y : real => p (x, y))
   );;
 
+let closed_of_compact (oshape : real * real -> bool) (kshape : (real * real -> bool) -> bool) =
+  fun P : real * real -> bool =>
+  kshape (fun x : real * real =>
+    ~ oshape x || P x
+  );;
+
 let unit_disk_k =
   fun p : real * real -> bool =>
   unit_square_k (fun x : real * real => ~ unit_disk x || p x);;
@@ -128,6 +134,26 @@ let separation (shape1 : (real * real -> bool) -> bool)
       shape2 (fun x' : real * real =>
      (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
   ;;
+
+let directed_hausdorff_distance
+    (shape1 : (real * real -> bool) -> bool)
+    (shape2 : (real * real -> bool) -> bool) : real =
+  dedekind_cut (fun cutoff : real => cutoff <b 0 ||
+     (forall_k shape1 (fun x : real * real =>
+      exists_k shape2 (fun x' : real * real =>
+     (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
+  ;;
+
+let max (a : real) (b : real) : real =
+  dedekind_cut (fun x : real => x <b a || x <b b);;
+
+! compute the hausdorff distance between two shapes.
+! It is the max over every shape_point_separation
+let hausdorff_distance
+    (shape1 : (real * real -> bool) -> bool)
+    (shape2 : (real * real -> bool) -> bool) : real =
+  max (directed_hausdorff_distance shape1 shape2)
+      (directed_hausdorff_distance shape2 shape1);;
 
 
 ! Both O- and K-representation

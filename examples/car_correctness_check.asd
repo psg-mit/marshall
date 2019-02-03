@@ -45,23 +45,6 @@ let shape_point_separation
     (cutoff^2) <b ((p#0 - x#0)^2 + (p#1 - x#1)^2)
     )));;
 
-let directed_hausdorff_distance
-    (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
-    (shape2 : ((real * real -> bool) -> bool) * (real * real -> bool)) : real =
-  dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
-     (shape1#0 (fun x : real * real =>
-      exists_shape shape2 (fun x' : real * real =>
-     (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
-  ;;
-
-! compute the hausdorff distance between two shapes.
-! It is the max over every shape_point_separation
-let hausdorff_distance
-    (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
-    (shape2 : ((real * real -> bool) -> bool) * (real * real -> bool)) : real =
-  max (directed_hausdorff_distance shape1 shape2)
-      (directed_hausdorff_distance shape2 shape1);;
-
 ! Compute the max velocity as per page 9 of the paper
 let v_max : real =
   -a_min * (T + (sqrt (T*T - 2*(T*T/2*a_max - (w + w_car) - 2 * eps)/a_min)));;
