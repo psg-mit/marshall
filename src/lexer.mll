@@ -59,7 +59,8 @@ let mpfr_hex = '-'? ('0'['x' 'X'])
   (['e' 'E' 'p' 'P' '@']? '-'? ['0'-'9']+)?
 
 rule token = parse
-  | [' ' '\t' '\r' '\n'] { token lexbuf }
+  | '\n'                 { incr_linenum lexbuf; token lexbuf }
+  | [' ' '\t' '\r']      { token lexbuf }
   | '!' [^'\n']* '\n'    { incr_linenum lexbuf; token lexbuf }
   | '!' [^'\n']* eof     { incr_linenum lexbuf; token lexbuf }
   | ['0'-'9']+           { NATURAL (int_of_string (lexeme lexbuf)) }
