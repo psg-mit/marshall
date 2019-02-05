@@ -16,6 +16,15 @@
 	S.Let (x, e1,
 	    S.Let (y, e2,
 		  S.Or [S.Less (S.Var x, S.Var y); S.Less (S.Var y, S.Var x)]))
+
+    let init n ~f =
+      if n < 0 then raise (Invalid_argument "init");
+      let rec loop i accum =
+        if i = 0 then accum
+        else loop (i-1) (f (i-1) :: accum)
+      in
+      loop n []
+    ;;
 %}
 
 %parameter <D : Dyadic.DYADIC>
@@ -307,6 +316,8 @@ ty_simple:
     { S.Ty_Var v }
   | LPAREN t = ty RPAREN
     { t }
+  | t = ty_simple POWER n = NATURAL
+    { S.Ty_Tuple (init n (fun _ -> t)) }
 
 ty_prod:
   | t = ty_simple
