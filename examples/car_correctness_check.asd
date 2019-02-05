@@ -26,7 +26,7 @@ let accel (x : real) (v : real) : real =
 ! move the car using the given acceleration function,
 ! and initial position and velocity
 let move_car (acceleration : real -> real -> real) (x : real) (v : real)
-             (car : ((real * real -> bool) -> bool) * (real * real -> bool)) =
+             (car : ((real^2 -> bool) -> bool) * (real^2 -> bool)) =
   ! distance moved by accelerating as per acccel.
   translate_ok (((acceleration x v) * T * T / 2) + v * T, 0) car;;
 
@@ -38,10 +38,10 @@ let updated_system = translate_ok (0.25, 0) (union_ok crossing moved_car);;
 
 ! the separation (minimum distance) betweeen a given shape and a point
 let shape_point_separation
-    (shape1 : ((real * real -> bool) -> bool) * (real * real -> bool))
-    (p : real * real) : real =
+    (shape1 : ((real^2 -> bool) -> bool) * (real^2 -> bool))
+    (p : real^2) : real =
   dedekind_cut (fun cutoff : real => orb (lt cutoff 0)
-    (shape1#0 (fun x : real * real =>
+    (shape1#0 (fun x : real^2 =>
     (cutoff^2) <b ((p#0 - x#0)^2 + (p#1 - x#1)^2)
     )));;
 
