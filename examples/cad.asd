@@ -80,6 +80,8 @@ let scale_x_y_k (cx : real) (cy : real)
   fun p : real^2 -> bool =>
   shape (fun x : real^2 => p (cx * x#0, cy * x#1));;
 
+let scale_k (c : real) = scale_x_y_k c c;;
+
 let translate_k (tx : real^2) (shape : (real^2 -> bool) -> bool)
     : (real^2 -> bool) -> bool =
     fun p : real^2 -> bool => shape (fun x : real^2 => p (x#0 + tx#0, x#1 + tx#1));;
@@ -90,6 +92,10 @@ let union_k
     (shape1 : (real^2 -> bool) -> bool)
     (shape2 : (real^2 -> bool) -> bool) =
   fun P : real^2 -> bool => shape1 P && shape2 P;;
+
+let compact_union (E : type) (i : (E -> bool) -> bool) (F : type) (f : E -> (F -> bool) -> bool) 
+  : (F -> bool) -> bool 
+  = fun P : F -> bool => i (fun x : E => f x P);;
 
 let forall_interval_sym (p : real -> bool) : bool =
   mkbool (forall x : [-1, 1], is_true (p x)) (exists x : [-1, 1], is_false (p x))
@@ -113,8 +119,19 @@ let unit_disk_k =
 let point_k (A : type) (x : A) =
   fun p : A -> bool => p x ;;
 
+let unit_interval (p : real -> bool) : bool =
+  mkbool (forall x : [0, 1], is_true (p x)) (exists x : [0, 1], is_false (p x));;
+
+let unit_cone : (real^3 -> bool) -> bool =
+  compact_union {real} unit_interval {real^3} (fun x : real =>
+  compact_union {real^2} (scale_k x unit_disk_k) {real^3} (fun yz : real^2 =>
+  point_k {real^3} (x, yz#0, yz#1)));;
+
 let neq (x : real) (y : real) : bool =
   mkbool (x <> y) False;;
+
+let exterior (E : type) (neq : E -> E -> bool) (shape : (E -> bool) -> bool) : E -> bool =
+  fun x : E => shape (fun y : E => neq x y);;
 
 ! Two shapes are separated if they share no points in common.
 ! This is checking that separation is > 0, but is computationally more efficient.
