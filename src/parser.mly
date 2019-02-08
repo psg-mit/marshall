@@ -117,9 +117,15 @@ ty_sig:
   | COLON t = ty
     { t }
 
+varlist:
+  | x = VAR
+    { [x] }
+  | x = VAR xs = varlist
+    { x :: xs }
+
 arglist:
-  | LPAREN x = VAR COLON t = ty RPAREN args = arglist
-    { (x, t) :: args }
+  | LPAREN xs = varlist COLON t = ty RPAREN args = arglist
+    { List.map (fun x -> (x, t)) xs @ args }
   |
     { [] }
 
@@ -156,8 +162,8 @@ expr:
     { S.Integral (x, s, e) }
   | LET x = VAR EQUAL e1 = expr IN e2 = expr
     { S.Let (x, e1, e2) }
-  | FUN x = VAR COLON t = ty DARROW e = expr
-    { S.Lambda (x, t, e) }
+  | FUN xs = varlist COLON t = ty DARROW e = expr
+    { List.fold_right (fun x e' -> S.Lambda (x, t, e')) xs e }
 
 simple_expr:
   | x = VAR
