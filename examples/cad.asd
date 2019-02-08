@@ -88,9 +88,7 @@ let translate_k (tx : real^2) (shape : (real^2 -> bool) -> bool)
 
 let empty_shape_k (A : type) (p : A -> bool) : bool = tt;;
 
-let union_k
-    (shape1 : (real^2 -> bool) -> bool)
-    (shape2 : (real^2 -> bool) -> bool) =
+let union_k (shape1 shape2 : (real^2 -> bool) -> bool) =
   fun P : real^2 -> bool => shape1 P && shape2 P;;
 
 let compact_union (E : type) (i : (E -> bool) -> bool) (F : type) (f : E -> (F -> bool) -> bool) 
@@ -133,19 +131,23 @@ let neq (x : real) (y : real) : bool =
 let exterior (E : type) (neq : E -> E -> bool) (shape : (E -> bool) -> bool) : E -> bool =
   fun x : E => shape (fun y : E => neq x y);;
 
+let minkowski_sum (E : type) (plus : E -> E -> E)
+  (s1 s2 : (E -> bool) -> bool) : (E -> bool) -> bool =
+  fun P : E -> bool => s1 (fun x : E => s2 (fun y :  E => P (plus x y)));;
+
+! let is_empty (E : type) (s : (E -> bool) -> bool) : bool = s (fun x : E => ff);;
+
 ! Two shapes are separated if they share no points in common.
 ! This is checking that separation is > 0, but is computationally more efficient.
 ! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2)
-let is_separated (shape1 : (real^2 -> bool) -> bool)
-                 (shape2 : (real^2 -> bool) -> bool) : bool =
+let is_separated (shape1 shape2 : (real^2 -> bool) -> bool) : bool =
   shape1 (fun x1 : real^2 =>
   shape2 (fun x2 : real^2 =>
           neq x1#0 x2#0 || neq x1#1 x2#1))
   ;;
 
 ! minimum distance between two shapes
-let separation (shape1 : (real^2 -> bool) -> bool)
-               (shape2 : (real^2 -> bool) -> bool) : real =
+let separation (shape1 shape2 : (real^2 -> bool) -> bool) : real =
   dedekind_cut (fun cutoff : real => (cutoff <b 0) ||
      (shape1 (fun x : real^2 =>
       shape2 (fun x' : real^2 =>
@@ -153,8 +155,7 @@ let separation (shape1 : (real^2 -> bool) -> bool)
   ;;
 
 let directed_hausdorff_distance
-    (shape1 : (real^2 -> bool) -> bool)
-    (shape2 : (real^2 -> bool) -> bool) : real =
+    (shape1 shape2 : (real^2 -> bool) -> bool) : real =
   dedekind_cut (fun cutoff : real => cutoff <b 0 ||
      (forall_k shape1 (fun x : real^2 =>
       exists_k shape2 (fun x' : real^2 =>
@@ -166,9 +167,7 @@ let max (a : real) (b : real) : real =
 
 ! compute the hausdorff distance between two shapes.
 ! It is the max over every shape_point_separation
-let hausdorff_distance
-    (shape1 : (real^2 -> bool) -> bool)
-    (shape2 : (real^2 -> bool) -> bool) : real =
+let hausdorff_distance (shape1 shape2 : (real^2 -> bool) -> bool) : real =
   max (directed_hausdorff_distance shape1 shape2)
       (directed_hausdorff_distance shape2 shape1);;
 
@@ -187,15 +186,13 @@ let translate_ok (tx : real^2)
   (translate_k tx shape#0, translate tx shape#1);;
 
 let union_ok
-    (shape1 : ((real^2 -> bool) -> bool) * (real^2 -> bool))
-    (shape2 : ((real^2 -> bool) -> bool) * (real^2 -> bool)) =
+    (shape1 shape2 : ((real^2 -> bool) -> bool) * (real^2 -> bool)) =
   (union_k shape1#0 shape2#0, union {real^2} shape1#1 shape2#1);;
 
 
 ! Does one shape lie strictly inside another?
 let shape_inside (A : type)
-    (shape_1 : ((A -> bool) -> bool) * (A -> bool))
-    (shape_2 : ((A -> bool) -> bool) * (A -> bool)) =
+    (shape_1 shape_2 : ((A -> bool) -> bool) * (A -> bool)) =
       (shape_1#0) (fun x : A => (shape_2#1) x);;
 
 

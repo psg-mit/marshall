@@ -102,11 +102,14 @@ let check_conditions : bool =
 let rectangle_k (width : real) (height : real) =
   scale_x_y_k (width / 2) (height / 2) unit_square_k;;
 
-let maximum (shape : (real -> bool) -> bool) : real =
-  dedekind_cut (fun q : real => ~ (shape (fun x : real => x <b q)));;
+let infimum (s : (real -> bool) -> bool) : real =
+  dedekind_cut (fun q : real => s (fun x : real => q <b x));;
 
-let map_2_1 (f : real^2 -> real) (shape : (real^2 -> bool) -> bool) : (real -> bool) -> bool =
-  fun P : real -> bool => shape (fun x : real^2 => P (f x));;
+let supremum (s : (real -> bool) -> bool) : real =
+  dedekind_cut (fun q : real => ~ (s (fun x : real => x <b q)));;
+
+let map (A : type) (B : type) (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
+  fun P : B -> bool => shape (fun x : A => P (f x));;
 
 let cam_piston (angle : real^2) : (real^2 -> bool) -> bool =
   let cam = rotate_k angle (translate_k (1, 0) (ellipse_k 5 3)) in
@@ -119,5 +122,5 @@ let enclosure_piece : (real^2 -> bool) -> bool = translate_k (7, 0) (rectangle_k
 let collision_safe : bool = forall_k unit_circle (fun angle : real^2 =>
   is_separated (cam_piston angle) enclosure_piece);;
 
-let cam_pistion_separation_dist : real = maximum
-  (map_2_1 (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle);;
+let cam_pistion_separation_dist : real = supremum
+  (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle);;
