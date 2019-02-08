@@ -10,22 +10,22 @@ let T = 1;;
 
 ! Compute properties such as the separation distance and to know that it's positive
 ! Width of the car is not modelled
-let a_stop (x : real) (v : real) : real =
+let a_stop (x v : real) : real =
     v * v / (2 * (x + eps))
   ;;
 
-let a_go (x : real) (v : real) : real =
+let a_go (x v : real) : real =
   max 0 (2 * (w + w_car + eps - x - v * T) / (T * T))
   ;;
 
-let accel (x : real) (v : real) : real =
+let accel (x v : real) : real =
   (   a_go x v   < a_max  ~>  a_go x v
   ||| a_stop x v > a_min  ~>  a_stop x v )
   ;;
 
 ! move the car using the given acceleration function,
 ! and initial position and velocity
-let move_car (acceleration : real -> real -> real) (x : real) (v : real)
+let move_car (acceleration : real -> real -> real) (x v : real)
              (car : ((real^2 -> bool) -> bool) * (real^2 -> bool)) =
   ! distance moved by accelerating as per acccel.
   translate_ok (((acceleration x v) * T * T / 2) + v * T, 0) car;;
@@ -53,12 +53,12 @@ let v_max : real =
 ! for starting positions in the range [-2,-1] and velocities in
 ! the range [0, v_max], in this case v_max is about 11
 ! check if either the acceleration is illegal or we are safe
-let go_is_safe (x : real) (v : real) : prop =
+let go_is_safe (x v : real) : prop =
   let go_car = (move_car a_go x v car) in
   (a_go x v > a_max \/ is_true (is_separated go_car#0 crossing#0))
   ;;
 
-let stop_is_safe (x : real) (v : real) : prop =
+let stop_is_safe (x v : real) : prop =
   let stop_car = (move_car a_stop x v car) in
   (a_stop x v < a_min \/ is_true (is_separated stop_car#0 crossing#0))
   ;;

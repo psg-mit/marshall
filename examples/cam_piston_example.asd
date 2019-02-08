@@ -8,12 +8,10 @@
 
 ! NOTE: Quantifiers should be generalized to all a and b, but
 ! cannot because marshall doesn't all variables in foralls.
-let ellipse (a : real) (b : real) =
-  fun x : real^2 =>
-  x#0^2 / a^2  + x#1^2 / b^2  <b 1
-  ;;
+let ellipse (a b : real) =
+  fun x : real^2 => x#0^2 / a^2  + x#1^2 / b^2  <b 1;;
 
-let ellipse_k (a : real) (b : real) =
+let ellipse_k (a b : real) =
   closed_of_compact (ellipse a b) (scale_x_y_k a b unit_square_k);;
 
 let a = 0.75;;
@@ -51,8 +49,7 @@ let axis_extent (n : real^2) (kshape : (real^2 -> bool) -> bool) : real =
 
 let translate_to_touch_axis
     (n : real^2)   ! should be a unit vector
-    (reference : (real^2 -> bool) -> bool)
-    (shape : (real^2 -> bool) -> bool)
+    (reference shape : (real^2 -> bool) -> bool)
     : (real^2 -> bool) -> bool =
     let dist = axis_extent (-n#0, -n#1) shape + axis_extent n reference in
     translate_k (dist * n#0, dist * n#1) shape
@@ -99,7 +96,7 @@ let check_conditions : bool =
   )
   ;;
 
-let rectangle_k (width : real) (height : real) =
+let rectangle_k (width height : real) =
   scale_x_y_k (width / 2) (height / 2) unit_square_k;;
 
 let infimum (s : (real -> bool) -> bool) : real =
@@ -108,7 +105,7 @@ let infimum (s : (real -> bool) -> bool) : real =
 let supremum (s : (real -> bool) -> bool) : real =
   dedekind_cut (fun q : real => ~ (s (fun x : real => x <b q)));;
 
-let map (A : type) (B : type) (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
+let map (A B : type) (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
   fun P : B -> bool => shape (fun x : A => P (f x));;
 
 let cam_piston (angle : real^2) : (real^2 -> bool) -> bool =
