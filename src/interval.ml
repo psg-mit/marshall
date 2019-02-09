@@ -34,6 +34,8 @@ struct
   (* Compute the width of the interval *)
   let width ~prec ~round i = D.sub ~prec ~round (upper i) (lower i)
 
+	let iwidth ~prec ~round i = make (width ~prec ~round i) (width ~prec ~round:(D.anti round) i)
+
   let of_dyadic q = make q q
 
 	let of_string ?prec str = make (D.of_string ?prec ~round:D.down str) (D.of_string ?prec ~round:D.up str)

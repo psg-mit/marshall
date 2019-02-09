@@ -7,6 +7,106 @@ struct
 
   let error = Message.runtime_error
 
+	  (* Does [x] occur freely in [e]? *)
+  let rec free x = function
+    | S.Var y -> x <> y
+    | S.RealVar (y, _) -> x <> y
+    | S.Dyadic _
+    | S.Interval _
+    | S.True
+    | S.False -> true
+    | S.Cut (y, _, p1, p2) -> x = y || (free x p1 && free x p2)
+    | S.Binary (_, e1, e2)
+    | S.Less (e1, e2)
+    | S.MkBool (e1, e2)
+    | S.Restrict (e1, e2)
+    | S.App (e1, e2)  -> free x e1 && free x e2
+    | S.Unary (_, e)
+    | S.Power (e, _)
+    | S.IsTrue e
+    | S.IsFalse e
+    | S.Proj (e, _) -> free x e
+    | S.And lst
+    | S.Or lst
+    | S.Join lst
+    | S.Tuple lst -> List.for_all (free x) lst
+    | S.Lambda (y, _, e)
+    | S.Exists (y, _, e)
+    | S.Forall (y, _, e) -> x = y || free x e
+    | S.Let (y, e1, e2) -> free x e1 && (x = y || free x e2)
+
+  (* Suppose [e] is an expression in environment [env] with a free
+     variable [x]. Then [e] as a function of [x] maps a real [x] to an
+     interval $[e_1(x), e_2(x)]$.
+
+     For estimation of inequalities we need to compute upper and lower
+     Lipschitz constants for $e_1(x)$ when $x$ ranges over a given
+     interval. This we do by symbolic differentiation.
+
+     We assume that the expressions are in head
+     normal form and of type real. In particular, this means we are
+     never going to see a lambda abstraction, a tuple, a projection, or
+     a local definition.
+  *)
+
+  let zero = S.Dyadic D.zero
+  let one = S.Dyadic D.one
+
+  let rec diff x = function
+    | S.Var y -> if x = y then one else zero
+    | S.RealVar (y, _) -> if x = y then one else zero
+    | S.Dyadic _ -> zero
+    | S.Interval _ -> zero
+    | S.Random _ -> zero
+    | S.Restrict (e1, e2) -> diff x e2 (* Is this okay? *)
+    | S.Cut (y, i, p1, p2) ->
+        if x = y || S.(free x p1 && free x p2) then
+  	zero
+        else
+  	S.Interval I.bottom
+    | S.Binary (S.Plus, e1, e2) -> S.Binary (S.Plus, diff x e1, diff x e2)
+    | S.Binary (S.Minus, e1, e2) -> S.Binary (S.Minus, diff x e1, diff x e2)
+    | S.Binary (S.Times, e1, e2) ->
+        S.Binary (S.Plus,
+  	      S.Binary (S.Times, diff x e1, e2),
+  	      S.Binary (S.Times, e1, diff x e2))
+    | S.Binary (S.Quotient, e1, e2) ->
+        S.Binary (S.Quotient,
+  	      S.Binary (S.Minus,
+  		      S.Binary (S.Times, diff x e1, e2),
+  		      S.Binary (S.Times, e1, diff x e2)),
+  	      S.Power (e2, 2))
+    | S.Unary (S.Opposite, e) -> S.Unary (S.Opposite, diff x e)
+    | S.Unary (S.Inverse, e) -> S.Binary (S.Quotient, diff x e, S.Power (e, 2))
+    | S.Unary (S.Exp, e) -> S.Binary (S.Times, S.Unary (S.Exp, e), diff x e)
+    (* For some reason, Newton seems to be broken for sine, at least trying to compute pi that way *)
+    | S.Unary (S.Sin, e) -> S.Binary (S.Times, S.Unary (S.Cos, e), diff x e)
+    | S.Unary (S.Cos, e) -> S.Binary (S.Times, S.Unary (S.Opposite, S.Unary (S.Sin, e)), diff x e)
+    | S.Power (e, 0) -> zero
+    | S.Power (e, 1) -> diff x e
+    | S.Power (e, k) ->
+        S.Binary (S.Times,
+  	      S.Dyadic (D.of_int ~round:D.down k),
+  	      S.Binary (S.Times,
+  		      S.Power (e, k-1),
+  		      diff x e))
+    | S.True
+    | S.False
+    | S.Less _
+    | S.And _
+    | S.Or _
+    | S.Exists _
+    | S.Forall _ -> Error.runtime "Cannot differentiate a proposition"
+    | S.Join _ -> failwith "Cannot differentiate a join"
+    | S.Let (y, e1, e2) -> Error.runtime "Cannot differentiate a local definition"
+    | S.Tuple _ -> failwith "Cannot differentiate a tuple"
+    | S.Proj (_, _) -> failwith "Cannot differentiate a projection"
+    | S.Lambda (x, ty, e) -> failwith "Cannot differentiate an abstraction"
+    | S.App (e1, e2) -> failwith "Cannot differentiate a redex"
+    | S.MkBool (e1, e2) -> failwith "Cannot differentiate a Boolean"
+    | S.IsTrue _
+    | S.IsFalse _ -> failwith "Cannot differentiate is_true/is_false"
+
   (* \subsection{Auxiliary functions} *)
 
   (* Get the interval approximation of a simple numerical expression. *)
@@ -135,6 +235,18 @@ struct
 	    let i = get_interval (approx e) in
 	      S.Interval (unary_apply ~prec ~round:D.down op i)
 	| S.Integral (x, i, e) ->
+	    (* Using  the derivative doesn't work great, yet *)
+	    (* let deriv = get_interval (lower prec (Env.extend x (S.Interval i) env) (diff x e)) in
+			let xmid = I.midpoint prec 1 i in
+			let ymid = get_interval (lower prec (Env.extend x (S.Dyadic xmid) env) e) in
+			let x1mid = I.sub ~prec ~round:D.down (I.of_dyadic (I.lower i)) (I.of_dyadic xmid) in
+			let x2mid = I.sub ~prec ~round:D.down (I.of_dyadic (I.upper i)) (I.of_dyadic xmid) in
+			let y1 = I.add ~prec ~round:D.down ymid (I.mul ~prec ~round:D.down x1mid deriv) in
+			let y2 = I.add ~prec ~round:D.down ymid (I.mul ~prec ~round:D.down x2mid deriv) in
+			let yavg = I.div ~prec ~round:D.down (I.add ~prec ~round:D.down y1 y2) (I.of_dyadic (D.two)) in
+			let result = I.mul ~prec ~round:D.down yavg (I.iwidth ~prec ~round:D.down i)
+			in if I.proper result then S.Interval result
+			else *)
 	    let ie = get_interval (lower prec (Env.extend x (S.Interval i) env) e) in
 		    S.Interval (I.mul ~prec ~round:D.down (I.of_dyadic (I.width ~prec ~round:D.down i)) ie)
 	| S.Power (e, k) ->
