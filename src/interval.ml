@@ -20,7 +20,7 @@ struct
   (* \subsection{Basic mainpulation} *)
 
   (* [make l u] constructs an interal from two fiven dyadics. *)
-  let make l u = { lower = lazy_from_val l; upper = lazy_from_val u }
+  let make l u = { lower = from_val l; upper = from_val u }
 
   (* [lower i] computes the lower endpoint. *)
   let lower i = force_val i.lower
