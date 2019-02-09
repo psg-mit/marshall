@@ -272,6 +272,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	  | S.RealVar (x, _) -> S.Var x
 	  | S.Dyadic _ -> e
 	  | S.Interval _ -> e
+		| S.TyExpr _ -> e
 	  | S.Cut (x, i, p1, p2) -> begin
 	      let prec = make_prec prec i in
 		(* To refine a cut [Cut(x,i,p1,p2)] we try to make the
@@ -501,6 +502,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		     else
 				   Step_Go (make_prec (p+3) (I.make D.zero !target_precision))
 	       | _ -> assert false)
+	| S.TyExpr _
 	| S.Dyadic _ | S.Interval _ | S.True | S.Lambda _ -> Step_Done e
 	| S.MkBool (S.True, e2) -> Step_Done (S.MkBool (S.True, S.False))
 	| S.MkBool (e1, S.True) -> Step_Done (S.MkBool (S.False, S.True))

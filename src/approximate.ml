@@ -13,6 +13,8 @@ struct
     | S.RealVar (y, _) -> x <> y
     | S.Dyadic _
     | S.Interval _
+		| S.TyExpr _
+		| S.Random _
     | S.True
     | S.False -> true
     | S.Cut (y, _, p1, p2) -> x = y || (free x p1 && free x p2)
@@ -30,6 +32,7 @@ struct
     | S.Or lst
     | S.Join lst
     | S.Tuple lst -> List.for_all (free x) lst
+		| S.Integral (y, _, e)
     | S.Lambda (y, _, e)
     | S.Exists (y, _, e)
     | S.Forall (y, _, e) -> x = y || free x e
@@ -90,6 +93,11 @@ struct
   	      S.Binary (S.Times,
   		      S.Power (e, k-1),
   		      diff x e))
+		| S.Integral (y, i, e) ->
+		  (* Ideally, we'd use FTC, but this is conservative *)
+				if x = y || S.(free x e)
+				  then zero
+          else S.Interval I.bottom
     | S.True
     | S.False
     | S.Less _
@@ -98,6 +106,7 @@ struct
     | S.Exists _
     | S.Forall _ -> Error.runtime "Cannot differentiate a proposition"
     | S.Join _ -> failwith "Cannot differentiate a join"
+		| S.TyExpr _ -> failwith "Cannot differentiate a type"
     | S.Let (y, e1, e2) -> Error.runtime "Cannot differentiate a local definition"
     | S.Tuple _ -> failwith "Cannot differentiate a tuple"
     | S.Proj (_, _) -> failwith "Cannot differentiate a projection"
@@ -161,9 +170,9 @@ struct
     match op with
       | S.Opposite -> I.neg ~prec ~round i
       | S.Inverse -> I.inv ~prec ~round i
-	    | Exp -> I.exp ~prec ~round i
-			| Sin -> I.sin ~prec ~round i
-			| Cos -> I.cos ~prec ~round i
+	    | S.Exp -> I.exp ~prec ~round i
+			| S.Sin -> I.sin ~prec ~round i
+			| S.Cos -> I.cos ~prec ~round i
 
   (* [Break] is used to shortcircuit evaluation of conjunctions and
      disjunctions. *)
@@ -276,6 +285,7 @@ struct
 	| S.Proj (e, k) -> proj (approx e) k
 	| S.IsTrue e -> is_true (approx e)
 	| S.IsFalse e -> is_false (approx e)
+	| S.TyExpr _ -> e
 	| S.Lambda _ as e -> e
 	| S.App (e1, e2) ->
 	    let x, e = get_lambda (approx e1) in
@@ -335,6 +345,7 @@ struct
 	    upper prec (Env.extend x e1 env) e2
 	| S.Tuple _ as e -> e
 	| S.Proj (e, k) -> proj (approx e) k
+	| S.TyExpr _ -> e
 	| S.Lambda _ as e -> e
 	| S.MkBool _ as e -> e (* is this right? *)
 	| S.IsTrue e -> is_true (approx e)
