@@ -105,7 +105,7 @@ let infimum (s : (real -> bool) -> bool) : real =
 let supremum (s : (real -> bool) -> bool) : real =
   dedekind_cut (fun q : real => ~ (s (fun x : real => x <b q)));;
 
-let map (A B : type) (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
+let map A B (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
   fun P : B -> bool => shape (fun x : A => P (f x));;
 
 let cam_piston (angle : real^2) : (real^2 -> bool) -> bool =

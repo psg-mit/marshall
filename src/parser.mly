@@ -126,6 +126,8 @@ varlist:
 arglist:
   | LPAREN xs = varlist COLON t = ty RPAREN args = arglist
     { List.map (fun x -> (x, t)) xs @ args }
+  | x = VAR args = arglist
+    { (x, S.Ty_Type) :: args  }
   |
     { [] }
 

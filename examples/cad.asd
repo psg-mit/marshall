@@ -86,12 +86,12 @@ let translate_k (tx : real^2) (shape : (real^2 -> bool) -> bool)
     : (real^2 -> bool) -> bool =
     fun p : real^2 -> bool => shape (fun x : real^2 => p (x#0 + tx#0, x#1 + tx#1));;
 
-let empty_shape_k (A : type) (p : A -> bool) : bool = tt;;
+let empty_shape_k E (p : E -> bool) : bool = tt;;
 
 let union_k (shape1 shape2 : (real^2 -> bool) -> bool) =
   fun P : real^2 -> bool => shape1 P && shape2 P;;
 
-let compact_union (E : type) (i : (E -> bool) -> bool) (F : type) (f : E -> (F -> bool) -> bool) 
+let compact_union E (i : (E -> bool) -> bool) F (f : E -> (F -> bool) -> bool) 
   : (F -> bool) -> bool 
   = fun P : F -> bool => i (fun x : E => f x P);;
 
@@ -114,8 +114,8 @@ let unit_disk_k =
   fun p : real^2 -> bool =>
   unit_square_k (fun x : real^2 => ~ unit_disk x || p x);;
 
-let point_k (A : type) (x : A) =
-  fun p : A -> bool => p x ;;
+let point_k E (x : E) =
+  fun p : E -> bool => p x ;;
 
 let unit_interval (p : real -> bool) : bool =
   mkbool (forall x : [0, 1], is_true (p x)) (exists x : [0, 1], is_false (p x));;
@@ -128,10 +128,10 @@ let unit_cone : (real^3 -> bool) -> bool =
 let neq (x : real) (y : real) : bool =
   mkbool (x <> y) False;;
 
-let exterior (E : type) (neq : E -> E -> bool) (shape : (E -> bool) -> bool) : E -> bool =
+let exterior E (neq : E -> E -> bool) (shape : (E -> bool) -> bool) : E -> bool =
   fun x : E => shape (fun y : E => neq x y);;
 
-let minkowski_sum (E : type) (plus : E -> E -> E)
+let minkowski_sum E (plus : E -> E -> E)
   (s1 s2 : (E -> bool) -> bool) : (E -> bool) -> bool =
   fun P : E -> bool => s1 (fun x : E => s2 (fun y :  E => P (plus x y)));;
 
@@ -204,9 +204,9 @@ let point (x : real) (y : real) =
   , fun x_test : real^2 => peq x x_test#0 && peq y x_test#1)
   ;;
 
-let empty_shape (A : type) =
-   (empty_shape_k {A}
-   , fun x : A => ff);;
+let empty_shape E =
+   (empty_shape_k {E}
+   , fun x : E => ff);;
 
 
 let scale_x_y_ok (cx : real) (cy : real)
