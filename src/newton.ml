@@ -103,6 +103,8 @@ struct
       *)
       | S.Var x', S.Dyadic d when x = x' -> R.open_left_ray d
       | S.Dyadic d, S.Var x' when x = x' -> R.open_right_ray d
+      | S.Var x', S.Interval i when x = x' -> R.open_left_ray (I.lower i)
+      | S.Interval i, S.Var x' when x = x' -> R.open_right_ray (I.upper i)
       | _ -> estimate_positive prec env x i (S.Binary (S.Minus, e2, e1)))
     | S.Exists (y, j, p) ->
         estimate_true k prec (Env.extend y (S.Dyadic (I.midpoint prec k j)) env) x i p
