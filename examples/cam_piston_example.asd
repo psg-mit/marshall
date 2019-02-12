@@ -69,6 +69,14 @@ let unit_circle =
   )
   ;;
 
+! Perhaps more efficient?
+let unit_circle' = fun P : real^2 -> bool =>
+  forall_interval_sym (fun cost : real =>
+  forall_interval_sym (fun sint : real =>
+     cost^2 + sint^2 <b 1
+  || 1 <b cost^2 + sint^2
+  || P (cost, sint)));;
+
 let amount_to_translate_piston (angle : real^2) : real^2 =
     ! Location of the point on the ellipse intersected with the positive x-axis
     ! We use the parametric form of the ellipse
@@ -108,16 +116,35 @@ let supremum (s : (real -> bool) -> bool) : real =
 let map A B (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
   fun P : B -> bool => shape (fun x : A => P (f x));;
 
+let ellipse_width = 5;;
+let ellipse_height = 3;;
+let rectangle_width = 4;;
+
+let translation_amount' (angle : real^2) : real =
+  let cam_right_end = ellipse_width * angle#0 + ellipse_height * angle#1 in
+  let rectangle_left_end = - rectangle_width / 2 in
+  cam_right_end - rectangle_left_end;;
+
 let cam_piston (angle : real^2) : (real^2 -> bool) -> bool =
-  let cam = rotate_k angle (translate_k (1, 0) (ellipse_k 5 3)) in
+  let cam = rotate_k angle (ellipse_k ellipse_width ellipse_height) in
   ! put piston just to the right of the cam
-  let piston = translate_to_touch_axis (1, 0) cam (rectangle_k 1 4) in
+  let piston = translate_k (translation_amount' angle, 0) (rectangle_k rectangle_width 1) in 
+  !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
   union_k cam piston;;
 
-let enclosure_piece : (real^2 -> bool) -> bool = translate_k (7, 0) (rectangle_k 1 2);;
+let cam_piston_o (angle : real^2) : real^2 -> bool =
+  let cam = rotate angle (ellipse ellipse_width ellipse_height) in
+  ! put piston just to the right of the cam
+  let piston = translate (translation_amount' angle, 0) (rectangle rectangle_width 1) in 
+  !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
+  union {real^2} cam piston;;
 
-let collision_safe : bool = forall_k unit_circle (fun angle : real^2 =>
+let enclosure_piece : (real^2 -> bool) -> bool = translate_k (10, 0) (rectangle_k 5 2);;
+
+let collision_safe : bool = forall_k unit_circle' (fun angle : real^2 =>
   is_separated (cam_piston angle) enclosure_piece);;
 
 let cam_pistion_separation_dist : real = supremum
-  (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle);;
+  (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle');;
+
+! #plot 32 (scale (1/8) (cam_piston_o (1, 0)));;
