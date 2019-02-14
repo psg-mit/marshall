@@ -25,6 +25,10 @@
       in
       loop n []
     ;;
+
+    let dyadic_const i = if D.eq (I.lower i) (I.upper i)
+                           then S.Dyadic (I.lower i)
+                           else S.Interval i
 %}
 
 %parameter <D : Dyadic.DYADIC>
@@ -174,7 +178,7 @@ simple_expr:
   | n = NATURAL
     { S.Dyadic (D.of_int ~round:D.down n) }
   | q = DYADIC
-    { S.Interval q }
+    { dyadic_const q }
   | TRUE
     { S.True }
   | FALSE
