@@ -506,6 +506,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| S.Dyadic _ | S.Interval _ | S.True | S.Lambda _ -> Step_Done e
 	| S.MkBool (S.True, e2) -> Step_Done (S.MkBool (S.True, S.False))
 	| S.MkBool (e1, S.True) -> Step_Done (S.MkBool (S.False, S.True))
+	| S.MkBool (S.False, S.False) -> Step_Done (S.MkBool (S.False, S.False))
 	| S.Restrict _
 	| S.MkBool _ -> Step_Go (p + 1)
 	| S.Join [] -> Step_Go 0
