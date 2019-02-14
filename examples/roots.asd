@@ -72,7 +72,7 @@ let lft_root_max_depth' (f : real -> bool) : real =
     right exists q : [0, 1], is_true (f (q * x))
     ;;
 
-let ray_scene (disp : real^2) =
+let ray_scene (disp : real^2) : real =
   1 - (lft_root_max_depth 20 (fun t : real => let r = ray disp t in table r || ball r) / 20);;
 
 let ray_scene' (disp : real^2) =

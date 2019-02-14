@@ -43,7 +43,7 @@ let rotate_ok (angle : real^2) (shape : ((real^2 -> bool) -> bool) * (real^2 -> 
   (rotate_k angle shape#0, rotate angle shape#1);;
 
 let axis_extent (n : real^2) (kshape : (real^2 -> bool) -> bool) : real =
-    dedekind_cut (fun q : real => exists_k kshape (fun x : real^2 =>
+    dedekind_cut (fun q : real => exists_k {real^2} kshape (fun x : real^2 =>
       q <b n#0 * x#0 + n#1 * x#1
     ));;
 
@@ -92,7 +92,7 @@ let square_quantified = scale_x_y_ok 0.5 0.5 unit_square;;
 
 let check_conditions : bool =
   let shifted_square = translate_k (3, 0) square_quantified#0 in
-  forall_k unit_circle (fun angle : real^2 =>
+  forall_k {real^2} unit_circle (fun angle : real^2 =>
 
     ! Rotate the cam
     let curr_cam = rotate_k angle cam in
@@ -141,7 +141,7 @@ let cam_piston_o (angle : real^2) : real^2 -> bool =
 
 let enclosure_piece : (real^2 -> bool) -> bool = translate_k (10, 0) (rectangle_k 5 2);;
 
-let collision_safe : bool = forall_k unit_circle' (fun angle : real^2 =>
+let collision_safe : bool = forall_k {real^2} unit_circle' (fun angle : real^2 =>
   is_separated (cam_piston angle) enclosure_piece);;
 
 let cam_pistion_separation_dist : real = supremum

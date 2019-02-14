@@ -68,11 +68,11 @@ let overlaps (shape_1 : real^2 -> bool) (shape_2 : real^2 -> bool) : prop =
 
 ! K-representation
 
-let forall_k (shape : (real^2 -> bool) -> bool) (p : real^2 -> bool) : bool = shape p;;
+let forall_k E (shape : (E -> bool) -> bool) (p : E -> bool) : bool = shape p;;
 
 ! existential quantifier for a shape
-let exists_k (shape : (real^2 -> bool) -> bool) (p : real^2 -> bool) : bool =
-  ~ (shape (fun x : real^2 => ~ (p x)))
+let exists_k E (shape : (E -> bool) -> bool) (p : E -> bool) : bool =
+  ~ (shape (fun x : E => ~ (p x)))
   ;;
 
 let scale_x_y_k (cx : real) (cy : real)
@@ -146,6 +146,9 @@ let is_separated (shape1 shape2 : (real^2 -> bool) -> bool) : bool =
           neq x1#0 x2#0 || neq x1#1 x2#1))
   ;;
 
+let separated E (neq : E -> E -> prop) (s1 s2 : (E -> bool) -> bool) : prop =
+  is_true (s1 (fun x : E => s2 (fun y : E => mkbool (neq x y) False)));;
+
 ! minimum distance between two shapes
 let separation (shape1 shape2 : (real^2 -> bool) -> bool) : real =
   dedekind_cut (fun cutoff : real => (cutoff <b 0) ||
@@ -157,10 +160,14 @@ let separation (shape1 shape2 : (real^2 -> bool) -> bool) : real =
 let directed_hausdorff_distance
     (shape1 shape2 : (real^2 -> bool) -> bool) : real =
   dedekind_cut (fun cutoff : real => cutoff <b 0 ||
-     (forall_k shape1 (fun x : real^2 =>
-      exists_k shape2 (fun x' : real^2 =>
+     (forall_k {real^2} shape1 (fun x : real^2 =>
+      exists_k {real^2} shape2 (fun x' : real^2 =>
      (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
   ;;
+
+let directed_hausdorff_dist E (d : E -> E -> real) (s1 s2 : (E -> bool) -> bool) : real =
+  dedekind_cut (fun cutoff : real => cutoff <b 0 ||
+    forall_k {E} s1 (fun x : E => exists_k {E} s2 (fun y : E => cutoff <b d x y)));;
 
 let max (a : real) (b : real) : real =
   dedekind_cut (fun x : real => x <b a || x <b b);;
@@ -170,6 +177,10 @@ let max (a : real) (b : real) : real =
 let hausdorff_distance (shape1 shape2 : (real^2 -> bool) -> bool) : real =
   max (directed_hausdorff_distance shape1 shape2)
       (directed_hausdorff_distance shape2 shape1);;
+
+let hausdorff_dist E (d : E -> E -> real) (s1 s2 : (E -> bool) -> bool) : real =
+  max (directed_hausdorff_dist {E} d s1 s2)
+      (directed_hausdorff_dist {E} d s2 s1);;
 
 
 ! Both O- and K-representation
