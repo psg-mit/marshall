@@ -74,8 +74,8 @@ let help_text = "Toplevel commands:
     with
       | P.Error ->
           Error.syntax ~pos:(L.position_of_lex lex) ""
-      | Failure "lexing: empty token" ->
-          Error.syntax ~pos:(L.position_of_lex lex) "unrecognised symbol."
+      | Failure f ->
+          Error.syntax ~pos:(L.position_of_lex lex) "unrecognised symbol. (%s)" f
 
   let initial_ctxenv = ([], [])
 
