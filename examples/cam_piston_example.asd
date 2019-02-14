@@ -107,12 +107,6 @@ let check_conditions : bool =
 let rectangle_k (width height : real) =
   scale_x_y_k (width / 2) (height / 2) unit_square_k;;
 
-let infimum (s : (real -> bool) -> bool) : real =
-  dedekind_cut (fun q : real => s (fun x : real => q <b x));;
-
-let supremum (s : (real -> bool) -> bool) : real =
-  dedekind_cut (fun q : real => ~ (s (fun x : real => x <b q)));;
-
 let map A B (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
   fun P : B -> bool => shape (fun x : A => P (f x));;
 

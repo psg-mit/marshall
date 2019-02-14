@@ -182,6 +182,12 @@ let hausdorff_dist E (d : E -> E -> real) (s1 s2 : (E -> bool) -> bool) : real =
   max (directed_hausdorff_dist {E} d s1 s2)
       (directed_hausdorff_dist {E} d s2 s1);;
 
+let kshape_neq E (neq : E -> E -> prop) (s1 s2 : (E -> bool) -> bool) : prop =
+  is_true (exists_k {E} s1 (fun x1 : E =>
+           forall_k {E} s2 (fun x2 : E => mkbool (neq x1 x2) False))
+        || exists_k {E} s2 (fun x2 : E =>
+	   forall_k {E} s1 (fun x1 : E => mkbool (neq x1 x2) False)));;
+
 
 ! Both O- and K-representation
 
@@ -200,6 +206,8 @@ let union_ok
     (shape1 shape2 : ((real^2 -> bool) -> bool) * (real^2 -> bool)) =
   (union_k shape1#0 shape2#0, union {real^2} shape1#1 shape2#1);;
 
+let is_contained_in E (k : (E -> bool) -> bool) (o : E -> bool) : bool =
+  forall_k {E} k (fun x : E => o x);;
 
 ! Does one shape lie strictly inside another?
 let shape_inside (A : type)
@@ -223,3 +231,24 @@ let empty_shape E =
 let scale_x_y_ok (cx : real) (cy : real)
   (shape : ((real^2 -> bool) -> bool) * (real^2 -> bool)) =
   (scale_x_y_k cx cy shape#0, scale_x_y cx cy shape#1);;
+
+
+
+let integrate_unit_interval (f : real -> real) : real =
+  int x : [0, 1], f x;;
+
+let integral (a b : real) (f : real -> real) : real =
+  let range = b - a in
+  range * integrate_unit_interval (fun x : real => f (a + range * x));;
+
+let indicator (b : bool) : real =
+  dedekind_cut (fun q : real => q <b 0 || (b && q <b 1));;
+
+let infimum (s : (real -> bool) -> bool) : real =
+  dedekind_cut (fun q : real => s (fun x : real => q <b x));;
+
+let supremum (s : (real -> bool) -> bool) : real =
+  dedekind_cut (fun q : real => ~ (s (fun x : real => x <b q)));;
+
+let volume (s : ((real -> bool) -> bool) * (real -> bool)) : real =
+  integral (infimum s#0) (supremum s#0) (fun x : real => indicator (s#1 x));;
