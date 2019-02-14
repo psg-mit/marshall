@@ -233,6 +233,16 @@ let scale_x_y_ok (cx : real) (cy : real)
   (scale_x_y_k cx cy shape#0, scale_x_y cx cy shape#1);;
 
 
+let minkowski_sum_o E (plus : E -> E -> E)
+  (o : E -> bool) (k : (E -> bool) -> bool) : E -> bool =
+  fun x : E => exists_k {E} k (fun delta : E => o (plus x delta));;
+
+let minkowski_diff_o E (plus : E -> E -> E)
+  (o : E -> bool) (k : (E -> bool) -> bool) : E -> bool =
+  fun x : E => forall_k {E} k (fun delta : E => o (plus x delta));;
+
+
+
 
 let integrate_unit_interval (f : real -> real) : real =
   int x : [0, 1], f x;;
