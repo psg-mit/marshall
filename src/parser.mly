@@ -112,6 +112,7 @@ topdef:
   | LET x = VAR args = arglist t = ty_sig EQUAL e = expr
     { S.Definition (x, List.fold_right (fun (x, t) e' -> S.Lambda (x, t, e')) args e,
       Some (List.fold_right (fun (x, targ) t' -> S.Ty_Arrow ((if targ = S.Ty_Type then Some x else None), targ, t')) args t)) }
+  | TYPE x = VAR EQUAL t = ty { S.TypeDefinition (x, t) }
 
 ty_sig:
   | COLON t = ty

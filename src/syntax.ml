@@ -114,6 +114,7 @@ struct
     | Expr of expr * bool       (* Expression, should it be traced? *)
     | Use of string             (* Include file [$use "<filename>"] *)
     | Definition of name * expr * ty option (* Top-level definition [let x = e] *)
+    | TypeDefinition of name * ty
     | Precision of D.t          (* Target precision [$precision d] *)
     | Hnf of expr               (* Compute head-normal form *)
     | Help                      (* Print help *)

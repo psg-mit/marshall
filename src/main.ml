@@ -154,10 +154,10 @@ let help_text = "Toplevel commands:
 	 with error -> (Message.report error; (ctx, env)))
     | E.S.Definition (x, e, ot) ->
 	(try
-	   let ty = TC.type_of ctx e in
-     (match ot with
-       | None -> ()
-       | Some ty' -> TC.check_same ty' ty);
+	   let type_of_e = TC.type_of ctx e in
+     let ty = match ot with
+       | None -> type_of_e
+       | Some ty' -> TC.check_same ctx ty' type_of_e; ty' in
 	   let v1, v2 = E.eval false env e in
 	     print_endline
 	       (E.S.string_of_name x ^ " : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v2) ;
@@ -167,6 +167,9 @@ let help_text = "Toplevel commands:
 	E.target_precision := q ;
 	print_endline ("Target precision set to " ^ D.to_string q) ;
 	(ctx, env)
+    | E.S.TypeDefinition (x, t) ->
+        let ctx' = (x, t) :: ctx in
+        (ctx', env)
     | E.S.Hnf e ->
 	let v = E.hnf ~free:true env e in
 	  print_endline (E.S.string_of_expr v) ;
