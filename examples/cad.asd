@@ -163,17 +163,21 @@ let separation (shape1 shape2 : (real^2 -> bool) -> bool) : real =
      (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
   ;;
 
+let separation_dist E (d : E -> E -> real) (s1 s2 : (E -> bool) -> bool) : real =
+  dedekind_cut (fun q : real => q <b 0 ||
+     s1 (fun x : E => s2 (fun y : E => q <b d x y)));;
+
 let directed_hausdorff_distance
     (shape1 shape2 : (real^2 -> bool) -> bool) : real =
   dedekind_cut (fun cutoff : real => cutoff <b 0 ||
-     (forall_k {real^2} shape1 (fun x : real^2 =>
-      exists_k {real^2} shape2 (fun x' : real^2 =>
+     (exists_k {real^2} shape1 (fun x : real^2 =>
+      forall_k {real^2} shape2 (fun x' : real^2 =>
      (cutoff^2) <b ((x'#0 - x#0)^2 + (x'#1 - x#1)^2)))))
   ;;
 
 let directed_hausdorff_dist E (d : E -> E -> real) (s1 s2 : (E -> bool) -> bool) : real =
   dedekind_cut (fun cutoff : real => cutoff <b 0 ||
-    forall_k {E} s1 (fun x : E => exists_k {E} s2 (fun y : E => cutoff <b d x y)));;
+    exists_k {E} s1 (fun x : E => forall_k {E} s2 (fun y : E => cutoff <b d x y)));;
 
 let max (a : real) (b : real) : real =
   dedekind_cut (fun x : real => x <b a || x <b b);;
