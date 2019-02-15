@@ -38,3 +38,10 @@ let capp (xs ys : list_real) : list_real
 
 let sum_list_real (xs : list_real) : real
   = xs {real} 0 (fun x y : real => x + y);;
+
+let range' (n : nat) : real -> list_real =
+  n {real -> list_real} (fun x : real => cnil)
+    (fun ih : real -> list_real => fun x : real => ccons x (ih (x + 1)));;
+
+let list_real_example : real =
+  sum_list_real (range' (cmult cthree cthree) 0);;
