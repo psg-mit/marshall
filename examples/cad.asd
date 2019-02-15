@@ -89,7 +89,7 @@ let translate_k (tx : real^2) (shape : (real^2 -> bool) -> bool)
     : (real^2 -> bool) -> bool =
     fun p : real^2 -> bool => shape (fun x : real^2 => p (x#0 + tx#0, x#1 + tx#1));;
 
-let empty_shape_k E (p : E -> bool) : bool = tt;;
+let empty_k E (p : E -> bool) : bool = tt;;
 
 let union_k (shape1 shape2 : (real^2 -> bool) -> bool) =
   fun P : real^2 -> bool => shape1 P && shape2 P;;
@@ -106,6 +106,9 @@ let unit_square_k (p : real^2 -> bool) : bool =
   forall_interval_sym (fun x : real =>
   forall_interval_sym (fun y : real => p (x, y))
   );;
+
+let map A B (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
+  fun P : B -> bool => shape (fun x : A => P (f x));;
 
 let closed_of_compact (oshape : real^2 -> bool) (kshape : (real^2 -> bool) -> bool) =
   fun P : real^2 -> bool =>
@@ -227,7 +230,7 @@ let point (x : real) (y : real) =
   ;;
 
 let empty_shape E =
-   (empty_shape_k {E}
+   (empty_k {E}
    , fun x : E => ff);;
 
 
@@ -265,3 +268,10 @@ let supremum (s : (real -> bool) -> bool) : real =
 
 let volume (s : ((real -> bool) -> bool) * (real -> bool)) : real =
   integral (infimum s#0) (supremum s#0) (fun x : real => indicator (s#1 x));;
+
+
+
+let bezier E (cvx_comb : real -> E -> E -> E)
+  (p0 p1 p2 : E) : (E -> bool) -> bool =
+  map {real} {E} (fun t : real => cvx_comb t (cvx_comb t p2 p1) (cvx_comb t p1 p0))
+              unit_interval;;

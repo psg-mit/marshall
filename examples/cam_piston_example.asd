@@ -107,9 +107,6 @@ let check_conditions : bool =
 let rectangle_k (width height : real) =
   scale_x_y_k (width / 2) (height / 2) unit_square_k;;
 
-let map A B (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
-  fun P : B -> bool => shape (fun x : A => P (f x));;
-
 let ellipse_width = 5;;
 let ellipse_height = 3;;
 let rectangle_width = 4;;
