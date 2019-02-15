@@ -57,13 +57,16 @@ let complement (A : type) (shape : A -> bool) =
   ;;
 
 ! Is a shape nonempty?
-let nonempty (shape : real^2 -> bool) : prop =
-  exists x : real, exists y : real, is_true (shape (x, y))
-;;
+let nonempty E (exists_E : (E -> prop) -> prop) (s : E -> bool) : prop =
+  exists_E (fun x : E => is_true (s x));;
+
+let exists_R2 (P : real^2 -> prop) : prop = exists x : real, exists y : real, P (x, y);;
+
+let nonempty_R2 : (real^2 -> bool) -> prop = nonempty {real^2} exists_R2;;
 
 ! Do two shapes overlap?
 let overlaps (shape_1 : real^2 -> bool) (shape_2 : real^2 -> bool) : prop =
-  nonempty (intersection {real^2} shape_1 shape_2)
+  nonempty_R2 (intersection {real^2} shape_1 shape_2)
 ;;
 
 ! K-representation
