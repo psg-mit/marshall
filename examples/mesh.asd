@@ -39,10 +39,19 @@ let cone_mesh : (real^3 -> bool) -> bool =
   `union3` triangle_k (0.0,0.251367,0.751367) (0.208398,0.208398,0.708398) (0.0,0.500586,0.5)
   `union3` triangle_k (0.0,0.500586,0.5) (0.208398,0.208398,0.708398) (0.354492,0.354492,0.5);;
 
+let unit_circle' = fun P : real^2 -> bool =>
+  forall_interval_sym (fun cost : real =>
+  forall_interval_sym (fun sint : real =>
+     cost^2 + sint^2 <b 1
+  || 1 <b cost^2 + sint^2
+  || P (cost, sint)));;
+
 let cone : (real^3 -> bool) -> bool =
   compact_union {real} unit_interval {real^3} (fun z : real =>
   compact_union {real^2} (scale_k z unit_disk_k) {real^3} (fun xy : real^2 =>
-  point_k {real^3} (xy#0, xy#1, z)));;
+  point_k {real^3} (xy#0, xy#1, 1 - z)))
+  `union3`
+  map {real^2} {real^3} (fun xy : real^2 => (xy#0, xy#1, 0)) unit_circle';;
 
 
 let directed_hausdorff3
@@ -52,3 +61,6 @@ let directed_hausdorff3
       forall_k {real^3} s2 (fun y : real^3 =>
      (cutoff^2) <b ((y#0 - x#0)^2 + (y#1 - x#1)^2 + (y#2 - x#2)^2)))))
   ;;
+
+let hausdorff3 (s1 s2 : (real^3 -> bool) -> bool) : real =
+  max (directed_hausdorff3 s1 s2) (directed_hausdorff3 s2 s1);;
