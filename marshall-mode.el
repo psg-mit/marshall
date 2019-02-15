@@ -10,6 +10,8 @@
     ("<>" . ?≠)
     ("real" . ?ℝ)
     ("prop" . ?Σ)
+    ("True" . ?⊤)
+    ("False" . ?⊥)
     ("bool" . ?𝔹)
     ("~" . ?¬))
   "Prettify rules for Marshall.")
