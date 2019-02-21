@@ -21,7 +21,7 @@
             ;; define several category of keywords
             (x-keywords '("let" "default" "fun" "cut" "left" "right" "in" "forall" "exists" "int"))
             (x-types '("real" "bool" "prop" "type"))
-            (x-constants '("True" "False" "inf" "mkbool" "is_true" "is_false"))
+            (x-constants '("True" "False" "inf"))
             (x-events '())
             (x-functions '())
 
