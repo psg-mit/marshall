@@ -119,14 +119,14 @@ let translation_amount' (angle : real^2) : real =
 let cam_piston (angle : real^2) : (real^2 -> bool) -> bool =
   let cam = rotate_k angle (ellipse_k ellipse_width ellipse_height) in
   ! put piston just to the right of the cam
-  let piston = translate_k (translation_amount' angle, 0) (rectangle_k rectangle_width 1) in 
+  let piston = translate_k (translation_amount' angle, 0) (rectangle_k rectangle_width 1) in
   !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
   union_k cam piston;;
 
 let cam_piston_o (angle : real^2) : real^2 -> bool =
   let cam = rotate angle (ellipse ellipse_width ellipse_height) in
   ! put piston just to the right of the cam
-  let piston = translate (translation_amount' angle, 0) (rectangle rectangle_width 1) in 
+  let piston = translate (translation_amount' angle, 0) (rectangle rectangle_width 1) in
   !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
   union {real^2} cam piston;;
 
@@ -135,7 +135,7 @@ let enclosure_piece : (real^2 -> bool) -> bool = translate_k (10, 0) (rectangle_
 let collision_safe : bool = forall_k {real^2} unit_circle' (fun angle : real^2 =>
   is_separated (cam_piston angle) enclosure_piece);;
 
-let cam_pistion_separation_dist : real = supremum
+let cam_piston_separation_dist : real = supremum
   (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle');;
 
 ! #plot 32 (scale (1/8) (cam_piston_o (1, 0)));;
