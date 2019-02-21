@@ -1,6 +1,25 @@
 #use "examples/cad.asd";;
 #use "examples/sqrt.asd";;
 
+let minkowski_ball (eps : real) (u : real^2 -> prop) : real^2 -> prop =
+  fun x : real^2 =>
+  exists dx : real,
+  exists dy : real,
+  dx^2 + dy^2 < eps /\ u (x#0 + dx, x#1 + dy)
+;;
+
+let grow_in_eps (eps : real) (shape : real^2 -> bool) =
+  fun x : real^2 =>
+  mkbool (minkowski_ball eps (fun x' : real^2 => is_true (shape x')) x)
+         (is_false (shape x))
+;;
+
+let grow_out_eps (eps : real) (shape : real^2 -> bool) =
+  fun x : real^2 =>
+  mkbool (is_true (shape x))
+         (minkowski_ball eps (fun x' : real^2 => is_false (shape x')) x)
+;;
+
 ! Try a point on the border of the rectangle, having
 ! thickened the "in" part by a radius of 0.1.
 let is_in_rect_in = grow_in_eps 0.1 (rectangle 2 2) (1, 1);;
@@ -15,7 +34,7 @@ let is_in_rect_out = grow_out_eps 0.1 (rectangle 2 2) (1, 1);;
 ! The intersection of the unit disk and unit square, translated
 ! by (5,5) is nonempty
 let disk_int_square_nonempty =
-  nonempty (translate (5, 5) (intersection {real^2} unit_disk (rectangle 1 1)));;
+  nonempty_R2 (translate (5, 5) (intersection {real^2} unit_disk (rectangle 1 1)));;
 ! ANS: disk_int_square_nonempty : prop = True
 
 ! The intersection of the unit square at the origin, and
@@ -25,7 +44,7 @@ let disk_int_square_empty =
 ! ANS: disk_int_square_empty : prop = False
 
 ! The unit disk is nonempty
-let disk_nonempty = nonempty unit_disk;;
+let disk_nonempty = nonempty_R2 unit_disk;;
 ! ANS: disk_nonempty : prop = True
 
 let rightmost_extent_2 (shape : (real^2 -> bool) -> bool) : real =
@@ -56,29 +75,10 @@ let restrictb (U : prop) (x : bool) : bool =
   mkbool (U /\ is_true x) (U /\ is_false x)
   ;;
 
-let minkowski_ball (eps : real) (u : real^2 -> prop) : real^2 -> prop =
-  fun x : real^2 =>
-  exists dx : real,
-  exists dy : real,
-  dx^2 + dy^2 < eps /\ u (x#0 + dx, x#1 + dy)
-;;
-
 ! (3/4, 0) is in the unit disk but not the unit square
 let test_point =
   is_true (unit_disk (3/4, 0)) /\ is_false (rectangle 1 1 (3/4, 0));;
 ! ANS: test_point : prop = True
-
-let grow_in_eps (eps : real) (shape : real^2 -> bool) =
-  fun x : real^2 =>
-  mkbool (minkowski_ball eps (fun x' : real^2 => is_true (shape x')) x)
-         (is_false (shape x))
-;;
-
-let grow_out_eps (eps : real) (shape : real^2 -> bool) =
-  fun x : real^2 =>
-  mkbool (is_true (shape x))
-         (minkowski_ball eps (fun x' : real^2 => is_false (shape x')) x)
-;;
 
 ! Sloped line
 let sloped_line (m : real) = line -1 (1/m) ;;
