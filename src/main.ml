@@ -121,12 +121,12 @@ let help_text = "Toplevel commands:
 
   (* should only be called when `e` has type `bool` *)
   let eval_bool env e =
-	let v1, v2 = E.eval_bounded 10 env e in
-    color_bool (to_bool_option v2);;
+	let v = E.eval_bounded 10 env e in
+    color_bool (to_bool_option v);;
 
   let eval_real env e =
-  let v1, v2 = E.eval false env e in
-    dyadic_to_int' 256 (to_dyadic v2);;
+  let v = E.eval false false env e in
+    dyadic_to_int' 256 (to_dyadic v);;
 
   let plot_shape pixels ctx env e =
     let mypixels = D.of_int ~round:D.down pixels in
@@ -148,8 +148,8 @@ let help_text = "Toplevel commands:
     | E.S.Expr (e, trace) ->
 	(try
 	   let ty = TC.type_of ctx e in
-	   let v1, v2 = E.eval trace env e in
-	     print_endline ("- : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v2) ;
+	   let v = E.eval true trace env (E.hnf env e) in
+	     print_endline ("- : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v) ;
 	     (ctx, env)
 	 with error -> (Message.report error; (ctx, env)))
     | E.S.Definition (x, e, ot) ->
@@ -158,10 +158,10 @@ let help_text = "Toplevel commands:
      let ty = match ot with
        | None -> type_of_e
        | Some ty' -> TC.check_same ctx ty' type_of_e; ty' in
-	   let v1, v2 = E.eval false env e in
+	   let v = E.hnf env e in
 	     print_endline
-	       (E.S.string_of_name x ^ " : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v2) ;
-	     ((x,ty)::ctx, E.Env.extend x v1 env)
+	       (E.S.string_of_name x ^ " : " ^ E.S.string_of_type ty (*^ " = " ^ E.S.string_of_expr v*)) ;
+	     ((x,ty)::ctx, E.Env.extend x v env)
 	 with error -> (Message.report error; (ctx, env)))
     | E.S.Precision q ->
 	E.target_precision := q ;
@@ -176,7 +176,7 @@ let help_text = "Toplevel commands:
 	  (ctx, env)
     | E.S.Help -> print_endline help_text ; (ctx, env)
     | E.S.Quit -> raise End_of_file
-    | E.S.Plot (pixels, e) -> (try plot_shape pixels ctx env e
+    | E.S.Plot (pixels, e) -> (try plot_shape pixels ctx env (E.hnf env e)
       with error -> Message.report error);
       (ctx, env)
     | E.S.Use fn -> use_file (ctx, env) (fn, interactive)

@@ -272,7 +272,8 @@ struct
 		S.False
 	| S.And lst -> fold_and approx lst
 	| S.Or lst -> fold_or approx lst
-	| S.Join lst -> S.Join (List.map approx lst) (* Is this right? *)
+  | S.Join [] -> assert false
+  | S.Join (x :: xs) -> approx x (* Is this right? *)
 	| S.Exists (x, s, e) ->
 	    let m = S.Dyadic (I.midpoint prec 1 s) in
 	      lower prec (Env.extend x m env) e
@@ -281,7 +282,7 @@ struct
 	| S.Let (x, e1, e2) ->
 	    lower prec (Env.extend x (approx e1) env) e2
 	| S.Tuple _ as e -> e
-	| S.MkBool _ as e -> e (* is this right? *)
+	| S.MkBool (t, f) -> S.MkBool (approx t, approx f)
 	| S.Proj (e, k) -> proj (approx e) k
 	| S.IsTrue e -> is_true (approx e)
 	| S.IsFalse e -> is_false (approx e)
@@ -334,7 +335,8 @@ struct
 		S.False
 	| S.And lst -> fold_and approx lst
 	| S.Or lst -> fold_or approx lst
-	| S.Join lst -> S.Join (List.map approx lst) (* Is this right? *)
+  | S.Join [] -> assert false
+  | S.Join (x :: xs) -> assert false (* need to think about what to do here *)
 	| S.Exists (x, i, e) ->
 	    let j = I.flip i in
 	      upper prec (Env.extend x (S.Interval j) env) e
@@ -347,7 +349,7 @@ struct
 	| S.Proj (e, k) -> proj (approx e) k
 	| S.TyExpr _ -> e
 	| S.Lambda _ as e -> e
-	| S.MkBool _ as e -> e (* is this right? *)
+	| S.MkBool (t, f) -> S.MkBool (approx t, approx f)
 	| S.IsTrue e -> is_true (approx e)
 	| S.IsFalse e -> is_false (approx e)
 	| S.App (e1, e2) ->

@@ -264,9 +264,6 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 
   let rec refine k prec env e =
     let refn = refine k prec env in
-      if A.lower prec env e = S.True then S.True
-      else if A.upper prec env e = S.False then S.False
-      else
 	match e with
 	  | S.Var x -> refn (Env.get x env)
 	  | S.RealVar (x, _) -> S.Var x
@@ -459,13 +456,11 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 
 	type 'a step_result =
     | Step_Done of 'a
-    | Step_Go of int
-		| Step_NoAnswer
+    | Step_Go of 'a * int
 
 	let map_step_result f (x, sx) = (f x, match sx with
 	  | Step_Done e -> Step_Done (f e)
-		| Step_Go p -> Step_Go p
-		| Step_NoAnswer -> Step_NoAnswer
+		| Step_Go (e, p) -> Step_Go (f e, p)
 		)
 
 
@@ -474,12 +469,9 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		((e1, e2),
 	   match sx, sy with
 	   | Step_Done e1', Step_Done e2' -> Step_Done (e1', e2')
-	   | Step_Done e1', _ -> Step_Done (e1', e2)
-		 | _, Step_Done e2' -> Step_Done (e1, e2')
-		 | Step_Go p1, Step_Go p2 -> Step_Go (max p1 p2)
-		 | Step_Go p1, Step_NoAnswer -> Step_Go p1
-		 | Step_NoAnswer, Step_Go p2 -> Step_Go p2
-		 | Step_NoAnswer, Step_NoAnswer -> Step_NoAnswer
+	   | Step_Done e1', Step_Go (e2', p) -> Step_Go ((e1', e2'), p)
+		 | Step_Go (e1', p), Step_Done e2' -> Step_Go ((e1', e2'), p)
+		 | Step_Go (e1, p1), Step_Go (e2, p2) -> Step_Go ((e1, e2), max p1 p2)
 		)
 
 	let rec collect_step_result (xs : ('a * 'a step_result) list) : ('a list) * ('a list) step_result = match xs with
@@ -487,49 +479,45 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| x :: xs' -> map_step_result (fun (z, zs) -> z :: zs) (pair_step_result x (collect_step_result xs'))
 	| [] -> assert false
 
-  let rec step env e (p : int) = match e with
+  let rec step env e (p : int) =
+	let prec = p in
+	let al = A.lower prec env e in
+	match al with
+	  | S.True -> Step_Done S.True
+		| S.Interval i ->
+					let w = (I.width 10 D.up i) in
+				if D.lt w !target_precision then
+					Step_Done (S.Interval i)
+				else
+					Step_Go (S.Interval i, make_prec (p+3) (I.make D.zero !target_precision))
+		| S.MkBool (S.True, e2) -> Step_Done (S.MkBool (S.True, e2))
+		| S.MkBool (e1, S.True) -> Step_Done (S.MkBool (e1, S.True))
+		| S.MkBool (S.False, S.False) -> Step_Done (S.MkBool (S.False, S.False))
+	  | _ -> let au = A.upper prec env e in
+		  if au = S.False then Step_Done S.False
+	else
+	match e with
 	| S.Var _ | S.RealVar _
 	| S.Less _ | S.And _ | S.Or _ | S.Exists _ | S.Forall _
 	| S.IsTrue _ | S.IsFalse _
 	| S.Let _ | S.Proj _ | S.App _ ->
-	    Step_Go (p + 1)
-	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ | S.Random _ ->
-	    (match A.lower p env e with
-	       | S.Interval i ->
-		   let w = (I.width 10 D.up i) in
-		     if D.lt w !target_precision then
-		       Step_Done (S.Interval i)
-		     else
-				   Step_Go (make_prec (p+3) (I.make D.zero !target_precision))
-	       | _ -> assert false)
+	    Step_Go (al, p + 1)
+	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ | S.Random _ -> assert false
 	| S.TyExpr _
 	| S.Dyadic _ | S.Interval _ | S.True | S.Lambda _ -> Step_Done e
-	| S.MkBool (S.True, e2) -> Step_Done (S.MkBool (S.True, S.False))
-	| S.MkBool (e1, S.True) -> Step_Done (S.MkBool (S.False, S.True))
-	| S.MkBool (S.False, S.False) -> Step_Done (S.MkBool (S.False, S.False))
 	| S.Restrict _
-	| S.MkBool _ -> Step_Go (p + 1)
-	| S.Join [] -> Step_Go 0
-	| S.Join (e :: es) -> (match step env e p with
-	   | Step_Done e' -> Step_Done e'
-		 | Step_Go p -> (match step env (S.Join es) p with
-		    | Step_Done e' -> Step_Done e'
-				| Step_Go p' -> Step_Go (max p p')
-				| Step_NoAnswer -> Step_Go p
-		    )
-			| Step_NoAnswer -> step env (S.Join es) p
-	   )
+	| S.MkBool _ -> Step_Go (al, p + 1)
+	| S.Join _ -> assert false (* Need to fix this *)
 	| S.Tuple lst -> snd (map_step_result (fun x -> S.Tuple x) (collect_step_result (List.map (fun e' -> (e', step env e' p)) lst)))
-	| S.False -> Step_NoAnswer
+	| S.False -> Step_Done S.False
 
   let eval_bounded nloop env e =
     let rec loop k p e =
-		  if k >= nloop then (e, e)
+		  if k >= nloop then e
 			  else
 	    match step env e p with
-			| Step_Done e' -> (e, e')
-			| Step_Go p' -> loop (k+1) p' (refine k p env e)
-			| Step_NoAnswer -> (e, e)
+			| Step_Done e' -> e'
+			| Step_Go (a, p') -> loop (k+1) p' (refine k p env e)
     in
       loop 1 nloop (hnf env e);;
 
@@ -540,7 +528,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
       all subexpressions of [e] need the same precision). The argument
       [trace] determines whether debugging information should be printed
       out. *)
-  let eval trace env e =
+  let eval print_steps trace env e =
     let rec loop k p e =
       if trace then
 	begin
@@ -552,9 +540,10 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	  ignore (read_line ())
 	end ;
 	    match step env e p with
-			| Step_Done e' -> (e, e')
-			| Step_Go p' -> loop (k+1) p' (refine k p env e)
-			| Step_NoAnswer -> (e, e)
+			| Step_Done e' -> e'
+			| Step_Go (a, p') ->
+			  (if print_steps then print_endline (S.string_of_expr a));
+			  loop (k+1) p' (refine k p env e)
     in
       loop 1 32 (hnf env e)
 end;;

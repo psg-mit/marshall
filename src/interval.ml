@@ -71,7 +71,7 @@ struct
     let b = upper i in
       if D.is_number a && D.is_number b then
 	let c = D.average a b in
-	let r = D.halve ~prec:2 ~round:D.up (D.sub ~prec:2 ~round:D.up b a) in
+	let r = D.halve ~round:D.up (D.sub ~round:D.up b a) in
 	  D.to_string c ^ " +- " ^ D.to_string r
       else
 	to_string i
