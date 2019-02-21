@@ -183,12 +183,6 @@ simple_expr:
     { S.True }
   | FALSE
     { S.False }
-  | MKBOOL e1 = simple_expr; e2 = simple_expr
-    { S.MkBool (e1, e2) }
-  | ISTRUE e = simple_expr
-    { S.IsTrue e }
-  | ISFALSE e = simple_expr
-    { S.IsFalse e }
   | e = simple_expr p = PROJECT
     { S.Proj (e, p) }
   | LPAREN e = expr RPAREN
@@ -321,8 +315,6 @@ ty_simple:
     { S.Ty_Sigma }
   | TREAL
     { S.Ty_Real }
-  | TBOOL
-    { S.Ty_Bool }
   | TYPE
     { S.Ty_Type }
   | v = VAR

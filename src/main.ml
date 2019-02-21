@@ -90,8 +90,8 @@ let help_text = "Toplevel commands:
   (* e must have type bool *)
   let rec to_bool_option e =
     match e with
-    | E.S.MkBool (E.S.True, _) -> Some true
-    | E.S.MkBool (_, E.S.True) -> Some false
+    | E.S.Tuple (E.S.True :: _) -> Some true
+    | E.S.Tuple (_ :: E.S.True :: []) -> Some false
     | E.S.Join (e :: es) -> (match to_bool_option e with
        | Some b -> Some b
        | None -> to_bool_option (E.S.Join es))
@@ -132,7 +132,7 @@ let help_text = "Toplevel commands:
     let mypixels = D.of_int ~round:D.down pixels in
     let evaluate = match TC.type_of ctx e with
       | E.S.Ty_Arrow (_, _, E.S.Ty_Real) -> eval_real
-      | E.S.Ty_Arrow (_, _, E.S.Ty_Bool) -> eval_bool
+      | E.S.Ty_Arrow (_, _, _) -> eval_bool
       | _ -> Message.runtime_error "Must be function type with return type real or bool"
     in
     Grapher.plot (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->

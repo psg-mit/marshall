@@ -31,10 +31,6 @@ struct
     "real", TREAL;
     "right", RIGHT;
     "True", TRUE;
-    "bool", TBOOL;
-    "mkbool", MKBOOL;
-    "is_true", ISTRUE;
-    "is_false", ISFALSE;
     "type", TYPE;
     "random", RANDOM;
     "exp", EXP;

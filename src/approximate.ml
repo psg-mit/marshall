@@ -20,13 +20,10 @@ struct
     | S.Cut (y, _, p1, p2) -> x = y || (free x p1 && free x p2)
     | S.Binary (_, e1, e2)
     | S.Less (e1, e2)
-    | S.MkBool (e1, e2)
     | S.Restrict (e1, e2)
     | S.App (e1, e2)  -> free x e1 && free x e2
     | S.Unary (_, e)
     | S.Power (e, _)
-    | S.IsTrue e
-    | S.IsFalse e
     | S.Proj (e, _) -> free x e
     | S.And lst
     | S.Or lst
@@ -112,9 +109,6 @@ struct
     | S.Proj (_, _) -> failwith "Cannot differentiate a projection"
     | S.Lambda (x, ty, e) -> failwith "Cannot differentiate an abstraction"
     | S.App (e1, e2) -> failwith "Cannot differentiate a redex"
-    | S.MkBool (e1, e2) -> failwith "Cannot differentiate a Boolean"
-    | S.IsTrue _
-    | S.IsFalse _ -> failwith "Cannot differentiate is_true/is_false"
 
   (* \subsection{Auxiliary functions} *)
 
@@ -143,14 +137,6 @@ struct
             List.nth lst k
           with Failure _ -> error "Tuple too short")
       | _ -> error "Tuple expected"
-	let is_true e =
-    match e with
-      | S.MkBool (e1, e2) -> e1
-      | _ -> S.IsTrue e
-	let is_false e =
-    match e with
-      | S.MkBool (e1, e2) -> e2
-      | _ -> S.IsFalse e
 
   (* Apply a binary artithmetical operator with precision [prec]. The
      rounding mode, which is [Dyadic.down] or [Dyadic.up] tells whether
@@ -281,11 +267,8 @@ struct
 	    lower prec (Env.extend x (S.Interval i) env) e
 	| S.Let (x, e1, e2) ->
 	    lower prec (Env.extend x (approx e1) env) e2
-	| S.Tuple _ as e -> e
-	| S.MkBool (t, f) -> S.MkBool (approx t, approx f)
+	| S.Tuple lst -> S.Tuple (List.map approx lst)
 	| S.Proj (e, k) -> proj (approx e) k
-	| S.IsTrue e -> is_true (approx e)
-	| S.IsFalse e -> is_false (approx e)
 	| S.TyExpr _ -> e
 	| S.Lambda _ as e -> e
 	| S.App (e1, e2) ->
@@ -345,13 +328,10 @@ struct
 	      upper prec (Env.extend x m env) e
 	| S.Let (x, e1, e2) ->
 	    upper prec (Env.extend x e1 env) e2
-	| S.Tuple _ as e -> e
+	| S.Tuple lst -> S.Tuple (List.map approx lst)
 	| S.Proj (e, k) -> proj (approx e) k
 	| S.TyExpr _ -> e
 	| S.Lambda _ as e -> e
-	| S.MkBool (t, f) -> S.MkBool (approx t, approx f)
-	| S.IsTrue e -> is_true (approx e)
-	| S.IsFalse e -> is_false (approx e)
 	| S.App (e1, e2) ->
 	    let x, e = get_lambda (approx e1) in
 	      upper prec (Env.extend x (approx e2) env) e

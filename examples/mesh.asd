@@ -40,7 +40,7 @@ let unit_circle' = fun P : real^2 -> bool =>
 
 let solid_cone : (real^3 -> bool) -> bool =
   compact_union {real} unit_interval {real^3} (fun z : real =>
-  compact_union {real^2} (scale_k z unit_disk) {real^3} (fun xy : real^2 =>
+  compact_union {real^2} (scale_k z unit_disk_k) {real^3} (fun xy : real^2 =>
   point_k {real^3} (xy#0, xy#1, 1 - z)));;
 
 let cone : (real^3 -> bool) -> bool =

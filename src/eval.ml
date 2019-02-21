@@ -78,13 +78,10 @@ struct
 	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False
 	| S.Random _ -> false
 	| S.Cut (x, i, p1, p2) -> x<>y && (free_in y p1 || free_in y p2)
-	| S.Binary (op, e1, e2) -> free_in y e1 || free_in y e2
 	| S.Restrict (e1, e2)
-	| S.MkBool (e1, e2) -> free_in y e1 || free_in y e2
+	| S.Binary (_, e1, e2) -> free_in y e1 || free_in y e2
 	| S.Unary (op, e) -> free_in y e
 	| S.Power (e, k) -> free_in y e
-	| S.IsTrue e
-	| S.IsFalse e -> free_in y e
 	| S.Proj (e, k) ->
 	    (match  e with
 	       | S.Tuple _ as e' -> free_in y (A.proj e' k)
@@ -126,7 +123,6 @@ let or1 xs = match xs with
 	| _ -> S.Or xs
 
 let rec restrict p e = match e with
-  | S.MkBool (et, ef) -> S.MkBool (S.And [p; et], S.And [p; ef])
 	| S.Cut (x, i, p1, p2) -> S.Cut (x, i, S.And [p; p1], S.And [p; p2])
 	| S.Tuple lst -> S.Tuple (List.map (restrict p) lst)
 	| S.True -> p
@@ -183,16 +179,6 @@ let rec restrict p e = match e with
 	       | S.Tuple _ as e' -> A.proj e' k
 	       | e' -> S.Proj (e', k))
 	    ) (hnf env e)
-	| S.IsTrue e -> List.map (fun e' ->
-	    (match e' with
-	       | S.MkBool _ as e' -> A.is_true e'
-	       | e' -> S.IsTrue e')
-	    ) (hnf env e)
-	| S.IsFalse e -> List.map (fun e' ->
-	    (match e' with
-	       | S.MkBool _ as e' -> A.is_false e'
-	       | e' -> S.IsFalse e')
-	    ) (hnf env e)
 	| S.Less (e1, e2) ->
 		  list_bind (hnf env e1) (fun e1' ->
 			match e1' with
@@ -213,7 +199,6 @@ let rec restrict p e = match e with
 			| xs -> [S.And (List.map or1 xs)])
   | S.Or lst -> [or1 (list_bind lst (hnf env))]
 	| S.Join lst -> list_bind lst (hnf env)
-	| S.MkBool (e1, e2) -> [S.MkBool (or1 (hnf env e1), or1 (hnf env e2))]
 	| S.Tuple lst -> List.map (fun e -> S.Tuple e) (List.fold_right
 	    (fun e (acc : S.expr list list) -> list_prod (fun x xs -> x :: xs) (hnf env e) acc)
 			lst
@@ -320,7 +305,6 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		   | S.True -> e2'
 			 | e1' -> S.Restrict (e1', e2')
 		   )
-	  | S.MkBool (e1, e2) -> S.MkBool (refn e1, refn e2)
 	  | S.Less (e1, e2) -> S.Less (refn e1, refn e2)
 		| S.Join lst -> S.Join (List.map refn lst)
 	  | S.And lst -> A.fold_and refn lst
@@ -422,16 +406,6 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 			refn (List.nth lst k)
 		      with Failure _ -> error "Tuple too short")
 		 | e -> S.Proj (e, k))
-		| S.IsTrue e' ->
-	      (match refn e' with
-		     | S.MkBool (e1, e2) -> refn e1
-		     | e'' -> S.IsTrue e''
-				)
-		| S.IsFalse e' ->
-	      (match refn e' with
-		     | S.MkBool (e1, e2) -> refn e2
-		     | e'' -> S.IsTrue e''
-				)
 	  | S.Lambda _ -> e
 	  | S.App (e1, e2) ->
 	      (match refn e1 with
@@ -490,23 +464,22 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 					Step_Done (S.Interval i)
 				else
 					Step_Go (S.Interval i, make_prec (p+3) (I.make D.zero !target_precision))
-		| S.MkBool (S.True, e2) -> Step_Done (S.MkBool (S.True, e2))
-		| S.MkBool (e1, S.True) -> Step_Done (S.MkBool (e1, S.True))
-		| S.MkBool (S.False, S.False) -> Step_Done (S.MkBool (S.False, S.False))
+		(* | S.Tuple [S.True; e2] -> Step_Done (S.Tuple [S.True; e2])
+		| S.Tuple [e1; S.True] -> Step_Done (S.Tuple [e1; S.True]) *)
 	  | _ -> let au = A.upper prec env e in
-		  if au = S.False then Step_Done S.False
-	else
+		  match au with
+			| S.False -> Step_Done S.False
+			(* | S.Tuple [S.False; S.False] -> Step_Done (S.Tuple [S.False; S.False]) *)
+      | _ ->
 	match e with
 	| S.Var _ | S.RealVar _
 	| S.Less _ | S.And _ | S.Or _ | S.Exists _ | S.Forall _
-	| S.IsTrue _ | S.IsFalse _
 	| S.Let _ | S.Proj _ | S.App _ ->
 	    Step_Go (al, p + 1)
 	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ | S.Random _ -> assert false
 	| S.TyExpr _
 	| S.Dyadic _ | S.Interval _ | S.True | S.Lambda _ -> Step_Done e
-	| S.Restrict _
-	| S.MkBool _ -> Step_Go (al, p + 1)
+	| S.Restrict _ -> Step_Go (al, p + 1)
 	| S.Join _ -> assert false (* Need to fix this *)
 	| S.Tuple lst -> snd (map_step_result (fun x -> S.Tuple x) (collect_step_result (List.map (fun e' -> (e', step env e' p)) lst)))
 	| S.False -> Step_Done S.False
