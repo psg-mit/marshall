@@ -460,7 +460,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	  | S.True -> Step_Done S.True
 		| S.Interval i ->
 					let w = (I.width 10 D.up i) in
-				if D.lt w !target_precision then
+				if D.lt w !target_precision || D.is_positive_infinity (I.lower i) || D.is_negative_infinity (I.upper i) then
 					Step_Done (S.Interval i)
 				else
 					Step_Go (S.Interval i, make_prec (p+3) (I.make D.zero !target_precision))
