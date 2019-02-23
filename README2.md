@@ -1,3 +1,14 @@
+Dependencies
+============
+
+```
+opam install menhir
+```
+
+```
+opam install num
+```
+
 Compiling
 =========
 ```
