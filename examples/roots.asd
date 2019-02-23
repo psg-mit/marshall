@@ -55,10 +55,10 @@ let ray_unnorm (disp : real^2) =
 let lta (x : real) (y : real) : bool =
   mkbool (x < y + 0.01) (y < x);;
 
-let table (x : real^2 * real) : bool =
-  lta x#2 -1 && lta -1 x#1 && lta x#1 1;;
+let table (x : real^3) : bool =
+  lta x#2 (-1) && lta (-1) x#1 && lta x#1 1;;
 
-let ball (x : real^2 * real) : bool =
+let ball (x : real^3) : bool =
   lta ((x#0 - 2)^2 + (x#1 - 0.7)^2 + x#2^2) 1;;
 
 let lft_root_max_depth (mx : real) (f : real -> bool) : real =
