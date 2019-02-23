@@ -38,6 +38,13 @@ let unit_circle' = fun P : real^2 -> bool =>
   || 1 <b cost^2 + sint^2
   || P (cost, sint)));;
 
+let sqrt (a : real) : real =
+  cut q : [0, inf) left q^2 < a right a < q^2;;
+
+let unit_circle'' = fun P : real^2 -> bool =>
+     forall_interval_sym (fun cost : real => P (cost, sqrt (1 - cost^2)))
+  && forall_interval_sym (fun cost : real => P (cost, - sqrt (1 - cost^2)));;
+
 let solid_cone : (real^3 -> bool) -> bool =
   compact_union {real} unit_interval {real^3} (fun z : real =>
   compact_union {real^2} (scale_k z unit_disk_k) {real^3} (fun xy : real^2 =>
@@ -45,7 +52,7 @@ let solid_cone : (real^3 -> bool) -> bool =
 
 let cone : (real^3 -> bool) -> bool =
   compact_union {real} unit_interval {real^3} (fun z : real =>
-  compact_union {real^2} (scale_k z unit_circle') {real^3} (fun xy : real^2 =>
+  compact_union {real^2} (scale_k z unit_circle'') {real^3} (fun xy : real^2 =>
   point_k {real^3} (xy#0, xy#1, 1 - z)))
   `union3`
   map {real^2} {real^3} (fun xy : real^2 => (xy#0, xy#1, 0)) unit_disk_k;;
