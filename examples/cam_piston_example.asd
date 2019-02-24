@@ -12,7 +12,7 @@ let ellipse (a b : real) =
   fun x : real^2 => x#0^2 / a^2  + x#1^2 / b^2  <b 1;;
 
 let ellipse_k (a b : real) =
-  closed_of_compact (ellipse a b) (scale_x_y_k a b unit_square_k);;
+  intersect_ok (ellipse a b) (scale_x_y_k a b unit_square_k);;
 
 let a = 0.75;;
 let b = 0.5;;
@@ -100,7 +100,7 @@ let check_conditions : bool =
     let curr_piston = translate_k (amount_to_translate_piston angle) piston in
 
     let cam_piston = union_k curr_cam curr_piston in
-    is_separated cam_piston shifted_square
+    disjoint_R2 cam_piston shifted_square
   )
   ;;
 
@@ -133,7 +133,7 @@ let cam_piston_o (angle : real^2) : real^2 -> bool =
 let enclosure_piece : (real^2 -> bool) -> bool = translate_k (10, 0) (rectangle_k 5 2);;
 
 let collision_safe : bool = forall_k {real^2} unit_circle' (fun angle : real^2 =>
-  is_separated (cam_piston angle) enclosure_piece);;
+  disjoint_R2 (cam_piston angle) enclosure_piece);;
 
 let cam_piston_separation_dist : real = supremum
   (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle');;

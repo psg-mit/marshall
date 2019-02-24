@@ -116,7 +116,7 @@ let separation =
      lt (cutoff^2) ((x' - x)^2 + (y' - y)^2)))))
   ;;
 
-let is_separated =
+let disjoint_R2 =
   fun shape1 : (real -> real -> bool) -> bool =>
   fun shape2 : (real -> real -> bool) -> bool =>
   forall_shape shape1 (fun x1 : real => fun y1 : real =>

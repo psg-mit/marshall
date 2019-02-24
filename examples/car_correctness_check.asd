@@ -55,12 +55,12 @@ let v_max : real =
 ! check if either the acceleration is illegal or we are safe
 let go_is_safe (x v : real) : prop =
   let go_car = (move_car a_go x v car) in
-  (a_go x v > a_max \/ is_true (is_separated go_car#0 crossing#0))
+  (a_go x v > a_max \/ is_true (disjoint_R2 go_car#0 crossing#0))
   ;;
 
 let stop_is_safe (x v : real) : prop =
   let stop_car = (move_car a_stop x v car) in
-  (a_stop x v < a_min \/ is_true (is_separated stop_car#0 crossing#0))
+  (a_stop x v < a_min \/ is_true (disjoint_R2 stop_car#0 crossing#0))
   ;;
 
 

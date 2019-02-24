@@ -7,7 +7,7 @@
 ! *inside* the shape, and the second says it if it strictly *outside*
 
 ! Implement line with an interior in the direction of the normal.
-let line (nx : real) (ny : real) =
+let line (nx ny : real) : real^2 -> bool =
       fun x : real^2 =>
       0 <b (nx * x#0 + ny * x#1);;
 
@@ -17,7 +17,7 @@ let translate (trans_x : real^2) (shape : real^2 -> bool) =
 ;;
 
 ! rectangle centered at the origin
-let rectangle (width : real) (height : real) =
+let rectangle (width height : real) =
   fun x : real^2 =>
       (- width  / 2) <b x#0  &&  x#0 <b (width  / 2)
   &&  (- height / 2) <b x#1  &&  x#1 <b (height / 2)
@@ -38,23 +38,20 @@ let scale_x_y (cx : real) (cy : real)
 let unit_disk = fun x : real^2 => x#0^2 + x#1^2 <b 1;;
 
 ! Compute the intersection of two shapes.
-let intersection (A : type) (shape_1 : A -> bool) (shape_2 : A -> bool) =
-  fun x : A =>
-  shape_1 x && shape_2 x
-  ;;
+let intersection E (o1 o2 : E -> bool) : E -> bool =
+  fun x : E => o1 x && o2 x;;
 
 ! Compute the union of two shapes.
-let union (A : type) (shape_1 : A -> bool) (shape_2 : A -> bool) =
-  fun x : A =>
-  shape_1 x || shape_2 x
-  ;;
+let union E (o1 o2 : E -> bool) : E -> bool =
+  fun x : E => o1 x || o2 x ;;
 
 ! The set-theoretic complement of a shape. Not sure where
 ! this may come in handy.
-let complement (A : type) (shape : A -> bool) =
-  fun x : A =>
-  ~ (shape x)
-  ;;
+let complement E (shape : E -> bool) =
+  fun x : E => ~ (shape x) ;;
+
+let contramap E F (f : F -> E) (o : E -> bool) : F -> bool =
+  fun x : F => o (f x);;
 
 ! Is a shape nonempty?
 let nonempty E (exists_E : (E -> prop) -> prop) (s : E -> bool) : prop =
@@ -78,7 +75,7 @@ let exists_k E (shape : (E -> bool) -> bool) (p : E -> bool) : bool =
   ~ (shape (fun x : E => ~ (p x)))
   ;;
 
-let scale_x_y_k (cx : real) (cy : real)
+let scale_x_y_k (cx cy : real)
     (shape : (real^2 -> bool) -> bool) =
   fun p : real^2 -> bool =>
   shape (fun x : real^2 => p (cx * x#0, cy * x#1));;
@@ -91,11 +88,11 @@ let translate_k (tx : real^2) (shape : (real^2 -> bool) -> bool)
 
 let empty_k E (p : E -> bool) : bool = tt;;
 
-let union_k (shape1 shape2 : (real^2 -> bool) -> bool) =
-  fun P : real^2 -> bool => shape1 P && shape2 P;;
+let union_k (k1 k2 : (real^2 -> bool) -> bool) =
+  fun P : real^2 -> bool => k1 P && k2 P;;
 
-let compact_union E (i : (E -> bool) -> bool) F (f : E -> (F -> bool) -> bool) 
-  : (F -> bool) -> bool 
+let compact_union E (i : (E -> bool) -> bool) F (f : E -> (F -> bool) -> bool)
+  : (F -> bool) -> bool
   = fun P : F -> bool => i (fun x : E => f x P);;
 
 let forall_interval_sym (p : real -> bool) : bool =
@@ -107,20 +104,17 @@ let unit_square_k (p : real^2 -> bool) : bool =
   forall_interval_sym (fun y : real => p (x, y))
   );;
 
-let map A B (f : A -> B) (shape : (A -> bool) -> bool) : (B -> bool) -> bool =
-  fun P : B -> bool => shape (fun x : A => P (f x));;
+let map E F (f : E -> F) (shape : (E -> bool) -> bool) : (F -> bool) -> bool =
+  fun P : F -> bool => shape (fun x : E => P (f x));;
 
-let closed_of_compact (oshape : real^2 -> bool) (kshape : (real^2 -> bool) -> bool) =
-  fun P : real^2 -> bool =>
-  kshape (fun x : real^2 =>
-    ~ oshape x || P x
-  );;
+let intersect_ok (o : real^2 -> bool) (k : (real^2 -> bool) -> bool) =
+  fun P : real^2 -> bool => k (fun x : real^2 => ~ (o x) || P x);;
 
 let unit_disk_k =
   fun p : real^2 -> bool =>
   unit_square_k (fun x : real^2 => ~ unit_disk x || p x);;
 
-let point_k E (x : E) =
+let point E (x : E) =
   fun p : E -> bool => p x ;;
 
 let unit_interval (p : real -> bool) : bool =
@@ -129,9 +123,9 @@ let unit_interval (p : real -> bool) : bool =
 let unit_cone : (real^3 -> bool) -> bool =
   compact_union {real} unit_interval {real^3} (fun x : real =>
   compact_union {real^2} (scale_k x unit_disk_k) {real^3} (fun yz : real^2 =>
-  point_k {real^3} (x, yz#0, yz#1)));;
+  point {real^3} (x, yz#0, yz#1)));;
 
-let neq (x : real) (y : real) : bool =
+let neq (x y : real) : bool =
   mkbool (x <> y) False;;
 
 let exterior E (neq : E -> E -> bool) (shape : (E -> bool) -> bool) : E -> bool =
@@ -141,19 +135,24 @@ let minkowski_sum E (plus : E -> E -> E)
   (s1 s2 : (E -> bool) -> bool) : (E -> bool) -> bool =
   fun P : E -> bool => s1 (fun x : E => s2 (fun y :  E => P (plus x y)));;
 
-! let is_empty (E : type) (s : (E -> bool) -> bool) : bool = s (fun x : E => ff);;
+let is_empty (E : type) (k : (E -> bool) -> bool) : bool = k (fun x : E => ff);;
 
-! Two shapes are separated if they share no points in common.
+let forall_ks E (k : (E -> bool) -> bool) (p : E -> prop) : prop =
+  is_true (k (fun x : E => mkbool (p x) False));;
+
+let exists_ks E (k : (E -> bool) -> bool) (p : E -> prop) : prop =
+  is_false (k (fun x : E => mkbool False (p x)));;
+
+let disjoint E (neq : E -> E -> prop) (k1 k2 : (E -> bool) -> bool) : prop =
+  forall_ks {E} k1 (fun x : E => forall_ks {E} k2 (fun y : E => neq x y));;
+
+let neq_R2 (x y : real^2) : prop = x#0 <> y#0 /\ x#1 <> y#1;;
+
+! Two shapes are disjoint if they share no points in common.
 ! This is checking that separation is > 0, but is computationally more efficient.
 ! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2)
-let is_separated (shape1 shape2 : (real^2 -> bool) -> bool) : bool =
-  shape1 (fun x1 : real^2 =>
-  shape2 (fun x2 : real^2 =>
-          neq x1#0 x2#0 || neq x1#1 x2#1))
-  ;;
-
-let separated E (neq : E -> E -> prop) (s1 s2 : (E -> bool) -> bool) : prop =
-  is_true (s1 (fun x : E => s2 (fun y : E => mkbool (neq x y) False)));;
+let disjoint_R2 (k1 k2 : (real^2 -> bool) -> bool) : bool =
+  disjoint {real^2} neq_R2 k1 k2;;
 
 ! minimum distance between two shapes
 let separation (shape1 shape2 : (real^2 -> bool) -> bool) : real =
@@ -184,20 +183,25 @@ let max (a : real) (b : real) : real =
 
 ! compute the hausdorff distance between two shapes.
 ! It is the max over every shape_point_separation
-let hausdorff_distance (shape1 shape2 : (real^2 -> bool) -> bool) : real =
-  max (directed_hausdorff_distance shape1 shape2)
-      (directed_hausdorff_distance shape2 shape1);;
+let hausdorff_distance (k1 k2 : (real^2 -> bool) -> bool) : real =
+  max (directed_hausdorff_distance k1 k2)
+      (directed_hausdorff_distance k2 k1);;
 
-let hausdorff_dist E (d : E -> E -> real) (s1 s2 : (E -> bool) -> bool) : real =
-  max (directed_hausdorff_dist {E} d s1 s2)
-      (directed_hausdorff_dist {E} d s2 s1);;
+let hausdorff_dist E (d : E -> E -> real) (k1 k2 : (E -> bool) -> bool) : real =
+  max (directed_hausdorff_dist {E} d k1 k2)
+      (directed_hausdorff_dist {E} d k2 k1);;
 
-let kshape_neq E (neq : E -> E -> prop) (s1 s2 : (E -> bool) -> bool) : prop =
-  is_true (exists_k {E} s1 (fun x1 : E =>
-           forall_k {E} s2 (fun x2 : E => mkbool (neq x1 x2) False))
-        || exists_k {E} s2 (fun x2 : E =>
-	   forall_k {E} s1 (fun x1 : E => mkbool (neq x1 x2) False)));;
+let kshape_neq E (neq : E -> E -> prop) (k1 k2 : (E -> bool) -> bool) : prop =
+    exists_ks {E} k1 (fun x1 : E =>
+    forall_ks {E} k2 (fun x2 : E => neq x1 x2))
+  \/ exists_ks {E} k2 (fun x2 : E =>
+    forall_ks {E} k1 (fun x1 : E => neq x1 x2));;
 
+
+let intersect_k_implies_equals E
+  (intersect_k : ((E -> bool) -> bool) -> ((E -> bool) -> bool) -> (E -> bool) -> bool)
+  (x y : E) : bool
+  = ~ (is_empty {E} (intersect_k (point {E} x) (point {E} y)));;
 
 ! Both O- and K-representation
 
