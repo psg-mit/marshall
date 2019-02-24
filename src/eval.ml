@@ -306,7 +306,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 			 | e1' -> S.Restrict (e1', e2')
 		   )
 	  | S.Less (e1, e2) -> S.Less (refn e1, refn e2)
-		| S.Join lst -> S.Join (List.map refn lst)
+		| S.Join lst -> join1 (List.map refn lst)
 	  | S.And lst -> A.fold_and refn lst
 	  | S.Or lst -> A.fold_or refn lst
 	  | S.Exists (x, i, p) ->
