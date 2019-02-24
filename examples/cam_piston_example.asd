@@ -1,4 +1,5 @@
 #use "examples/cad.asd";;
+#use "examples/stdlib.asd";;
 
 ! Create a cam and piston system:
 ! https://en.wikipedia.org/wiki/Camshaft
@@ -60,22 +61,8 @@ let translate_to_touch_axis
 let cam = ellipse_k a b;;
 let piston = translate_k (1.25, 0) (scale_x_y_k 0.5 0.5 unit_disk_k);;
 
-let unit_circle =
-  fun P : real^2 -> bool =>
-  forall_interval_sym (fun cost : real =>
-  let pos_sint = sqrt (1 - cost^2) in
-  let neg_sint = - pos_sint in
-  P (cost, pos_sint) && P (cost, neg_sint)
-  )
-  ;;
-
-! Perhaps more efficient?
-let unit_circle' = fun P : real^2 -> bool =>
-  forall_interval_sym (fun cost : real =>
-  forall_interval_sym (fun sint : real =>
-     cost^2 + sint^2 <b 1
-  || 1 <b cost^2 + sint^2
-  || P (cost, sint)));;
+let unit_circle = fun P : real^2 -> bool =>
+  unit_interval (fun t : real => let theta = twopi * t in P (cos theta, sin theta));;
 
 let amount_to_translate_piston (angle : real^2) : real^2 =
     ! Location of the point on the ellipse intersected with the positive x-axis
@@ -90,9 +77,9 @@ let amount_to_translate_piston (angle : real^2) : real^2 =
 
 let square_quantified = scale_x_y_ok 0.5 0.5 unit_square;;
 
-let check_conditions : bool =
+let check_conditions : prop =
   let shifted_square = translate_k (3, 0) square_quantified#0 in
-  forall_k {real^2} unit_circle (fun angle : real^2 =>
+  forall_ks {real^2} unit_circle (fun angle : real^2 =>
 
     ! Rotate the cam
     let curr_cam = rotate_k angle cam in
@@ -132,10 +119,10 @@ let cam_piston_o (angle : real^2) : real^2 -> bool =
 
 let enclosure_piece : (real^2 -> bool) -> bool = translate_k (10, 0) (rectangle_k 5 2);;
 
-let collision_safe : bool = forall_k {real^2} unit_circle' (fun angle : real^2 =>
+let collision_safe : prop = forall_ks {real^2} unit_circle (fun angle : real^2 =>
   disjoint_R2 (cam_piston angle) enclosure_piece);;
 
-let cam_piston_separation_dist : real = supremum
-  (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle');;
+let cam_piston_separation_dist : real = infimum
+  (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle);;
 
 ! #plot 32 (scale (1/8) (cam_piston_o (1, 0)));;

@@ -151,7 +151,7 @@ let neq_R2 (x y : real^2) : prop = x#0 <> y#0 /\ x#1 <> y#1;;
 ! Two shapes are disjoint if they share no points in common.
 ! This is checking that separation is > 0, but is computationally more efficient.
 ! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2)
-let disjoint_R2 (k1 k2 : (real^2 -> bool) -> bool) : bool =
+let disjoint_R2 (k1 k2 : (real^2 -> bool) -> bool) : prop =
   disjoint {real^2} neq_R2 k1 k2;;
 
 ! minimum distance between two shapes
@@ -232,7 +232,7 @@ let shape_inside (A : type)
 let peq (x : real) (y : real) = mkbool False (x <> y);;
 
 ! interior and exterior for points
-let point (x : real) (y : real) =
+let point_R2 (x : real) (y : real) =
   (fun p : real^2 -> bool => p (x, y)
   , fun x_test : real^2 => peq x x_test#0 && peq y x_test#1)
   ;;
