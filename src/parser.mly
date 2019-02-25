@@ -34,11 +34,13 @@
 %parameter <D : Dyadic.DYADIC>
 
 %token TSIGMA TREAL
+%token TINT
 %token TARROW
 %token <Syntax.Make(D).name> VAR
 %token <Syntax.Make(D).name> INFIXVAR
 %token <Interval.Make(D).t> DYADIC
 %token <int> NATURAL
+%token <int> INTEGER
 %token <int> PROJECT
 %token INFINITY
 %token TRUE FALSE
@@ -177,6 +179,8 @@ simple_expr:
     { S.Dyadic (D.of_int ~round:D.down n) }
   | q = DYADIC
     { dyadic_const q }
+  | n = INTEGER
+    { S.Integer n }
   | TRUE
     { S.True }
   | FALSE
@@ -313,6 +317,8 @@ ty_simple:
     { S.Ty_Sigma }
   | TREAL
     { S.Ty_Real }
+  | TINT
+    { S.Ty_Int }
   | TYPE
     { S.Ty_Type }
   | v = VAR

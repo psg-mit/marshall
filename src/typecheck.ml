@@ -51,6 +51,7 @@ struct
 	error ("Typechecking encountered a real variable " ^ string_of_name x ^
 		 ". This should not happen")
     | Dyadic _ -> Ty_Real
+    | Integer _ -> Ty_Int
     | Interval _ -> Ty_Real
 		| TyExpr _ -> Ty_Type
 		| Random _ -> Ty_Real
@@ -60,9 +61,12 @@ struct
 			check ((x, Ty_Real)::ctx) Ty_Sigma p2 ;
 			Ty_Real
     | Binary (_, e1, e2) ->
-			check ctx Ty_Real e1 ;
-			check ctx Ty_Real e2 ;
-			Ty_Real
+		  let ty1 = resolve ctx (type_of ctx e1) in
+			(match ty1 with
+			  | Ty_Real | Ty_Int ->
+    			check ctx ty1 e2 ;
+			    ty1
+				| _ -> error (string_of_type Ty_Real ^ " or " ^ string_of_type Ty_Int ^ " expected but got " ^ string_of_type ty1))
     | Restrict (e1, e2) ->
 			check ctx Ty_Sigma e1 ;
 			type_of ctx e2

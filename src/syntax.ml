@@ -25,6 +25,7 @@ struct
   type ty =
     | Ty_Sigma (* [prop] *)
     | Ty_Real  (* [real] *)
+    | Ty_Int
     | Ty_Arrow of (name option * ty * ty) (* [t1 -> t2] *)
     | Ty_Tuple of ty list (* [t1 * t2 * ... * tn] *)
     | Ty_Var of name
@@ -72,6 +73,7 @@ struct
     | Var of name (* variable *)
     | RealVar of name * I.t (* real variable with a given range, see [Eval.refine] *)
     | Dyadic of D.t (* dyadic constant, syntax as in MPFR (subsumes floating-point) *)
+    | Integer of int
     | Interval of I.t (* interval constant, no concrete syntax *)
     | Cut of name * I.t * expr * expr
 	(* [Cut (x, [a, b], l, u)] is the real number in interval
@@ -124,6 +126,7 @@ struct
 	match ty with
 	  | Ty_Sigma            -> (3, "prop")
 	  | Ty_Real             -> (3, "real")
+	  | Ty_Int              -> (3, "integer")
     | Ty_Type             -> (3, "type")
     | Ty_Var v            -> (3, string_of_name v)
 	  | Ty_Tuple lst        -> (2, String.concat "*" (List.map (to_str 2) lst))
@@ -143,6 +146,7 @@ struct
 	  | Var x   ->           (100, string_of_name x)
 	  | RealVar (x, i) ->    (100, "(" ^ string_of_name x ^ ":" ^ I.to_string i ^ ")")
 	  | Dyadic q ->          (100, D.to_string q)
+	  | Integer n ->         (100, "i" ^ string_of_int n)
 	  | Interval i ->        (100, I.to_string_number i)
 	  | True | And [] ->     (100, "True")
 	  | False | Or [] ->     (100, "False")

@@ -12,6 +12,7 @@ struct
     | S.Var y -> x <> y
     | S.RealVar (y, _) -> x <> y
     | S.Dyadic _
+    | S.Integer _
     | S.Interval _
 		| S.TyExpr _
 		| S.Random _
@@ -55,6 +56,7 @@ struct
   let rec diff x = function
     | S.Var y -> if x = y then one else zero
     | S.RealVar (y, _) -> if x = y then one else zero
+    | S.Integer _
     | S.Dyadic _ -> zero
     | S.Interval _ -> zero
     | S.Random _ -> zero
@@ -217,6 +219,7 @@ struct
 	| S.Var x -> approx (Env.get x env)
 	| S.RealVar (_, i) -> S.Interval i
 	| S.Dyadic q -> S.Interval (I.of_dyadic q)
+  | S.Integer _ -> e
 	| S.Interval _ as e -> e
 	| S.Cut (_, i, _, _) -> S.Interval i
 	| S.Random (_, r) -> let (p, d, _) = !r in
@@ -289,6 +292,7 @@ struct
 	| S.Var x -> approx (Env.get x env)
 	| S.RealVar (_, i) -> S.Interval (I.flip i)
 	| S.Dyadic q -> S.Interval (I.of_dyadic q)
+  | S.Integer _ -> e
 	| S.Interval _ as e -> e
 	| S.Cut (_, i, _, _) -> S.Interval (I.flip i)
 	| S.Random (_, r) -> let (p, d, _) = !r in

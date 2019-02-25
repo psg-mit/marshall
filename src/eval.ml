@@ -76,6 +76,7 @@ struct
     let rec free_in y e = match e with
 	| S.Var x -> x = y
 	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False
+	| S.Integer _
 	| S.Random _ -> false
 	| S.Cut (x, i, p1, p2) -> x<>y && (free_in y p1 || free_in y p2)
 	| S.Restrict (e1, e2)
@@ -139,6 +140,12 @@ let rec restrict p e = match e with
      repeat subexpressions, but computation of derivatives cannot handle
      general applications and local definitions. *)
 
+	let binary_int (op : S.binary) : int -> int -> int = match op with
+    | S.Plus -> (+)
+    | S.Minus -> (-)
+    | S.Times -> fun x y -> x * y
+    | S.Quotient -> (/)
+
   let rec hnf' ?(free=false) env e : S.expr list =
     let alpha1 x env e =
       if free_in_env x env e then
@@ -162,14 +169,18 @@ let rec restrict p e = match e with
 	       [List.assoc x env]
 	     with Not_found ->
 	       if free then [S.Var x] else error ("Unknown variable " ^ S.string_of_name x))
-	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False | S.TyExpr _ | S.Random _ ) as e -> [e]
+	| (S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False | S.TyExpr _ | S.Random _ ) -> [e]
+	| S.Integer _ -> [e]
 	| S.Cut (x, i, p1, p2) ->
 	    let x', p1', p2' = alpha2 x env p1 p2 in
 	    let env' = Env.extend x' (S.Var x') env in
 	      [S.Cut (x', i, or1 (hnf env' p1'), or1 (hnf env' p2'))]
 	| S.Binary (op, e1, e2) ->
 		  list_bind (hnf env e1) (fun e1' ->
-			List.map (fun e2' -> S.Binary (op, e1', e2')) (hnf env e2))
+			List.map (fun e2' -> match e1', e2' with
+			  | S.Integer i1, S.Integer i2 -> S.Integer (binary_int op i1 i2)
+				| _ -> S.Binary (op, e1', e2'))
+			(hnf env e2))
 	| S.Unary (op, e) ->
 	   List.map (fun e' -> S.Unary (op, e')) (hnf env e)
 	| S.Power (e, k) ->
@@ -253,6 +264,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	  | S.Var x -> refn (Env.get x env)
 	  | S.RealVar (x, _) -> S.Var x
 	  | S.Dyadic _ -> e
+		| S.Integer _ -> e
 	  | S.Interval _ -> e
 		| S.TyExpr _ -> e
 	  | S.Cut (x, i, p1, p2) -> begin
@@ -457,11 +469,12 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	let prec = p in
 	let al = A.lower prec env e in
 	match al with
-	  | S.True -> Step_Done S.True
+	  | S.True -> Step_Done al
+		| S.Integer n -> Step_Done al
 		| S.Interval i ->
 					let w = (I.width 10 D.up i) in
 				if D.lt w !target_precision || D.is_positive_infinity (I.lower i) || D.is_negative_infinity (I.upper i) then
-					Step_Done (S.Interval i)
+					Step_Done al
 				else
 					Step_Go (S.Interval i, make_prec (p+3) (I.make D.zero !target_precision))
 		(* | S.Tuple [S.True; e2] -> Step_Done (S.Tuple [S.True; e2])
@@ -476,6 +489,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| S.Less _ | S.And _ | S.Or _ | S.Exists _ | S.Forall _
 	| S.Let _ | S.Proj _ | S.App _ ->
 	    Step_Go (al, p + 1)
+	| S.Integer _
 	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ | S.Random _ -> assert false
 	| S.TyExpr _
 	| S.Dyadic _ | S.Interval _ | S.True | S.Lambda _ -> Step_Done e

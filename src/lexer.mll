@@ -21,6 +21,7 @@ struct
     "False", FALSE;
     "forall", FORALL;
     "int", INTEGRAL;
+    "integer", TINT;
     "fun", FUN;
     "in", IN;
     "inf", INFINITY;
@@ -69,6 +70,9 @@ rule token = parse
   | "#hnf"               { HNF }
   | "#help"              { HELP }
   | "#plot"              { PLOT }
+  | 'i' ['0'-'9']+       { let str = lexeme lexbuf in
+			     INTEGER (int_of_string (String.sub str 1 (String.length str - 1)))
+			 }
   | '#' ['0'-'9']+       { let str = lexeme lexbuf in
 			     PROJECT (int_of_string (String.sub str 1 (String.length str - 1)))
 			 }
