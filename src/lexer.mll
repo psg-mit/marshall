@@ -76,6 +76,9 @@ rule token = parse
   | '#' ['0'-'9']+       { let str = lexeme lexbuf in
 			     PROJECT (int_of_string (String.sub str 1 (String.length str - 1)))
 			 }
+  | '[' ['0'-'9']+ ']'    { let str = lexeme lexbuf in
+          PROJECT (int_of_string (String.sub str 1 (String.length str - 2)))
+      }
   | '^'                  { POWER }
   | '='                  { EQUAL }
   | '<'                  { LESS }
