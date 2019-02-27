@@ -1,70 +1,4 @@
-#use "examples/bool.asd";;
-
-! O-representation
-
-! A shape is a function from R^2 to a pair of predicates.
-! The first predicate says if a point in the plane is strictly
-! *inside* the shape, and the second says it if it strictly *outside*
-
-! Implement line with an interior in the direction of the normal.
-let line (nx ny : real) : real^2 -> bool =
-      fun x : real^2 =>
-      0 <b (nx * x#0 + ny * x#1);;
-
-let translate (trans_x : real^2) (shape : real^2 -> bool) =
-  fun x : real^2 =>
-    shape (x#0 - trans_x#0, x#1 - trans_x#1)
-;;
-
-! rectangle centered at the origin
-let rectangle (width height : real) =
-  fun x : real^2 =>
-      (- width  / 2) <b x#0  &&  x#0 <b (width  / 2)
-  &&  (- height / 2) <b x#1  &&  x#1 <b (height / 2)
-;;
-
-! scaling centered at the origin!
-! factor should be a *positive* real number
-let scale (factor : real) (shape : real^2 -> bool) =
-  fun x : real^2 =>
-  shape (x#0 / factor, x#1 / factor)
-;;
-
-let scale_x_y (cx : real) (cy : real)
-    (shape : real^2 -> bool) =
-    fun x : real^2 => shape (x#0 / cx, x#1 / cy);;
-
-! unit disk centered at origin
-let unit_disk = fun x : real^2 => x#0^2 + x#1^2 <b 1;;
-
-! Compute the intersection of two shapes.
-let intersection E (o1 o2 : E -> bool) : E -> bool =
-  fun x : E => o1 x && o2 x;;
-
-! Compute the union of two shapes.
-let union E (o1 o2 : E -> bool) : E -> bool =
-  fun x : E => o1 x || o2 x ;;
-
-! The set-theoretic complement of a shape. Not sure where
-! this may come in handy.
-let complement E (shape : E -> bool) =
-  fun x : E => ~ (shape x) ;;
-
-let contramap E F (f : F -> E) (o : E -> bool) : F -> bool =
-  fun x : F => o (f x);;
-
-! Is a shape nonempty?
-let nonempty E (exists_E : (E -> prop) -> prop) (s : E -> bool) : prop =
-  exists_E (fun x : E => is_true (s x));;
-
-let exists_R2 (P : real^2 -> prop) : prop = exists x : real, exists y : real, P (x, y);;
-
-let nonempty_R2 : (real^2 -> bool) -> prop = nonempty {real^2} exists_R2;;
-
-! Do two shapes overlap?
-let overlaps (shape_1 : real^2 -> bool) (shape_2 : real^2 -> bool) : prop =
-  nonempty_R2 (intersection {real^2} shape_1 shape_2)
-;;
+#use "examples/orep.asd";;
 
 ! K-representation
 
@@ -107,12 +41,11 @@ let unit_square_k (p : real^2 -> bool) : bool =
 let map E F (f : E -> F) (shape : (E -> bool) -> bool) : (F -> bool) -> bool =
   fun P : F -> bool => shape (fun x : E => P (f x));;
 
-let intersect_ok (o : real^2 -> bool) (k : (real^2 -> bool) -> bool) =
-  fun P : real^2 -> bool => k (fun x : real^2 => ~ (o x) || P x);;
+let intersect_ok E (o : E -> bool) (k : (E -> bool) -> bool) =
+  fun P : E -> bool => k (fun x : E => ~ (o x) || P x);;
 
-let unit_disk_k =
-  fun p : real^2 -> bool =>
-  unit_square_k (fun x : real^2 => ~ unit_disk x || p x);;
+let unit_disk_k : (real^2 -> bool) -> bool =
+  intersect_ok {real^2} unit_disk unit_square_k;;
 
 let point E (x : E) =
   fun p : E -> bool => p x ;;
@@ -146,13 +79,17 @@ let exists_ks E (k : (E -> bool) -> bool) (p : E -> prop) : prop =
 let disjoint E (neq : E -> E -> prop) (k1 k2 : (E -> bool) -> bool) : prop =
   forall_ks {E} k1 (fun x : E => forall_ks {E} k2 (fun y : E => neq x y));;
 
-let neq_R2 (x y : real^2) : prop = x#0 <> y#0 /\ x#1 <> y#1;;
+let neq_R2 (x y : real^2) : prop = x#0 <> y#0 \/ x#1 <> y#1;;
+let neq_R3 (x y : real^3) : prop = x#0 <> y#0 \/ x#1 <> y#1 \/ x#2 <> y#2;;
 
 ! Two shapes are disjoint if they share no points in common.
 ! This is checking that separation is > 0, but is computationally more efficient.
 ! forall (x2,y2) in shape2 forall (x1,y1) in shape1 (x1 != x2 or y1 != y2)
 let disjoint_R2 (k1 k2 : (real^2 -> bool) -> bool) : prop =
   disjoint {real^2} neq_R2 k1 k2;;
+
+let disjoint_R3 (k1 k2 : (real^3 -> bool) -> bool) : prop =
+  disjoint {real^3} neq_R3 k1 k2;;
 
 ! minimum distance between two shapes
 let separation (shape1 shape2 : (real^2 -> bool) -> bool) : real =
@@ -283,3 +220,10 @@ let bezier E (cvx_comb : real -> E -> E -> E)
   (p0 p1 p2 : E) : (E -> bool) -> bool =
   map {real} {E} (fun t : real => cvx_comb t (cvx_comb t p2 p1) (cvx_comb t p1 p0))
               unit_interval;;
+
+
+let compact_union_o E (k : (E -> bool) -> bool) F (o : E -> F -> bool) : F -> bool =
+  fun f : F => k (fun e : E => o e f);;
+
+let compact_intersection_o E (k : (E -> bool) -> bool) F (o : E -> F -> bool) : F -> bool =
+  fun f : F => exists_k {E} k (fun e : E => o e f);;
