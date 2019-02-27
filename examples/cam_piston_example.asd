@@ -13,7 +13,7 @@ let ellipse (a b : real) =
   fun x : real^2 => x#0^2 / a^2  + x#1^2 / b^2  <b 1;;
 
 let ellipse_k (a b : real) =
-  intersect_ok (ellipse a b) (scale_x_y_k a b unit_square_k);;
+  intersect_ok {real^2} (ellipse a b) (scale_x_y_k a b unit_square_k);;
 
 let a = 0.75;;
 let b = 0.5;;
