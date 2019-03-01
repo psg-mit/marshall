@@ -13,7 +13,7 @@ let cam (angle : real^2) = fun P : real^3 -> bool =>
   unit_disk_k (fun xy : real^2 =>
       let x = angle#0 * (2 * (xy#0 - 0.5)) + angle#1 * xy#1 in
       let y = - angle#1 * (2 * (xy#0 - 0.5)) + angle#0 * xy#1 in
-  P (xy#0, xy#1, z)));;
+  P (x, y, z)));;
 
 let piston (angle : real^2) = fun P : real^3 -> bool =>
   unit_interval (fun x  : real   =>
