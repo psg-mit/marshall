@@ -22,6 +22,10 @@ struct
 					| None -> ctx
 					| Some v -> List.remove_assoc v ctx
 				in Ty_Arrow (mv, resolve ctx t1, resolve ctx' t2)
+		| Ty_App (f, x) -> let x' = resolve ctx x in (match resolve ctx f with
+		  | Ty_Lam (v, t) -> resolve ((v, x') :: ctx) t
+			| f' -> Ty_App (f', x'))
+		| Ty_Lam (v, t) -> Ty_Lam (v, resolve ctx t)
 		| _ -> ty
 
   let check_same ctx ty1 ty2 =
@@ -30,7 +34,10 @@ struct
 	if ty1' <> ty2' then
 		error (string_of_type ty1 ^ " expected but got " ^ string_of_type ty2)
 
+  (* XXX: Need to think about alpha conversion!! *)
   let rec ty_subst v t = function
+	  | Ty_App (f, x) -> Ty_App (ty_subst v t f, ty_subst v t x)
+		| Ty_Lam (v', x) -> Ty_Lam (v', if v = v' then x else ty_subst v t x)
     | Ty_Var v' -> if v = v' then t else Ty_Var v'
     | Ty_Arrow (mv, t1, t2) ->
 	  let t1' = ty_subst v t t1 in

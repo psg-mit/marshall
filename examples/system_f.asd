@@ -27,21 +27,21 @@ let nat_to_real (n : nat) : real = n {real} 0 (fun x : real => x + 1);;
 let nat_example : real = nat_to_real (cpow cthree cthree);;
 
 
-type list_real = (A : type) -> A -> (real -> A -> A) -> A;;
+type list X = (A : type) -> A -> (X -> A -> A) -> A;;
 
-let cnil A (z : A) (s : real -> A -> A) : A = z;;
-let ccons (x : real) (xs : list_real) A (z : A) (s : real -> A -> A) : A
+let cnil X A (z : A) (s : X -> A -> A) : A = z;;
+let ccons X (x : X) (xs : list X) A (z : A) (s : X -> A -> A) : A
   = s x (xs {A} z s);;
 
-let capp (xs ys : list_real) : list_real
-  = xs {list_real} ys ccons;;
+let capp X (xs ys : list X) : list X
+  = xs {list X} ys (ccons {X});;
 
-let sum_list_real (xs : list_real) : real
+let sum_list_real (xs : list real) : real
   = xs {real} 0 (fun x y : real => x + y);;
 
-let range' (n : nat) : real -> list_real =
-  n {real -> list_real} (fun x : real => cnil)
-    (fun ih : real -> list_real => fun x : real => ccons x (ih (x + 1)));;
+let range' (n : nat) : real -> list real =
+  n {real -> list real} (fun x : real => cnil {real})
+    (fun ih : real -> list real => fun x : real => ccons {real} x (ih (x + 1)));;
 
 let list_real_example : real =
   sum_list_real (range' (cmult cthree cthree) 0);;

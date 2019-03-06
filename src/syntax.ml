@@ -29,6 +29,8 @@ struct
     | Ty_Arrow of (name option * ty * ty) (* [t1 -> t2] *)
     | Ty_Tuple of ty list (* [t1 * t2 * ... * tn] *)
     | Ty_Var of name
+    | Ty_App of ty * ty
+    | Ty_Lam of (name * ty)
     | Ty_Type
 
   (** Binary arithmetical operations. *)
@@ -124,15 +126,17 @@ struct
     let rec to_str n ty =
       let (m, str) =
 	match ty with
-	  | Ty_Sigma            -> (3, "prop")
-	  | Ty_Real             -> (3, "real")
-	  | Ty_Int              -> (3, "integer")
-    | Ty_Type             -> (3, "type")
-    | Ty_Var v            -> (3, string_of_name v)
+	  | Ty_Sigma            -> (4, "prop")
+	  | Ty_Real             -> (4, "real")
+	  | Ty_Int              -> (4, "integer")
+    | Ty_Type             -> (4, "type")
+    | Ty_Var v            -> (4, string_of_name v)
+	  | Ty_App (e1, e2)        -> (3, to_str 2 e1 ^ " " ^ to_str 3 e2)
 	  | Ty_Tuple lst        -> (2, String.concat "*" (List.map (to_str 2) lst))
 	  | Ty_Arrow (mv, ty1, ty2) -> (1, match mv with
         | None -> to_str 1 ty1 ^ " -> " ^ to_str 0 ty2
         | Some v -> "(" ^ string_of_name v ^ " : " ^ to_str 1 ty1 ^ ") -> " ^ to_str 0 ty2)
+    | Ty_Lam (x, t)       -> (0, "fun " ^ string_of_name x ^ " => " ^ to_str 0 t)
       in
 	if m > n then str else "(" ^ str ^ ")"
     in

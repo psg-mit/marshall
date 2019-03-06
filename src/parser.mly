@@ -116,7 +116,8 @@ topdef:
   | LET x = VAR args = arglist t = ty_sig EQUAL e = expr
     { S.Definition (x, List.fold_right (fun (x, t) e' -> S.Lambda (x, t, e')) args e,
       Some (List.fold_right (fun (x, targ) t' -> S.Ty_Arrow ((if targ = S.Ty_Type then Some x else None), targ, t')) args t)) }
-  | TYPE x = VAR EQUAL t = ty { S.TypeDefinition (x, t) }
+  | TYPE x = VAR tyargs = varlist_empty EQUAL t = ty { S.TypeDefinition (x,
+      List.fold_right (fun x e' -> S.Ty_Lam (x, e')) tyargs t) }
 
 ty_sig:
   | COLON t = ty
@@ -127,6 +128,10 @@ varlist:
     { [x] }
   | x = VAR xs = varlist
     { x :: xs }
+
+varlist_empty:
+  | xs = varlist { xs }
+  | { [] }
 
 arglist:
   | LPAREN xs = varlist COLON t = ty RPAREN args = arglist
@@ -328,16 +333,22 @@ ty_simple:
   | t = ty_simple POWER n = NATURAL
     { S.Ty_Tuple (init n (fun _ -> t)) }
 
+ty_apply:
+  | e1 = ty_apply e2 = ty_simple
+    { S.Ty_App (e1, e2) }
+  | e = ty_simple
+    { e }
+
 ty_prod:
-  | t = ty_simple
+  | t = ty_apply
     { t }
-  | t = ty_simple TIMES ts = ty_prod_list
+  | t = ty_apply TIMES ts = ty_prod_list
     { S.Ty_Tuple (t :: ts) }
 
 ty_prod_list:
-  | t = ty_simple
+  | t = ty_apply
     { [t] }
-  | t = ty_simple TIMES ts = ty_prod_list
+  | t = ty_apply TIMES ts = ty_prod_list
     { t :: ts }
 
 ty:

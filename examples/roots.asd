@@ -5,7 +5,7 @@ let forall_interval (p : real -> bool) : bool =
   mkbool (forall x : [0, 1], is_true (p x)) (exists x : [0, 1], is_false (p x))
   ;;
 
-let forall_interval' (a : real) (b : real) : (real -> bool) -> bool =
+let forall_interval' (a : real) (b : real) : KShape real =
   let range = b - a in
   fun p : real -> bool =>
   forall_interval (fun x : real => p (a + x * range))
