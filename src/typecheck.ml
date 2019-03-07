@@ -37,7 +37,7 @@ struct
 			  (match mv with
 					| None -> Ty_Arrow (None, t1', resolve tenv t2)
 					| Some v -> let (v', t2') = alpha1 v tenv t2 in
-					  Ty_Arrow (Some v', t1', resolve tenv t2')
+					  Ty_Arrow (Some v', t1', resolve (List.remove_assoc v' tenv) t2')
 				)
 		| Ty_App (f, x) -> let x' = resolve tenv x in (match resolve tenv f with
 		  | Ty_Lam (v, t) -> let v', t' = alpha1 v tenv t in resolve ((v', x') :: tenv) t'
@@ -56,7 +56,7 @@ struct
 		let ty2' = resolve tenv ty2 in
 		match ty1', ty2' with
 		| Ty_Arrow (Some v1, a1, r1), Ty_Arrow (Some v2, a2, r2) -> same_ty tenv a1 a2 && (
-		  let r2' = resolve [(v2, Ty_Var v1)] r2 in same_ty tenv r1 r2'
+		  let r2' = resolve [(v2, Ty_Var v1)] r2 in same_ty (List.remove_assoc v1 tenv) r1 r2'
 		  )
 		| Ty_Arrow (None, a1, r1), Ty_Arrow (None, a2, r2) ->
 		  same_ty tenv a1 a2 && same_ty tenv r1 r2
@@ -71,20 +71,6 @@ struct
   let check_same tenv ty1 ty2 =
 	  if not (same_ty tenv ty1 ty2)
 		then error (string_of_type ty1 ^ " expected but got " ^ string_of_type ty2)
-
-  (* XXX: Need to think about alpha conversion!! *)
-  let rec ty_subst v t = function
-	  | Ty_App (f, x) -> Ty_App (ty_subst v t f, ty_subst v t x)
-		| Ty_Lam (v', x) -> Ty_Lam (v', if v = v' then x else ty_subst v t x)
-    | Ty_Var v' -> if v = v' then t else Ty_Var v'
-    | Ty_Arrow (mv, t1, t2) ->
-	  let t1' = ty_subst v t t1 in
-	  let t2' = match mv with
-	    | None -> ty_subst v t t2
-		| Some v' -> if v = v' then t2 else ty_subst v t t2
-	  in Ty_Arrow (mv, t1', t2')
-    | Ty_Tuple ts -> Ty_Tuple (List.map (ty_subst v t) ts)
-	| ty -> ty
 
   (* [type_of ctx e] computes the type of expression [e] in context [ctx]. *)
   let rec type_of tenv ctx = function
@@ -166,7 +152,8 @@ struct
 				| Ty_Arrow (mv, ty1, ty2) -> (match mv with
 					| None -> check tenv ctx ty1 e2 ; resolve tenv ty2
 					| Some v -> (match e2 with
-						| TyExpr t -> let t' = resolve tenv t in resolve ((v, t') :: tenv) ty2
+						| TyExpr t -> let tenv' = List.remove_assoc v tenv in
+						  let t' = resolve tenv' t in resolve ((v, t') :: tenv') ty2
 					| _ -> error ("Expected type argument but got " ^ string_of_expr e2)))
 				| ty -> error ("Expected a function but got " ^ string_of_type ty))
 		| RandomF i ->

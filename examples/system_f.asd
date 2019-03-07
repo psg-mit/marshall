@@ -52,3 +52,9 @@ let range_int' (n : nat) : integer -> list integer =
 
 let list_real_example : real =
   sum_list_real (range' (cmult cthree cthree) 0);;
+
+let randomi (i : integer) : real = random i;;
+
+let avg_of_many_randoms : real =
+  let n = cpow ctwo (cmult ctwo ctwo) in
+  sum_list_real (list_map {integer} {real} randomi (range_int' n i0)) / nat_to_real n;;
