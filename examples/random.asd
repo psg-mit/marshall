@@ -1,13 +1,10 @@
 #use "examples/stdlib.asd";;
 
 type Random A = (X : type) -> (A -> X) -> ((real -> X) -> X) -> X;;
+! Constructors:
+!   Ret : A -> Random A
+!   SampleThen : (real -> Random A) -> Random A
 
-! Ret : A -> Random A
-! SampleThen : (real -> Random A) -> Random A
-
-! Ret x >>= f = f x
-! SampleThen (k : real -> Random A) >>= f = SampleThen
-  ! (fun x : real => k x >>= f)
 
 let rret A (x : A) : Random A =
   fun X : type => fun ret : A -> X => fun sampleThen : (real -> X) -> X =>
@@ -56,6 +53,8 @@ let eSampleThen A (f : real -> Expecter A) : Expecter A =
 let expect A (x : Random A) : Expecter A =
   x {Expecter A} (edirac {A}) (eSampleThen {A});;
 
+
+! The library of random functions
 let uniform : Random real =
   rSampleThen {real} (fun x : real => rret {real} x);;
 
@@ -77,3 +76,15 @@ let gaussians : Random (real^2) =
 
 let gaussian : Random real =
   rmap {real^2} {real} (fun x : real^2 => x[0]) gaussians;;
+
+
+! Examples
+
+let prob_true (x : Random bool) : real = expect {bool} x indicator;;
+
+let expectation (x : Random real) : real = expect {real} x (fun z : real => z);;
+
+let both_heads : Random bool =
+  rbind {bool} {bool} (bernoulli 0.5) (fun c1 : bool =>
+  rbind {bool} {bool} (bernoulli 0.5) (fun c2 : bool =>
+  rret {bool} (c1 && c2)));;
