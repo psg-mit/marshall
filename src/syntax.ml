@@ -108,6 +108,7 @@ struct
     | App of expr * expr
     | TyExpr of ty
     | Random of int * (int * D.t * D.rand_state) ref
+    | RandomF of expr
 
   (** Toplevel commands *)
   type toplevel_cmd =
@@ -161,6 +162,7 @@ struct
 	  | App (e1, e2) ->      (85, to_str 84 e1 ^ " " ^ to_str 85 e2)
 	  | Power (e, k) ->      (83, to_str 82 e ^ " ^ " ^ string_of_int k)
 	  | Unary (op, e) ->     (80, string_of_unary op ^ " " ^ to_str 80 e)
+    | RandomF e     ->     (80, "random " ^ to_str 80 e)
 	  | Binary (op, e1, e2) ->
 	      let p, p1, p2 = precs_of_binary op in
 		(p, to_str p1 e1 ^ " " ^ string_of_binary op ^ " " ^ to_str p2 e2)

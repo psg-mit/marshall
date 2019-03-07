@@ -25,6 +25,7 @@ struct
     | S.App (e1, e2)  -> free x e1 && free x e2
     | S.Unary (_, e)
     | S.Power (e, _)
+    | S.RandomF e
     | S.Proj (e, _) -> free x e
     | S.And lst
     | S.Or lst
@@ -59,6 +60,7 @@ struct
     | S.Integer _
     | S.Dyadic _ -> zero
     | S.Interval _ -> zero
+    | S.RandomF _
     | S.Random _ -> zero
     | S.Restrict (e1, e2) -> diff x e2 (* Is this okay? *)
     | S.Cut (y, i, p1, p2) ->
@@ -279,6 +281,7 @@ struct
 	      lower prec (Env.extend x (approx e2) env) e
 	| S.Restrict (e1, e2) -> (* currently assuming we must have a number *)
 	    S.Interval I.bottom
+  | S.RandomF e -> assert false
 
 
 
@@ -341,5 +344,7 @@ struct
 	      upper prec (Env.extend x (approx e2) env) e
 	| S.Restrict (e1, e2) -> (* currently assuming we must have a number *)
 	    S.Interval I.top
+  | S.RandomF e -> assert false
+
 
 end;;

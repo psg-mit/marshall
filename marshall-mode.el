@@ -1,7 +1,7 @@
 (defconst
   marshall-pretty-alist
-  '(("forall" . ?∀)
-    ("exists" . ?∃)
+  '(("Forall" . ?∀)
+    ("Exists" . ?∃)
     ("fun" . ?λ)
     ("->" . ?→)
     ("=>" . ?⇒)
@@ -19,7 +19,7 @@
 (setq marshall-highlights
       (let* (
             ;; define several category of keywords
-            (x-keywords '("let" "default" "fun" "cut" "left" "right" "in" "forall" "exists" "int"))
+            (x-keywords '("let" "default" "fun" "cut" "left" "right" "in" "Forall" "Exists" "int"))
             (x-types '("real" "bool" "prop" "type"))
             (x-constants '("True" "False" "inf"))
             (x-events '())

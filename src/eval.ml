@@ -7,6 +7,7 @@ struct
   module N = Newton.Make(D)
   module R = Region.Make(D)
   module A = Approximate.Make(D)
+	module TC = Typecheck.Make(D)
 
   let error = Message.runtime_error
 
@@ -64,16 +65,7 @@ struct
      the user happy). A $\lambda$-abstraction is not evaluated.
   *)
 
-	  let rec free_in_ty y = function
-		  | S.Ty_Var x -> x = y
-			| S.Ty_Arrow (mv, t1, t2) -> free_in_ty y t1 || (match mv with
-			  | None -> free_in_ty y t2
-				| Some x -> x<>y && (free_in_ty y t2)
-			)
-			| S.Ty_Tuple ts -> List.fold_left (fun p e -> p || free_in_ty y e) false ts
-			| ty -> false
-
-    let rec free_in y e = match e with
+	let rec free_in y e = match e with
 	| S.Var x -> x = y
 	| S.RealVar _ | S.Dyadic _ | S.Interval _ | S.True | S.False
 	| S.Integer _
@@ -81,7 +73,8 @@ struct
 	| S.Cut (x, i, p1, p2) -> x<>y && (free_in y p1 || free_in y p2)
 	| S.Restrict (e1, e2)
 	| S.Binary (_, e1, e2) -> free_in y e1 || free_in y e2
-	| S.Unary (op, e) -> free_in y e
+	| S.RandomF e
+	| S.Unary (_, e) -> free_in y e
 	| S.Power (e, k) -> free_in y e
 	| S.Proj (e, k) ->
 	    (match  e with
@@ -98,7 +91,7 @@ struct
 	| S.Integral (x, i, e) -> x<>y && (free_in y e)
 	| S.App (e1, e2)  -> free_in y e1 || free_in y e2
 	| S.Let (x, e1, e2) -> free_in y e1 || (x<>y && free_in y e2)
-	| S.TyExpr t -> free_in_ty y t
+	| S.TyExpr t -> TC.free_in y t
 
     let rec free_in_env x env e =
       match env with
@@ -241,6 +234,11 @@ let rec restrict p e = match e with
 	    list_bind (hnf env e1) (fun e1' ->
 			  hnf (Env.extend x e1' env) e2
 			)
+	| S.RandomF e ->
+	   List.map (function
+		   | S.Integer n -> S.Random (n, ref (0, D.zero, D.new_rand_state n))
+			 | e' -> S.RandomF e'
+			 ) (hnf env e)
 
 let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 
@@ -419,6 +417,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		      with Failure _ -> error "Tuple too short")
 		 | e -> S.Proj (e, k))
 	  | S.Lambda _ -> e
+		| S.RandomF _ -> assert false
 	  | S.App (e1, e2) ->
 	      (match refn e1 with
 		 | S.Lambda (x, _, e) -> refine k prec (Env.extend x (refn e2) env) e
@@ -490,6 +489,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| S.Let _ | S.Proj _ | S.App _ ->
 	    Step_Go (al, p + 1)
 	| S.Integer _
+	| S.RandomF _
 	| S.Binary _ | S.Unary _ | S.Power _ | S.Cut _ | S.Integral _ | S.Random _ -> assert false
 	| S.TyExpr _
 	| S.Dyadic _ | S.Interval _ | S.True | S.Lambda _ -> Step_Done e

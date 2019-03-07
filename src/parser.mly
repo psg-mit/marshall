@@ -198,8 +198,6 @@ simple_expr:
     { S.Tuple es }
   | LBRACE t = ty RBRACE
     { S.TyExpr t }
-  | RANDOM n = NATURAL
-    { S.Random (n, ref (0, D.zero, D.new_rand_state n)) }
 
 apply_expr:
   | e1 = apply_expr e2 = simple_expr
@@ -228,6 +226,8 @@ unary_expr:
     { S.Unary (S.Sin, e) }
   | COSINE e = pow_expr
     { S.Unary (S.Cos, e) }
+  | RANDOM e = pow_expr
+    { S.RandomF e }
 
 bin_expr:
   | e = unary_expr

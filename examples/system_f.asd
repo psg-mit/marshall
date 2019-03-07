@@ -39,9 +39,16 @@ let capp X (xs ys : list X) : list X
 let sum_list_real (xs : list real) : real
   = xs {real} 0 (fun x y : real => x + y);;
 
+let list_map A B (f : A -> B) (xs : list A) : list B =
+  xs {list B} (cnil {B}) (fun x : A => ccons {B} (f x));;
+
 let range' (n : nat) : real -> list real =
   n {real -> list real} (fun x : real => cnil {real})
     (fun ih : real -> list real => fun x : real => ccons {real} x (ih (x + 1)));;
+
+let range_int' (n : nat) : integer -> list integer =
+  n {integer -> list integer} (fun x : integer => cnil {integer})
+    (fun ih : integer -> list integer => fun x : integer => ccons {integer} x (ih (x + i1)));;
 
 let list_real_example : real =
   sum_list_real (range' (cmult cthree cthree) 0);;

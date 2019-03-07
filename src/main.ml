@@ -77,7 +77,7 @@ let help_text = "Toplevel commands:
       | Failure f ->
           Error.syntax ~pos:(L.position_of_lex lex) "unrecognised symbol. (%s)" f
 
-  let initial_ctxenv = ([], [])
+  let initial_ctxenv = ([], [], [])
 
   let color_bool x =
   	match x with
@@ -128,9 +128,9 @@ let help_text = "Toplevel commands:
   let v = E.eval false false env e in
     dyadic_to_int' 256 (to_dyadic v);;
 
-  let plot_shape pixels ctx env e =
+  let plot_shape pixels tenv ctx env e =
     let mypixels = D.of_int ~round:D.down pixels in
-    let evaluate = match TC.type_of ctx e with
+    let evaluate = match TC.type_of tenv ctx e with
       | E.S.Ty_Arrow (_, _, E.S.Ty_Real) -> eval_real
       | E.S.Ty_Arrow (_, _, _) -> eval_bool
       | _ -> Message.runtime_error "Must be function type with return type real or bool"
@@ -144,42 +144,41 @@ let help_text = "Toplevel commands:
   (** [exec_cmd interactive (ctx,env) c] executes toplevel command [c] in global
       environment [env] and typing context [ctx]. It prints the result on
       standard output and return the new environment. *)
-  let rec exec_cmd interactive (ctx,env) = function
+  let rec exec_cmd interactive (ctx,env,tenv) = function
     | E.S.Expr (e, trace) ->
 	(try
-	   let ty = TC.type_of ctx e in
+	   let ty = TC.type_of tenv ctx e in
 	   let v = E.eval true trace env (E.hnf env e) in
 	     print_endline ("- : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v) ;
-	     (ctx, env)
-	 with error -> (Message.report error; (ctx, env)))
+	     (ctx, env, tenv)
+	 with error -> (Message.report error; (ctx, env, tenv)))
     | E.S.Definition (x, e, ot) ->
 	(try
-	   let type_of_e = TC.type_of ctx e in
+	   let type_of_e = TC.type_of tenv ctx e in
      let ty = match ot with
        | None -> type_of_e
-       | Some ty' -> TC.check_same ctx ty' type_of_e; ty' in
+       | Some ty' -> TC.check_same tenv ty' type_of_e; ty' in
 	   let v = E.hnf env e in
 	     print_endline
 	       (E.S.string_of_name x ^ " : " ^ E.S.string_of_type ty (*^ " = " ^ E.S.string_of_expr v*)) ;
-	     ((x,ty)::ctx, E.Env.extend x v env)
-	 with error -> (Message.report error; (ctx, env)))
+	     ((x,type_of_e)::ctx, E.Env.extend x v env, tenv)
+	 with error -> (Message.report error; (ctx, env, tenv)))
     | E.S.Precision q ->
 	E.target_precision := q ;
 	print_endline ("Target precision set to " ^ D.to_string q) ;
-	(ctx, env)
+	(ctx, env, tenv)
     | E.S.TypeDefinition (x, t) ->
-        let ctx' = (x, t) :: ctx in
-        (ctx', env)
+        (ctx, env, (x, TC.resolve tenv t) :: tenv)
     | E.S.Hnf e ->
 	let v = E.hnf ~free:true env e in
 	  print_endline (E.S.string_of_expr v) ;
-	  (ctx, env)
-    | E.S.Help -> print_endline help_text ; (ctx, env)
+	  (ctx, env, tenv)
+    | E.S.Help -> print_endline help_text ; (ctx, env, tenv)
     | E.S.Quit -> raise End_of_file
-    | E.S.Plot (pixels, e) -> (try plot_shape pixels ctx env (E.hnf env e)
+    | E.S.Plot (pixels, e) -> (try plot_shape pixels tenv ctx env (E.hnf env e)
       with error -> Message.report error);
-      (ctx, env)
-    | E.S.Use fn -> use_file (ctx, env) (fn, interactive)
+      (ctx, env, tenv)
+    | E.S.Use fn -> use_file (ctx, env, tenv) (fn, interactive)
 
   (** [exec_cmds interactive (ctx,env) cmds] executes the list of commands [cmds] in
       context [ctx] and environment [env], and returns the new
