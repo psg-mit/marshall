@@ -59,7 +59,7 @@ let uniform : Random real =
   rSampleThen {real} (fun x : real => rret {real} x);;
 
 let bernoulli (p : real) : Random bool =
-  rmap {real} {bool} (lt p) uniform;;
+  rmap {real} {bool} (fun x : real => x <b p) uniform;;
 
 let indicator (b : bool) : real =
   dedekind_cut (fun q : real => q <b 0 || (b && q <b 1));;
