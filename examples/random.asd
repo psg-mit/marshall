@@ -77,6 +77,15 @@ let gaussians : Random (real^2) =
 let gaussian : Random real =
   rmap {real^2} {real} (fun x : real^2 => x[0]) gaussians;;
 
+let chi_squared_1 : Random real =
+  rmap {real} {real} (fun x : real => x^2) gaussian;;
+
+let chi_squared_2 : Random real =
+  rmap {real^2} {real} (fun x : real^2 => x[0]^2 + x[1]^2) gaussians;;
+
+let abs (x : real) : real =
+  cut q : [0, inf) left  q < x \/ q < - x
+                   right x < q /\ -x < q;;
 
 ! Examples
 
