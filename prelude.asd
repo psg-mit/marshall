@@ -19,3 +19,9 @@ let negb (x : bool) : bool =
 
 let lt (x : real) (y : real) : bool =
   mkbool (x < y) (y < x);;
+
+let dedekind_cut = fun p : real -> bool =>
+  cut x
+    left   is_true  (p x)
+    right  is_false (p x)
+  ;;
