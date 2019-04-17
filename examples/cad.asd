@@ -135,6 +135,12 @@ let kshape_neq E (neq : E -> E -> prop) (k1 k2 : KShape E) : prop =
   \/ exists_ks {E} k2 (fun x2 : E =>
     forall_ks {E} k1 (fun x1 : E => neq x1 x2));;
 
+let convex_hull E (cvx_comb : real -> E -> E -> E) (k : KShape E) : KShape E =
+  compact_union {E} k {E} (fun x : E =>
+  compact_union {E} k {E} (fun y : E =>
+  compact_union {real} unit_interval {E} (fun c : real =>
+    point {E} (cvx_comb c x y))));;
+
 
 let intersect_k_implies_equals E
   (intersect_k : KShape E -> KShape E -> KShape E)
