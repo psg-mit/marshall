@@ -50,8 +50,34 @@ let edirac A (x : A) : Expecter A =
 let eSampleThen A (f : real -> Expecter A) : Expecter A =
   fun k : A -> real => int x : [0, 1], f x k;;
 
+let ebind A B (x : Expecter A) (f : A -> Expecter B)
+  : Expecter B
+  = fun k : B -> real => x (fun a : A => f a k);;
+
+type unit = (X : type) -> X -> X;;
+
+let I_unit : unit = fun A : type => fun x : A => x;;
+
+let efactor (x : real) : Expecter unit =
+  fun f : unit -> real => f I_unit * x;;
+
+let enormalize A (e : Expecter A) : Expecter A =
+  fun f : A -> real => e f / e (fun x : A => 1);;
+
 let expect A (x : Random A) : Expecter A =
   x {Expecter A} (edirac {A}) (eSampleThen {A});;
+
+let ebernoulli (p : real) : Expecter bool =
+  fun f : bool -> real => p * f tt + (1 - p) * f ff;;
+
+let euniform : Expecter real =
+  fun f : real -> real => int x : [0, 1], f x;;
+
+let ebernoulli_obs (p : real) (b : bool) : Expecter unit =
+  efactor (indicator b * p + indicator (~ b) * (1 - p));;
+
+let emap A B (f : A -> B) (e : Expecter A) : Expecter B =
+  fun k : B -> real => e (fun x : A => k (f x));;
 
 
 ! The library of random functions
@@ -97,3 +123,21 @@ let both_heads : Random bool =
   rbind {bool} {bool} (bernoulli 0.5) (fun c1 : bool =>
   rbind {bool} {bool} (bernoulli 0.5) (fun c2 : bool =>
   rret {bool} (c1 && c2)));;
+
+let simple_pp : Expecter bool = enormalize {bool} (
+    ebind {bool} {bool} (ebernoulli 0.5) (fun b : bool =>
+    ebind {unit} {bool} (efactor (exp (- indicator b))) (fun ignore : unit =>
+    edirac {bool} b)));;
+
+let beta_bernoulli : Expecter real =
+  ebind {real} {real} euniform (fun p : real =>
+  ebind {unit} {real} (ebernoulli_obs p tt) (fun ignore : unit =>
+  edirac {real} p));;
+
+
+let erf_inv (x : real) : real = dedekind_cut (fun q : real => erf q <b x);;
+
+let probit (p : real) = sqrt 2 * erf_inv (2 * p - 1);;
+
+let estdnormal : Expecter real = fun f : real -> real => int p : [0, 1], f (probit p)
+

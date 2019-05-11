@@ -26,10 +26,6 @@ let weightedExpectation A (integral : Expecter (real * A)) : Expecter A =
 let expectWR A (x : WR A) : Expecter A =
   weightedExpectation {A} (expect {real * A} (x 1));;
 
-type unit = (X : type) -> X -> X;;
-
-let I_unit : unit = fun A : type => fun x : A => x;;
-
 let factor (ll : real) : WR unit =
   fun w : real => rret {real * unit} (w * ll, I_unit);;
 
@@ -80,7 +76,7 @@ let Right A B (b : B) : Either A B =
   fun X : type => fun l : A -> X => fun r : B -> X => r b;;
 
 
-! Note! Streams do not work well, because Marshall tries to recurse under binders!!!
+! Note! Streams do not work well, because Marshall tries to recurse under binders???
 
 type ZStream A B =
   (X : type) -> ((S : type) -> S -> (S -> A -> S * B) -> X) -> X;;
@@ -184,7 +180,7 @@ let zrToZ A B (f : ZRStream A B) : ZStream A (Random B) =
   fun X : type => fun x : (S : type) -> S -> (S -> A -> S * Random B) -> X =>
   x {Random (ZRStream A B)} (rret {ZRStream A B} f)
   (fun s : Random (ZRStream A B) => fun a : A =>
-    let res = 
+    let res =
     rbind {ZRStream A B}
           {B * ZRStream A B}
 	  s
@@ -259,7 +255,7 @@ let step Y A (str : Stream Y A) : Either (Y * Stream Y A) A =
 let step_n (n : nat) Y A (str : Stream Y A) : Either (Stream Y A) A =
   n {Either (Stream Y A) A}
     (Left {Stream Y A} {A} str)
-    (fun ih : Either (Stream Y A) A => 
+    (fun ih : Either (Stream Y A) A =>
     ih {Either (Stream Y A) A}
        (fun str' : Stream Y A =>
         step {Y} {A} str' {Either (Stream Y A) A}

@@ -221,6 +221,7 @@ let unop f ~prec ~round a =
 let exp ~prec ~round = unop Mpfr.exp ~prec ~round
 let sin ~prec ~round = unop Mpfr.sin ~prec ~round
 let cos ~prec ~round = unop Mpfr.cos ~prec ~round
+let erf ~prec ~round = unop Mpfr.erf ~prec ~round
 
 (* Inverse. Special cases not handled by MPFR: $0^{-1}$ and
    $(\pm\infty)^{-1}$. *)

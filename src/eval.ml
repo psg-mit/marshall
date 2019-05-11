@@ -499,14 +499,14 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	| S.False -> Step_Done S.False
 
   let eval_bounded nloop env e =
-    let rec loop k p e =
-		  if k >= nloop then e
+    let rec loop k p a e =
+		  if k >= nloop then (a, e)
 			  else
 	    match step env e p with
-			| Step_Done e' -> e'
-			| Step_Go (a, p') -> loop (k+1) p' (refine k p env e)
+			| Step_Done e' -> (e', e')
+			| Step_Go (a, p') -> loop (k+1) p' a (refine k p env e)
     in
-      loop 1 nloop (hnf env e);;
+      loop 1 nloop S.False (hnf env e);;
 
 
   (** [eval prec env e] evaluates expression [e] in environment [env] by
@@ -529,7 +529,7 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 	    match step env e p with
 			| Step_Done e' -> e'
 			| Step_Go (a, p') ->
-			  (if print_steps then print_endline (S.string_of_expr a));
+			  (if print_steps then print_endline (S.string_of_approx a));
 			  loop (k+1) p' (refine k p env e)
     in
       loop 1 32 (hnf env e)

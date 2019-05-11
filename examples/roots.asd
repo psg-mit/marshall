@@ -5,7 +5,7 @@ let forall_interval (p : real -> bool) : bool =
   mkbool (forall x : [0, 1], is_true (p x)) (exists x : [0, 1], is_false (p x))
   ;;
 
-let forall_interval' (a : real) (b : real) : KShape real =
+let forall_interval' (a : real) (b : real) : (real -> bool) -> bool =
   let range = b - a in
   fun p : real -> bool =>
   forall_interval (fun x : real => p (a + x * range))
@@ -61,6 +61,12 @@ let table (x : real^3) : bool =
 let ball (x : real^3) : bool =
   lta ((x#0 - 2)^2 + (x#1 - 0.7)^2 + x#2^2) 1;;
 
+let table2 (x : real^3) : bool =
+  lt x#2 (-1) && lt (-1) x#1 && lt x#1 1;;
+
+let ball2 (x : real^3) : bool =
+  lt ((x#0 - 2)^2 + (x#1 - 0.7)^2 + x#2^2) 1;;
+
 let lft_root_max_depth (mx : real) (f : real -> bool) : real =
   dedekind_cut (fun q : real =>
   q <b 0 || (q <b mx && forall_interval' 0 q (fun x : real => ~ f x))
@@ -80,3 +86,10 @@ let ray_scene' (disp : real^2) =
   let md = mag / 20 in
   1 - (lft_root_max_depth' (fun t : real => let r = ray_unnorm disp t in table r || ball r) * md);;
 
+let ray_scene2' (disp : real^2) =
+  let mag = sqrt (1 + disp#0^2 + disp#1^2) in
+  let md = mag / 20 in
+  1 - (lft_root_max_depth' (fun t : real => let r = ray_unnorm disp t in table2 r || ball2 r) * md);;
+
+let ray_scene2 (disp : real^2) : real =
+  1 - (lft_root_max_depth 20 (fun t : real => let r = ray disp t in table2 r || ball2 r) / 20);;

@@ -121,12 +121,20 @@ let help_text = "Toplevel commands:
 
   (* should only be called when `e` has type `bool` *)
   let eval_bool env e =
-	let v = E.eval_bounded 10 env e in
+	let v, _ = E.eval_bounded 10 env e in
     color_bool (to_bool_option v);;
 
   let eval_real env e =
-  let v = E.eval false false env e in
-    dyadic_to_int' 256 (to_dyadic v);;
+   dyadic_to_int' 256 (match E.eval false false env e with
+    | E.S.Interval i -> let a = E.I.lower i in let b = E.I.upper i in
+       if D.is_infinity a || D.is_infinity b
+         then b
+         else D.average a b
+    | E.S.Dyadic d -> d
+    | _ -> Message.runtime_error "Didn't return real number answer"
+   );;
+  (* let v = E.eval false false env e in
+    dyadic_to_int' 256 (to_dyadic v);; *)
 
   let plot_shape pixels tenv ctx env e =
     let mypixels = D.of_int ~round:D.down pixels in

@@ -243,6 +243,7 @@ struct
     upper = lazy (f prec dnuor (upper i)) }
 
   let exp = unop_monotone (fun p r -> D.exp ~prec:p ~round:r)
+  let erf = unop_monotone (fun p r -> D.erf ~prec:p ~round:r)
 	let sin_monotone = unop_monotone (fun p r -> D.sin ~prec:p ~round:r)
 	let cos_monotone = unop_monotone (fun p r -> D.cos ~prec:p ~round:r)
 

@@ -86,6 +86,7 @@ struct
     (* For some reason, Newton seems to be broken for sine, at least trying to compute pi that way *)
     | S.Unary (S.Sin, e) -> S.Binary (S.Times, S.Unary (S.Cos, e), diff x e)
     | S.Unary (S.Cos, e) -> S.Binary (S.Times, S.Unary (S.Opposite, S.Unary (S.Sin, e)), diff x e)
+    | S.Unary (S.Erf, e) -> S.Interval I.bottom (* Could be improved *)
     | S.Power (e, 0) -> zero
     | S.Power (e, 1) -> diff x e
     | S.Power (e, k) ->
@@ -163,6 +164,7 @@ struct
 	    | S.Exp -> I.exp ~prec ~round i
 			| S.Sin -> I.sin ~prec ~round i
 			| S.Cos -> I.cos ~prec ~round i
+      | S.Erf -> I.erf ~prec ~round i
 
   (* [Break] is used to shortcircuit evaluation of conjunctions and
      disjunctions. *)

@@ -35,6 +35,7 @@ struct
     "type", TYPE;
     "random", RANDOM;
     "exp", EXP;
+    "erf", ERF;
     "sin", SINE;
     "cos", COSINE;
   ]

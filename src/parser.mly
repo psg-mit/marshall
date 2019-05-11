@@ -58,7 +58,7 @@
 %token LBRACK RBRACK LBRACE RBRACE
 %token TYPE
 %token RANDOM
-%token EXP SINE COSINE
+%token EXP ERF SINE COSINE
 %token USE QUIT TRACE PRECISION HNF HELP PLOT
 %token <string> STRING
 %token EOF
@@ -222,6 +222,8 @@ unary_expr:
     { S.App (S.Var (S.Ident "negb"), e) }
   | EXP e = pow_expr
     { S.Unary (S.Exp, e) }
+  | ERF e = pow_expr
+    { S.Unary (S.Erf, e) }
   | SINE e = pow_expr
     { S.Unary (S.Sin, e) }
   | COSINE e = pow_expr

@@ -49,6 +49,7 @@ sig
   val double : ?prec:int -> round:rounding_mode -> t -> t
   val sin : prec:int -> round:rounding_mode -> t -> t
   val cos : prec:int -> round:rounding_mode -> t -> t
+  val erf : prec:int -> round:rounding_mode -> t -> t
   val average : t -> t -> t
   val of_string : ?prec:int -> round:rounding_mode -> string -> t
   val to_string : t -> string

@@ -53,7 +53,7 @@ let solid_cone : KShape (real^3) =
 
 let cone : KShape (real^3) =
   compact_union {real} unit_interval {real^3} (fun z : real =>
-  compact_union {real^2} (scale_k z unit_circle'') {real^3} (fun xy : real^2 =>
+  compact_union {real^2} (scale_k z unit_circle''') {real^3} (fun xy : real^2 =>
   point {real^3} (xy#0, xy#1, 1 - z)))
   `union3`
   map {real^2} {real^3} (fun xy : real^2 => (xy#0, xy#1, 0)) unit_disk_k;;
@@ -70,3 +70,8 @@ let directed_hausdorff3 (s1 s2 : KShape (real^3)) : real =
 let hausdorff3 (s1 s2 : KShape (real^3)) : real =
   cut q : [0, inf) left is_true   (directed_hausdorff_pred s1 s2 q) \/ is_true  (directed_hausdorff_pred s2 s1 q)
                    right is_false (directed_hausdorff_pred s1 s2 q) /\ is_false (directed_hausdorff_pred s2 s1 q);;
+
+let hausdorff_dist E (d : E -> E -> real) (k1 k2 : KShape E) : real =
+  dedekind_cut (fun q : real => q <b 0
+    || exists_k {E} k1 (fun x : E => forall_k {E} k2 (fun y : E => q <b d x y))
+    || exists_k {E} k2 (fun x : E => forall_k {E} k1 (fun y : E => q <b d x y)));;

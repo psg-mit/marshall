@@ -59,6 +59,7 @@ struct
     | Opposite
     | Inverse
     | Exp
+    | Erf
     | Sin
     | Cos
 
@@ -69,6 +70,7 @@ struct
     | Exp -> "exp"
     | Sin -> "sin"
     | Cos -> "cos"
+    | Erf -> "erf"
 
   (** The abstract syntax of Marshall terms. *)
   type expr =
@@ -132,7 +134,8 @@ struct
 	  | Ty_Int              -> (4, "integer")
     | Ty_Type             -> (4, "type")
     | Ty_Var v            -> (4, string_of_name v)
-	  | Ty_App (e1, e2)        -> (3, to_str 2 e1 ^ " " ^ to_str 3 e2)
+	  | Ty_App (e1, e2)     -> (3, to_str 2 e1 ^ " " ^ to_str 3 e2)
+    | Ty_Tuple [Ty_Sigma; Ty_Sigma] -> (4, "bool")
 	  | Ty_Tuple lst        -> (2, String.concat "*" (List.map (to_str 2) lst))
 	  | Ty_Arrow (mv, ty1, ty2) -> (1, match mv with
         | None -> to_str 1 ty1 ^ " -> " ^ to_str 0 ty2
@@ -157,6 +160,9 @@ struct
 	  | False | Or [] ->     (100, "False")
     | Random (n, r) ->     (100, "random " ^ string_of_int n)
     | TyExpr t ->          (100, "{" ^ string_of_type t ^ "}")
+    | Tuple [True; False] -> (100, "tt")
+    | Tuple [False; True] -> (100, "ff")
+    | Tuple [False; False] -> (100, "_|_")
 	  | Tuple lst ->         (100, "(" ^ (String.concat ", " (List.map (to_str 10) lst)) ^ ")")
 	  | Proj (e, k) ->       (90, to_str 90 e ^ "#" ^ string_of_int k)
 	  | App (e1, e2) ->      (85, to_str 84 e1 ^ " " ^ to_str 85 e2)
@@ -188,4 +194,10 @@ struct
 	if m > n then str else "(" ^ str ^ ")"
     in
       to_str (-1) e
+
+let string_of_approx = function
+	| False | Or [] ->    "?"
+  | Tuple [False; False] -> "?"
+  | e -> string_of_expr e
+
 end
