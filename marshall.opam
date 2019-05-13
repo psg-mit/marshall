@@ -1,0 +1,17 @@
+opam-version: "2.0"
+name: "MarshallB"
+version: "0.1"
+synopsis: "Continuous programming"
+description: """
+Continuous  programming
+"""
+maintainer: "Benjamin Sherman <sherm@mit.edu>"
+authors: "Name <email>"
+license: ""
+homepage: ""
+depends: [ "ocaml" "ocamlfind" "menhir" "num" "mlgmpidl" ]
+build: [
+  ["./configure" "--prefix=%{prefix}%"]
+  [make]
+]
+install: [make "install"]
