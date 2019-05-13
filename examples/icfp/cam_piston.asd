@@ -69,11 +69,11 @@ let neq_R3 (x y : real^3) : prop =
 let collision_safe : prop = forall_ks {real^2} unit_circle (fun angle : real^2 =>
   disjoint {real^3} neq_R3 (cam_piston angle) enclosure_piece);;
 
-let d3 (x y : real^3) : real =
+let d_R3 (x y : real^3) : real =
   sqrt ((x#0 - y#0)^2 + (x#1 - y#1)^2 + (x#2 - y#2)^2);;
 
 let clearance_dist : real = infimum (
-  map {real^2} {real} (fun angle : real^2 => separation_dist {real^3} d3 (cam_piston angle) enclosure_piece)
+  map {real^2} {real} (fun angle : real^2 => separation_dist {real^3} d_R3 (cam_piston angle) enclosure_piece)
                 unit_circle);;
 
 collision_safe;;
