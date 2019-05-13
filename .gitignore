@@ -5,7 +5,6 @@ examples/.vscode
 src/version.ml
 _build
 Makefile
-Makefile.in
 aclocal.m4
 autom4te.cache
 config.log
@@ -14,6 +13,5 @@ marshall
 marshall.native
 marshall.p.native
 marshall.byte
-configure
 
 doc/scan-2014/slides.pdf

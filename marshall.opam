@@ -6,9 +6,7 @@ description: """
 Continuous  programming
 """
 maintainer: "Benjamin Sherman <sherm@mit.edu>"
-authors: "Name <email>"
-license: ""
-homepage: ""
+license: "BSD"
 depends: [ "ocaml" "ocamlfind" "menhir" "num" "mlgmpidl" ]
 build: [
   ["./configure" "--prefix=%{prefix}%"]
