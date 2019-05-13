@@ -5,9 +5,17 @@ synopsis: "Continuous programming"
 description: """
 Continuous  programming
 """
-maintainer: "Benjamin Sherman <sherm@mit.edu>"
+maintainer: "Benjamin Sherman <sherman@csail.mit.edu>"
+bug-reports: "sherman@csail.mit.edu"
 license: "BSD"
-depends: [ "ocaml" "ocamlfind" "menhir" "num" "mlgmpidl" ]
+depends: [ 
+  "ocaml"  {= "4.04.0"}
+  "ocamlfind" 
+  "camlidl" {= "1.05"}
+  "menhir" {= "20181113"}
+  "num" {= "0"}
+  "mlgmpidl" {= "1.2.7"}
+]
 build: [
   ["./configure" "--prefix=%{prefix}%"]
   [make]
