@@ -29,5 +29,5 @@ RUN opam init -y --disable-sandboxing
 RUN opam switch create 4.04.0
 RUN cd shapes && opam install -y . 
  
-RUN echo "Hello world"
+RUN echo "eval $(opam env)" >> /root/.bashrc
 #CMD
