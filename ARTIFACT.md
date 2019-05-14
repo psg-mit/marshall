@@ -13,7 +13,7 @@ This document describes the generic installation procedure for the MarshallB sys
     * [TODO] VM
     * [TODO] Source code
 
-- The VM is already fully configured. If you choose the source, you should install rlwrap and MPFR.
+- [TODO: version numbers for rlwrap, MPFR, and OPAM] The VM is already fully configured. If you choose the source, you should install rlwrap and MPFR, in addition to OPAM.
 
 ### What to evaluate
 
@@ -49,3 +49,7 @@ Running `marshall FILE` should produce as command-line output the output `FILE.e
 
 3b: Change # of pixels.
 3c: Relax the bounds for comparison.
+
+### System requirements
+
+[TODO: check minimum amount of RAM required.]
