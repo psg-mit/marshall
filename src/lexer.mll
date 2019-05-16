@@ -17,9 +17,9 @@ struct
 
   let reserved_words = [
     "cut", CUT;
-    "exists", EXISTS;
+    "Exists", EXISTS;
     "False", FALSE;
-    "forall", FORALL;
+    "Forall", FORALL;
     "int", INTEGRAL;
     "integer", TINT;
     "fun", FUN;

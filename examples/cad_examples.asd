@@ -3,8 +3,8 @@
 
 let minkowski_ball (eps : real) (u : real^2 -> prop) : real^2 -> prop =
   fun x : real^2 =>
-  exists dx : real,
-  exists dy : real,
+  Exists dx : real,
+  Exists dy : real,
   dx^2 + dy^2 < eps /\ u (x#0 + dx, x#1 + dy)
 ;;
 
@@ -34,13 +34,13 @@ let is_in_rect_out = grow_out_eps 0.1 (rectangle 2 2) (1, 1);;
 ! The intersection of the unit disk and unit square, translated
 ! by (5,5) is nonempty
 let disk_int_square_nonempty =
-  nonempty_R2 (translate (5, 5) (intersection {real^2} unit_disk (rectangle 1 1)));;
+  nonempty_R2 (translate_o (5, 5) (intersection_o {real^2} unit_disk (rectangle 1 1)));;
 ! ANS: disk_int_square_nonempty : prop = True
 
 ! The intersection of the unit square at the origin, and
 ! a unit disk centered at (5,5) is empty
 let disk_int_square_empty =
-  overlaps (translate (5, 5) unit_disk) (rectangle 1 1);;
+  overlaps (translate_o (5, 5) unit_disk) (rectangle 1 1);;
 ! ANS: disk_int_square_empty : prop = False
 
 ! The unit disk is nonempty
@@ -53,15 +53,15 @@ let rightmost_extent_2 (shape : (real^2 -> bool) -> bool) : real =
 
 let rightmost_extent_3 (shape : real^2 -> bool) : real =
   cut x
-     left (exists x' : real, x < x' /\ (exists y' : real, is_true (shape (x', y'))))
-     right (forall x' : [-3, 3], x' < x \/ (forall y' : [-3, 3], is_false (shape (x', y'))))
+     left (Exists x' : real, x < x' /\ (Exists y' : real, is_true (shape (x', y'))))
+     right (Forall x' : [-3, 3], x' < x \/ (Forall y' : [-3, 3], is_false (shape (x', y'))))
 ;;
 
 ! this is only upper semicomputable
 let distance_from_point (shape : real^2 -> bool) (x : real^2) : real =
     cut z
       left  (z < 0)
-      right (z > 0 /\ (exists dx : real, exists dy : real, is_true (shape (x#0 + dx, x#1 + dy)) /\ (dx * dx + dy * dy < z)))
+      right (z > 0 /\ (Exists dx : real, Exists dy : real, is_true (shape (x#0 + dx, x#1 + dy)) /\ (dx * dx + dy * dy < z)))
 ;;
 
 
@@ -88,21 +88,21 @@ let vertical_line = fun x : real^2 => x#0 <b 0;;
 
 ! Create a triangle centered at the origin
 let triangle =
-    let top_right = translate (0, 1) (sloped_line -3) in
-    let top_left = translate (0, 1) (complement {real^2} (sloped_line 3)) in
-    let bottom = translate (0 , -(sqrt 3) / 6) (line 0 1) in
-    intersection {real^2} (intersection {real^2} top_right top_left) bottom
+    let top_right = translate_o (0, 1) (sloped_line -3) in
+    let top_left = translate_o (0, 1) (complement {real^2} (sloped_line 3)) in
+    let bottom = translate_o (0 , -(sqrt 3) / 6) (line 0 1) in
+    intersection_o {real^2} (intersection_o {real^2} top_right top_left) bottom
     ;;  ! intersection take more params
 
 ! Create a unit square centered at the origin with lines
 let square_as_intersection =
-  let right_side = translate (1/2, 0) vertical_line in
-  let left_side = translate (-1/2, 0) (complement {real^2} vertical_line) in
-  let top = translate (0, 1/2) (complement {real^2} (line 0 1)) in
-  let bottom = translate (0, -1/2) (line 0 1) in
-  let vertical_strip = intersection {real^2} left_side right_side in
-  let horizontal_strip = intersection {real^2} top bottom in
-  intersection {real^2} horizontal_strip vertical_strip
+  let right_side = translate_o (1/2, 0) vertical_line in
+  let left_side = translate_o (-1/2, 0) (complement {real^2} vertical_line) in
+  let top = translate_o (0, 1/2) (complement {real^2} (line 0 1)) in
+  let bottom = translate_o (0, -1/2) (line 0 1) in
+  let vertical_strip = intersection_o {real^2} left_side right_side in
+  let horizontal_strip = intersection_o {real^2} top bottom in
+  intersection_o {real^2} horizontal_strip vertical_strip
   ;;
 
 let square2 (x : real) (y : real) : bool =

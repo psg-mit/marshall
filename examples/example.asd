@@ -2,13 +2,13 @@
 ! Comments begin with ! and end with end of line.
 ! Definitions and exprssions must be separated by double semicolons
 
-forall x : [0, 1], 0 < (x + 0.1) * (x- 0.9) * (x - 1.1)
+Forall x : [0, 1], 0 < (x + 0.1) * (x- 0.9) * (x - 1.1)
 ;;
-forall x : [0, 1], 0 > (x + 0.1) * (x- 0.1) * (x - 1.1)
+Forall x : [0, 1], 0 > (x + 0.1) * (x- 0.1) * (x - 1.1)
 ;;
-exists x : [0, 1], 0 > (x + 0.1) * (x- 0.9) * (x - 1.1)
+Exists x : [0, 1], 0 > (x + 0.1) * (x- 0.9) * (x - 1.1)
 ;;
-exists x : [0, 1], 0 < (x + 0.1) * (x- 0.1) * (x - 1.1)
+Exists x : [0, 1], 0 < (x + 0.1) * (x- 0.1) * (x - 1.1)
 ;;
 
 let some_arithmetic = 2 * 3^4 + 0.01 - 1.12e-1
@@ -38,19 +38,19 @@ let square_of_sqrt_of_2 = sqrt_of_2^2
 let sqrt_of_sqrt_of_81 = sqrt (sqrt 81)
 ;;
 
-! Cube roots of numbers in [0,1] exists up to precision 0.01
+! Cube roots of numbers in [0,1] Exists up to precision 0.01
 let p1 =
-  forall x : [0,1], exists y : [0,1], x ={0.01}= y^3
+  Forall x : [0,1], Exists y : [0,1], x ={0.01}= y^3
 ;;
 
 ! There is an approximate solution of x^3 + 3 * x + 1 = 0
 let p2 =
-  exists x : real, x^3 + 3 * x + 1 ={0.00001}= 0
+  Exists x : real, x^3 + 3 * x + 1 ={0.00001}= 0
 ;;
 
 ! Testing comparisons
 let p3 =
-  forall x : [0,1], forall y : [0,1], x < y \/ y < x + 0.01
+  Forall x : [0,1], Forall y : [0,1], x < y \/ y < x + 0.01
 ;;
 
 ! Logarithmic map
@@ -73,8 +73,8 @@ let lg64_of_tenth = lg16 0.1 ;;
 let max =
   fun f : real -> real =>
     cut a
-      left  (exists x : [0,1], a < f x)
-      right (forall x : [0,1], f x < a)
+      left  (Exists x : [0,1], a < f x)
+      right (Forall x : [0,1], f x < a)
 ;;
 
 !! The next one is rather slow

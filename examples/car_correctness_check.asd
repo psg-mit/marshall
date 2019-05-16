@@ -66,8 +66,8 @@ let stop_is_safe (x v : real) : prop =
 
 ! Check that both stopping and going is safe.
 let all_is_safe : prop =
-  forall x : [-2, -1],
-  forall v : [0, 11],
+  Forall x : [-2, -1],
+  Forall v : [0, 11],
   ! whenever I may choose to go, I avoid the intersection
   go_is_safe x v
   ! whenever I may choose to go, I avoid the intersection

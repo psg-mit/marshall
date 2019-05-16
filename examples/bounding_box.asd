@@ -1,7 +1,7 @@
 #use "examples/cad.asd";;
 
 let rightmost_extent (shape : (real^2 -> bool) -> bool) : real =
-  dedekind_cut (fun q : real => exists_k {real^2} shape (fun x : real^2 => q <b x#0))
+  dedekind_cut (fun q : real => exists {real^2} shape (fun x : real^2 => q <b x#0))
 ;;
 
 let leftmost_extent (shape : (real^2 -> bool) -> bool) : real =
@@ -9,7 +9,7 @@ let leftmost_extent (shape : (real^2 -> bool) -> bool) : real =
 ;;
 
 let topmost_extent (shape : (real^2 -> bool) -> bool) : real =
-  dedekind_cut (fun q : real => exists_k {real^2} shape (fun x : real^2 => q <b x#1))
+  dedekind_cut (fun q : real => exists {real^2} shape (fun x : real^2 => q <b x#1))
 ;;
 
 let bottommost_extent (shape : (real^2 -> bool) -> bool) : real =

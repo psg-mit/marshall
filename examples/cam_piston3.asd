@@ -7,7 +7,7 @@
 ! ###############################################
 
 let cam2d (angle : real^2) = fun P : real^2 -> bool =>
-    unit_disk_k (fun xy : real^2 =>
+    unit_disk (fun xy : real^2 =>
       let x = 5 * xy#0 in
       let y = 3 * xy#1 in
       let xp = angle#0 * x + angle#1 * y in
@@ -49,18 +49,18 @@ let piston_x (trans : real) = fun P : real -> bool =>
 
 let piston (trans : real) = fun P : real^3 -> bool =>
   piston_x trans (fun x  : real   =>
-    unit_disk_k   (fun yz : real^2 =>
+    unit_disk   (fun yz : real^2 =>
   P (x, yz#0, yz#1)));;
 
 let cam_piston (angle : real^2) = fun P : real^3 -> bool =>
   cam angle P && piston (translation angle) P;;
 
-let collision_safe : prop = forall_ks {real^2} unit_circle (fun angle : real^2 =>
+let collision_safe : prop = forall_s {real^2} unit_circle (fun angle : real^2 =>
   disjoint_R3 (cam_piston angle) enclosure_piece);;
 
 let collision_safe' (angle : real^2) : prop =
-  forall_ks {real} (piston_x (translation angle)) (fun x : real =>
-  forall_ks {real} enclosure_piece_x (fun y : real => x <> y));;
+  forall_s {real} (piston_x (translation angle)) (fun x : real =>
+  forall_s {real} enclosure_piece_x (fun y : real => x <> y));;
 
 ! collision_safe;;
 

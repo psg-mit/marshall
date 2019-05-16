@@ -56,21 +56,21 @@ type OShape E = E -> bool;;
 ! return whether the predicate is true for all points in the shape,
 ! or false for some point the shape.
 type KShape E = (E -> bool) -> bool;;
-let forall_k E (k : KShape E) (p : E -> bool) : bool = k p;;
-let exists_k E (k : KShape E) (p : E -> bool) : bool =
+let forall E (k : KShape E) (p : E -> bool) : bool = k p;;
+let exists E (k : KShape E) (p : E -> bool) : bool =
   ~ (k (fun x : E => ~ (p x)));;
 
 ! [0, 1]
 let unit_interval : KShape real =
   fun p : real -> bool =>
-  mkbool (forall x : [0, 1], is_true (p x))
-         (exists x : [0, 1], is_false (p x));;
+  mkbool (Forall x : [0, 1], is_true (p x))
+         (Exists x : [0, 1], is_false (p x));;
 
 ! [-1, 1]
 let interval_sym : KShape real =
   fun p : real -> bool =>
-  mkbool (forall x : [-1, 1], is_true (p x))
-         (exists x : [-1, 1], is_false (p x));;
+  mkbool (Forall x : [-1, 1], is_true (p x))
+         (Exists x : [-1, 1], is_false (p x));;
 
 ! [-1, 1]^2
 let square_sym : KShape (real^2) =
@@ -92,17 +92,17 @@ let d2 (x y : real^2) : real = (y[0] - x[0])^2 + (y[1] - x[1])^2;;
 
 let hausdorff_dist (k1 k2 : KShape (real^2)) : real =
   dedekind_cut (fun q : real => q <b 0
-   || exists_k {real^2} k1 (fun x : real^2 =>
-        forall_k {real^2} k2 (fun y : real^2 => q^2 <b d2 x y))
-   || exists_k {real^2} k2 (fun x : real^2 =>
-        forall_k {real^2} k1 (fun y : real^2 => q^2 <b d2 x y))
+   || exists {real^2} k1 (fun x : real^2 =>
+        forall {real^2} k2 (fun y : real^2 => q^2 <b d2 x y))
+   || exists {real^2} k2 (fun x : real^2 =>
+        forall {real^2} k1 (fun y : real^2 => q^2 <b d2 x y))
    );;
 
 let ex4 = hausdorff_dist square_sym unit_disk;;
 let ex4_ground_truth = sqrt 2 - 1;;
 
 let infimum (k : KShape real) : real =
-  dedekind_cut (fun q : real => forall_k {real} k (fun x : real => q <b x));;
+  dedekind_cut (fun q : real => forall {real} k (fun x : real => q <b x));;
 
 
 let touches = exists_k;;
@@ -144,13 +144,13 @@ let rSampleThen A (f : real -> Random A) : Random A =
   fun X : type => fun ret : A -> X => fun sampleThen : (real -> X) -> X =>
   sampleThen (fun x : real => f x {X} ret sampleThen);;
 
-let rbind A B (x : Random A) (f : A -> Random B) : Random B =  
+let rbind A B (x : Random A) (f : A -> Random B) : Random B =
   x {Random B} f (fun k : real -> Random B => rSampleThen {B} k);;
 
 let rmap A B (f : A -> B) (x : Random A) : Random B =
   x {Random B} (fun x : A => rret {B} (f x))
                (fun k : real -> Random B => rSampleThen {B} k);;
-   
+
 type Sampler A = integer -> integer * A;;
 
 let sdirac A (x : A) : Sampler A =
@@ -165,7 +165,7 @@ let sbind A B (x : Sampler A) (f : A -> Sampler B)
     let n' = res[0] in
     let v = res[1] in
     f v n';;
-    
+
 let sample A (x : Random A) : Sampler A =
   x {Sampler A} (sdirac {A}) (sSampleThen {A});;
 

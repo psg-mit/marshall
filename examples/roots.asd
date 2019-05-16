@@ -2,7 +2,7 @@
 #use "examples/sqrt.asd";;
 
 let forall_interval (p : real -> bool) : bool =
-  mkbool (forall x : [0, 1], is_true (p x)) (exists x : [0, 1], is_false (p x))
+  mkbool (Forall x : [0, 1], is_true (p x)) (Exists x : [0, 1], is_false (p x))
   ;;
 
 let forall_interval' (a : real) (b : real) : (real -> bool) -> bool =
@@ -74,8 +74,8 @@ let lft_root_max_depth (mx : real) (f : real -> bool) : real =
 
 let lft_root_max_depth' (f : real -> bool) : real =
   cut x : [0, 50]
-    left forall q : [0, 1], is_false (f (q * x))
-    right exists q : [0, 1], is_true (f (q * x))
+    left Forall q : [0, 1], is_false (f (q * x))
+    right Exists q : [0, 1], is_true (f (q * x))
     ;;
 
 let ray_scene (disp : real^2) : real =

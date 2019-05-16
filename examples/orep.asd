@@ -13,7 +13,7 @@ let line (nx ny : real) : OShape (real^2) =
       fun x : real^2 =>
       0 <b (nx * x#0 + ny * x#1);;
 
-let translate (trans : real^2) (shape : OShape (real^2)) =
+let translate_o (trans : real^2) (shape : OShape (real^2)) =
   fun x : real^2 =>
     shape (x#0 - trans#0, x#1 - trans#1)
 ;;
@@ -27,24 +27,24 @@ let rectangle (width height : real) =
 
 ! scaling centered at the origin!
 ! factor should be a *positive* real number
-let scale (factor : real) (shape : OShape (real^2)) =
+let scale_o (factor : real) (shape : OShape (real^2)) =
   fun x : real^2 =>
   shape (x#0 / factor, x#1 / factor)
 ;;
 
-let scale_x_y (cx : real) (cy : real)
+let scale_x_y_o (cx : real) (cy : real)
     (shape : OShape (real^2)) =
     fun x : real^2 => shape (x#0 / cx, x#1 / cy);;
 
 ! unit disk centered at origin
-let unit_disk = fun x : real^2 => x#0^2 + x#1^2 <b 1;;
+let unit_disk_o = fun x : real^2 => x#0^2 + x#1^2 <b 1;;
 
 ! Compute the intersection of two shapes.
-let intersection E (o1 o2 : OShape E) : OShape E =
+let intersection_o E (o1 o2 : OShape E) : OShape E =
   fun x : E => o1 x && o2 x;;
 
 ! Compute the union of two shapes.
-let union E (o1 o2 : OShape E) : OShape E =
+let union_o E (o1 o2 : OShape E) : OShape E =
   fun x : E => o1 x || o2 x ;;
 
 ! The set-theoretic complement of a shape. Not sure where
@@ -59,11 +59,11 @@ let contramap E F (f : F -> E) (o : E -> bool) : F -> bool =
 let nonempty E (exists_E : (E -> prop) -> prop) (s : OShape E) : prop =
   exists_E (fun x : E => is_true (s x));;
 
-let exists_R2 (P : real^2 -> prop) : prop = exists x : real, exists y : real, P (x, y);;
+let exists_R2 (P : real^2 -> prop) : prop = Exists x : real, Exists y : real, P (x, y);;
 
 let nonempty_R2 : OShape (real^2) -> prop = nonempty {real^2} exists_R2;;
 
 ! Do two shapes overlap?
 let overlaps (shape_1 shape_2 : OShape (real^2)) : prop =
-  nonempty_R2 (intersection {real^2} shape_1 shape_2)
+  nonempty_R2 (intersection_o {real^2} shape_1 shape_2)
 ;;

@@ -13,7 +13,7 @@ let ellipse (a b : real) =
   fun x : real^2 => x#0^2 / a^2  + x#1^2 / b^2  <b 1;;
 
 let ellipse_k (a b : real) =
-  intersect_ok {real^2} (ellipse a b) (scale_x_y_k a b unit_square_k);;
+  intersect_ok {real^2} (ellipse a b) (scale_x_y a b unit_square);;
 
 let a = 0.75;;
 let b = 0.5;;
@@ -44,7 +44,7 @@ let rotate_ok (angle : real^2) (shape : ((real^2 -> bool) -> bool) * (real^2 -> 
   (rotate_k angle shape#0, rotate angle shape#1);;
 
 let axis_extent (n : real^2) (kshape : (real^2 -> bool) -> bool) : real =
-    dedekind_cut (fun q : real => exists_k {real^2} kshape (fun x : real^2 =>
+    dedekind_cut (fun q : real => exists {real^2} kshape (fun x : real^2 =>
       q <b n#0 * x#0 + n#1 * x#1
     ));;
 
@@ -53,13 +53,13 @@ let translate_to_touch_axis
     (reference shape : (real^2 -> bool) -> bool)
     : (real^2 -> bool) -> bool =
     let dist = axis_extent (-n#0, -n#1) shape + axis_extent n reference in
-    translate_k (dist * n#0, dist * n#1) shape
+    translate (dist * n#0, dist * n#1) shape
     ;;
 
 
 ! Set up the cam and piston
 let cam = ellipse_k a b;;
-let piston = translate_k (1.25, 0) (scale_x_y_k 0.5 0.5 unit_disk_k);;
+let piston = translate (1.25, 0) (scale_x_y 0.5 0.5 unit_disk);;
 
 let unit_circle = fun P : real^2 -> bool =>
   unit_interval (fun t : real => let theta = twopi * t in P (cos theta, sin theta));;
@@ -78,21 +78,21 @@ let amount_to_translate_piston (angle : real^2) : real^2 =
 let square_quantified = scale_x_y_ok 0.5 0.5 unit_square;;
 
 let check_conditions : prop =
-  let shifted_square = translate_k (3, 0) square_quantified#0 in
-  forall_ks {real^2} unit_circle (fun angle : real^2 =>
+  let shifted_square = translate (3, 0) square_quantified#0 in
+  forall_s {real^2} unit_circle (fun angle : real^2 =>
 
     ! Rotate the cam
     let curr_cam = rotate_k angle cam in
 
-    let curr_piston = translate_k (amount_to_translate_piston angle) piston in
+    let curr_piston = translate (amount_to_translate_piston angle) piston in
 
-    let cam_piston = union_k curr_cam curr_piston in
+    let cam_piston = union curr_cam curr_piston in
     disjoint_R2 cam_piston shifted_square
   )
   ;;
 
 let rectangle_k (width height : real) =
-  scale_x_y_k (width / 2) (height / 2) unit_square_k;;
+  scale_x_y (width / 2) (height / 2) unit_square;;
 
 let ellipse_width = 5;;
 let ellipse_height = 3;;
@@ -106,23 +106,23 @@ let translation_amount' (angle : real^2) : real =
 let cam_piston (angle : real^2) : (real^2 -> bool) -> bool =
   let cam = rotate_k angle (ellipse_k ellipse_width ellipse_height) in
   ! put piston just to the right of the cam
-  let piston = translate_k (translation_amount' angle, 0) (rectangle_k rectangle_width 1) in
+  let piston = translate (translation_amount' angle, 0) (rectangle_k rectangle_width 1) in
   !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
-  union_k cam piston;;
+  union cam piston;;
 
 let cam_piston_o (angle : real^2) : real^2 -> bool =
   let cam = rotate angle (ellipse ellipse_width ellipse_height) in
   ! put piston just to the right of the cam
-  let piston = translate (translation_amount' angle, 0) (rectangle rectangle_width 1) in
+  let piston = translate_o (translation_amount' angle, 0) (rectangle rectangle_width 1) in
   !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
-  union {real^2} cam piston;;
+  union_o {real^2} cam piston;;
 
-let enclosure_piece : (real^2 -> bool) -> bool = translate_k (10, 0) (rectangle_k 5 2);;
+let enclosure_piece : (real^2 -> bool) -> bool = translate (10, 0) (rectangle_k 5 2);;
 
-let collision_safe : prop = forall_ks {real^2} unit_circle (fun angle : real^2 =>
+let collision_safe : prop = forall_s {real^2} unit_circle (fun angle : real^2 =>
   disjoint_R2 (cam_piston angle) enclosure_piece);;
 
 let cam_piston_separation_dist : real = infimum
   (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle);;
 
-! #plot 32 (scale (1/8) (cam_piston_o (1, 0)));;
+! #plot 32 (scale_o (1/8) (cam_piston_o (1, 0)));;

@@ -33,8 +33,8 @@ let is_0_eps_bool =
 let exists_bool_interval =
   fun pred : real -> bool =>
   mkboolp
-     (exists x : [0,1], is_true (pred x))
-     (forall x : [0,1], is_false (pred x))
+     (Exists x : [0,1], is_true (pred x))
+     (Forall x : [0,1], is_false (pred x))
 ;;
 
 ! Do we have any approximate roots of our function `f` on the

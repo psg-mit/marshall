@@ -10,14 +10,14 @@ let unit_circle' = fun P : real^2 -> bool =>
 
 let cam (angle : real^2) = fun P : real^3 -> bool =>
   unit_interval (fun z : real =>
-  unit_disk_k (fun xy : real^2 =>
+  unit_disk (fun xy : real^2 =>
       let x = angle#0 * (2 * (xy#0 - 0.5)) + angle#1 * xy#1 in
       let y = - angle#1 * (2 * (xy#0 - 0.5)) + angle#0 * xy#1 in
   P (x, y, z)));;
 
 let piston (angle : real^2) = fun P : real^3 -> bool =>
   unit_interval (fun x  : real   =>
-  unit_disk_k   (fun yz : real^2 =>
+  unit_disk   (fun yz : real^2 =>
   P (x + angle#0, yz#0, yz#1)));;
 
 let cam_piston (angle : real^2) = fun P : real^3 -> bool =>
@@ -34,7 +34,7 @@ let enclosure_piece = fun P : real^3 -> bool =>
    unit_interval (fun z : real =>
     P (3 + x, y * 10 - 5, z * 10 - 5))));;
 
-let collision_safe : prop = forall_ks {real^2} unit_circle (fun angle : real^2 =>
+let collision_safe : prop = forall_s {real^2} unit_circle (fun angle : real^2 =>
   disjoint_R3 (cam_piston angle) enclosure_piece);;
 
 let separation3 (shape1 shape2 : (real^3 -> bool) -> bool) : real =

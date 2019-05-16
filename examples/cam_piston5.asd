@@ -7,7 +7,7 @@
 ! ###############################################
 
 let cam_xy (angle : real) = fun P : real^2 -> bool =>
-    unit_disk_k (fun xy : real^2 =>
+    unit_disk (fun xy : real^2 =>
       let x = 5 * xy#0 in
       let y = 5 * xy#1 in
       let c = cos angle in
@@ -28,7 +28,7 @@ let rightmost2d (k : (real^2 -> bool) -> bool) =
 
 let piston (angle : real) = fun P : real^3 -> bool =>
   unit_interval (fun x  : real   =>
-    unit_disk_k   (fun yz : real^2 =>
+    unit_disk   (fun yz : real^2 =>
   P (20*x + (rightmost2d (cam_xy angle)), yz#0, yz#1)));; ! 2.5*(cos (angle)) + 5
 
 let cam_piston (angle : real) = fun P : real^3 -> bool =>
@@ -47,7 +47,7 @@ let enclosure_piece = fun P : real^3 -> bool =>
 let unit_circle = fun P : real^2 -> bool =>
   unit_interval (fun t : real => let theta = twopi * t in P (cos theta, sin theta));;
 
-let collision_safe : prop = forall x : [0,1],
+let collision_safe : prop = Forall x : [0,1],
     let angle = twopi * x in
     disjoint_R3 (cam_piston angle) enclosure_piece;;
 

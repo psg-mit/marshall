@@ -3,8 +3,8 @@ let ff = mkbool False True;;
 let eps = 0.01;;
 
 let exists_bool_interval = fun pred : real -> bool =>
-     (exists x : [0,1], is_true  (pred x)) ~> tt
-  || (forall x : [0,1], is_false (pred x)) ~> ff ;;
+     (Exists x : [0,1], is_true  (pred x)) ~> tt
+  || (Forall x : [0,1], is_false (pred x)) ~> ff ;;
 
 let is_0_eps = fun x : real =>
         x < 0 \/ x > 0   ~> ff

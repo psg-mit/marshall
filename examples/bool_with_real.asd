@@ -54,8 +54,8 @@ let not_0_eps =
 ! predicate over the unit interval.
 let forall_bool_interval =
   fun pred : real -> real =>
-     (forall x : [0,1], is_true' (pred x)) ~> tt
-  || (exists x : [0,1], is_false' (pred x)) ~> ff
+     (Forall x : [0,1], is_true' (pred x)) ~> tt
+  || (Exists x : [0,1], is_false' (pred x)) ~> ff
 ;;
 
 ! Do we have any approximate roots of our function `f` on the
@@ -70,8 +70,8 @@ let roots_interval' =
 let roots_interval =
   fun eps : real =>
   fun f : real -> real =>
-     ((forall x : [0,1], not_0 (f x)) ~> ff)
-  || ((exists x : [0,1], is_0_eps eps (f x)) ~> tt)
+     ((Forall x : [0,1], not_0 (f x)) ~> ff)
+  || ((Exists x : [0,1], is_0_eps eps (f x)) ~> tt)
 ;;
 
 let func_with_roots =
