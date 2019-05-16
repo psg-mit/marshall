@@ -296,9 +296,9 @@ let hnf ?(free=false) env e = join1 (hnf' ~free env e)
 		    S.Dyadic a''
 		  | `greater ->
 				let l = I.make a'' b'' in
-			  print_endline (I.to_string l);
+			  (* print_endline (I.to_string l);
 				print_endline (R.to_string r2 ^ " || " ^ R.to_string s2 );
-			  print_endline "greater";
+			  print_endline "greater"; *)
 				S.Interval l
 		      (* We have a backwards cut. Do nothing. Someone should think
 			 whether this is ok. It would be nice if cuts could be
