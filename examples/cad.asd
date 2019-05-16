@@ -149,7 +149,7 @@ let intersect_k_implies_equals E
 
 ! Both O- and K-representation
 
-let unit_square_ok = (unit_square, rectangle 2 2);;
+let unit_square_ok = (unit_square, rectangle_o 2 2);;
 
 ! unit disk centered at origin
 let unit_disk_ok =
@@ -181,9 +181,9 @@ let point_R2 (x : real) (y : real) =
   , fun x_test : real^2 => peq x x_test#0 && peq y x_test#1)
   ;;
 
-let empty_shape E =
-   (empty_k {E}
-   , fun x : E => ff);;
+let empty_ok E =
+   (empty {E}
+   , empty_o {E});;
 
 
 let scale_x_y_ok (cx : real) (cy : real)

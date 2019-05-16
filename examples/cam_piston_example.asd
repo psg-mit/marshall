@@ -91,7 +91,7 @@ let check_conditions : prop =
   )
   ;;
 
-let rectangle_k (width height : real) =
+let rectangle (width height : real) =
   scale_x_y (width / 2) (height / 2) unit_square;;
 
 let ellipse_width = 5;;
@@ -106,18 +106,18 @@ let translation_amount' (angle : real^2) : real =
 let cam_piston (angle : real^2) : (real^2 -> bool) -> bool =
   let cam = rotate_k angle (ellipse_k ellipse_width ellipse_height) in
   ! put piston just to the right of the cam
-  let piston = translate (translation_amount' angle, 0) (rectangle_k rectangle_width 1) in
-  !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
+  let piston = translate (translation_amount' angle, 0) (rectangle rectangle_width 1) in
+  !let piston = translate_to_touch_axis (1, 0) cam (rectangle rectangle_width 1) in
   union cam piston;;
 
 let cam_piston_o (angle : real^2) : real^2 -> bool =
   let cam = rotate angle (ellipse ellipse_width ellipse_height) in
   ! put piston just to the right of the cam
-  let piston = translate_o (translation_amount' angle, 0) (rectangle rectangle_width 1) in
-  !let piston = translate_to_touch_axis (1, 0) cam (rectangle_k rectangle_width 1) in
+  let piston = translate_o (translation_amount' angle, 0) (rectangle_o rectangle_width 1) in
+  !let piston = translate_to_touch_axis (1, 0) cam (rectangle rectangle_width 1) in
   union_o {real^2} cam piston;;
 
-let enclosure_piece : (real^2 -> bool) -> bool = translate (10, 0) (rectangle_k 5 2);;
+let enclosure_piece : (real^2 -> bool) -> bool = translate (10, 0) (rectangle 5 2);;
 
 let collision_safe : prop = forall_s {real^2} unit_circle (fun angle : real^2 =>
   disjoint_R2 (cam_piston angle) enclosure_piece);;

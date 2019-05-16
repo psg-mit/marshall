@@ -22,25 +22,25 @@ let grow_out_eps (eps : real) (shape : real^2 -> bool) =
 
 ! Try a point on the border of the rectangle, having
 ! thickened the "in" part by a radius of 0.1.
-let is_in_rect_in = grow_in_eps 0.1 (rectangle 2 2) (1, 1);;
+let is_in_rect_in = grow_in_eps 0.1 (rectangle_o 2 2) (1, 1);;
 ! ANS: is_in_rect_in : bool = mkbool True False
 
 ! Try a point on the border of the rectangle, having
 ! thickened the "out" part by a radius of 0.1.
-let is_in_rect_out = grow_out_eps 0.1 (rectangle 2 2) (1, 1);;
+let is_in_rect_out = grow_out_eps 0.1 (rectangle_o 2 2) (1, 1);;
 ! ANS: is_in_rect_out : real = mkbool False True
 
 
 ! The intersection of the unit disk and unit square, translated
 ! by (5,5) is nonempty
 let disk_int_square_nonempty =
-  nonempty_R2 (translate_o (5, 5) (intersection_o {real^2} unit_disk (rectangle 1 1)));;
+  nonempty_R2 (translate_o (5, 5) (intersection_o {real^2} unit_disk (rectangle_o 1 1)));;
 ! ANS: disk_int_square_nonempty : prop = True
 
 ! The intersection of the unit square at the origin, and
 ! a unit disk centered at (5,5) is empty
 let disk_int_square_empty =
-  overlaps (translate_o (5, 5) unit_disk) (rectangle 1 1);;
+  overlaps (translate_o (5, 5) unit_disk) (rectangle_o 1 1);;
 ! ANS: disk_int_square_empty : prop = False
 
 ! The unit disk is nonempty
@@ -77,7 +77,7 @@ let restrictb (U : prop) (x : bool) : bool =
 
 ! (3/4, 0) is in the unit disk but not the unit square
 let test_point =
-  is_true (unit_disk (3/4, 0)) /\ is_false (rectangle 1 1 (3/4, 0));;
+  is_true (unit_disk (3/4, 0)) /\ is_false (rectangle_o 1 1 (3/4, 0));;
 ! ANS: test_point : prop = True
 
 ! Sloped line
@@ -89,7 +89,7 @@ let vertical_line = fun x : real^2 => x#0 <b 0;;
 ! Create a triangle centered at the origin
 let triangle =
     let top_right = translate_o (0, 1) (sloped_line -3) in
-    let top_left = translate_o (0, 1) (complement {real^2} (sloped_line 3)) in
+    let top_left = translate_o (0, 1) (complement_o {real^2} (sloped_line 3)) in
     let bottom = translate_o (0 , -(sqrt 3) / 6) (line 0 1) in
     intersection_o {real^2} (intersection_o {real^2} top_right top_left) bottom
     ;;  ! intersection take more params
@@ -97,8 +97,8 @@ let triangle =
 ! Create a unit square centered at the origin with lines
 let square_as_intersection =
   let right_side = translate_o (1/2, 0) vertical_line in
-  let left_side = translate_o (-1/2, 0) (complement {real^2} vertical_line) in
-  let top = translate_o (0, 1/2) (complement {real^2} (line 0 1)) in
+  let left_side = translate_o (-1/2, 0) (complement_o {real^2} vertical_line) in
+  let top = translate_o (0, 1/2) (complement_o {real^2} (line 0 1)) in
   let bottom = translate_o (0, -1/2) (line 0 1) in
   let vertical_strip = intersection_o {real^2} left_side right_side in
   let horizontal_strip = intersection_o {real^2} top bottom in
