@@ -1,5 +1,7 @@
+#!/bin/sh
 date
-time ./marshall examples/icfp/mesh_lt.asd
-date
-time ./marshall examples/icfp/mesh_gt.asd
-date
+for FILE in cam_piston.asd mesh_lt.asd mesh_gt.asd plot2.asd
+do
+  /usr/bin/time -l marshall $FILE > $FILE.expected_out
+  date
+done

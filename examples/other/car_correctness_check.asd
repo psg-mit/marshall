@@ -76,5 +76,5 @@ let all_is_safe : prop =
   /\ (a_min < a_stop x v \/ a_go x v < a_max);;
 
 ! used to plot the car-crossing system in it's initial and final states.
-! #plot 40 (quantified_shape_to_bool system);;
-! #plot 40 (quantified_shape_to_bool updated_system);;
+! #plot "picture.bmp" 40 (quantified_shape_to_bool system);;
+! #plot "picture.bmp" 40 (quantified_shape_to_bool updated_system);;

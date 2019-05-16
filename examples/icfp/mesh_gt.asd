@@ -1,4 +1,4 @@
-#use "../mesh.asd";;
+#use "./mesh.asd";;
 
 ! hausdorff_dist
 !  {real^3}

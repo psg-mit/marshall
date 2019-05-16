@@ -125,4 +125,4 @@ let collision_safe : prop = forall_s {real^2} unit_circle (fun angle : real^2 =>
 let cam_piston_separation_dist : real = infimum
   (map {real^2} {real} (fun angle : real^2 => separation (cam_piston angle) enclosure_piece) unit_circle);;
 
-! #plot 32 (scale_o (1/8) (cam_piston_o (1, 0)));;
+! #plot "picture.bmp" 32 (scale_o (1/8) (cam_piston_o (1, 0)));;

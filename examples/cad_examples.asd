@@ -1,4 +1,4 @@
-#use "./cad.asd";;
+#use "./stoneworks/cad.asd";;
 #use "./sqrt.asd";;
 
 let minkowski_ball (eps : real) (u : real^2 -> prop) : real^2 -> prop =

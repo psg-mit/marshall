@@ -91,24 +91,34 @@ indicator : bool -> real
 volume : KShape real*OShape real -> real
 compact_union_o : (E : type) -> KShape E -> (F : type) -> (E -> OShape F) -> OShape F
 compact_intersection_o : (E : type) -> KShape E -> (F : type) -> (E -> OShape F) -> OShape F
-line_segment : real -> KShape real
-rotate_xyp : real*real -> real*real*real -> real*real*real
-rotate_xy : real*real -> KShape (real*real*real) -> KShape (real*real*real)
-box : real*real*real -> KShape (real*real*real)
-translate3 : real*real*real -> KShape (real*real*real) -> KShape (real*real*real)
-piston : KShape (real*real*real)
-extrude : real -> KShape (real*real) -> KShape (real*real*real)
-scale2 : real -> KShape (real*real) -> KShape (real*real)
-cam : real*real -> KShape (real*real*real)
-translated_piston : real*real -> KShape (real*real*real)
-union : (E : type) -> ((E -> bool) -> bool) -> ((E -> bool) -> bool) -> (E -> bool) -> bool
-cam_piston : real*real -> KShape (real*real*real)
-enclosure_piece : KShape (real*real*real)
-unit_circle : (real*real -> bool) -> bool
-neq_R3 : real*real*real -> real*real*real -> prop
-collision_safe : prop
-d_R3 : real*real*real -> real*real*real -> real
-clearance_dist : real
+tt : bool
+ff : bool
+indicator : bool -> real
+dedekind_cut : (real -> bool) -> real
+sqrt : real -> real
+log : real -> real
+pi2 : real
+pi : real
+twopi : real
+cvx3 : real -> real*real*real -> real*real*real -> real*real*real
+triangle_k : real*real*real -> real*real*real -> real*real*real -> KShape (real*real*real)
+union3 : KShape (real*real*real) -> KShape (real*real*real) -> (real*real*real -> bool) -> bool
+cone_mesh : KShape (real*real*real)
+sqrt : real -> real
+unit_circle' : (real*real -> bool) -> bool
+unit_circle'' : (real*real -> bool) -> bool
+unit_circle''' : (real*real -> bool) -> bool
+solid_cone : KShape (real*real*real)
+cone : KShape (real*real*real)
+directed_hausdorff_pred : ((real*real*real -> bool) -> bool) -> ((real*real*real -> bool) -> bool) -> real -> bool
+directed_hausdorff3 : KShape (real*real*real) -> KShape (real*real*real) -> real
+hausdorff3 : KShape (real*real*real) -> KShape (real*real*real) -> real
+hausdorff_dist : (E : type) -> (E -> E -> real) -> KShape E -> KShape E -> real
+?
+?
+?
+?
+?
 ?
 ?
 - : prop = True

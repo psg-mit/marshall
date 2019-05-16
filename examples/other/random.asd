@@ -1,4 +1,4 @@
-#use "./stdlib.asd";;
+#use "../stdlib.asd";;
 
 type Random A = (X : type) -> (A -> X) -> ((real -> X) -> X) -> X;;
 ! Constructors:
