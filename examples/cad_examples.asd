@@ -1,5 +1,5 @@
-#use "examples/cad.asd";;
-#use "examples/sqrt.asd";;
+#use "./cad.asd";;
+#use "./sqrt.asd";;
 
 let minkowski_ball (eps : real) (u : real^2 -> prop) : real^2 -> prop =
   fun x : real^2 =>

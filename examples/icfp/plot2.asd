@@ -1,4 +1,4 @@
-#use "examples/sqrt.asd";;
+#use "../sqrt.asd";;
 
 let ray_unnorm (disp : real^2) =
   fun t : real =>

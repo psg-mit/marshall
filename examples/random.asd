@@ -1,4 +1,4 @@
-#use "examples/stdlib.asd";;
+#use "./stdlib.asd";;
 
 type Random A = (X : type) -> (A -> X) -> ((real -> X) -> X) -> X;;
 ! Constructors:
@@ -14,13 +14,13 @@ let rSampleThen A (f : real -> Random A) : Random A =
   fun X : type => fun ret : A -> X => fun sampleThen : (real -> X) -> X =>
   sampleThen (fun x : real => f x {X} ret sampleThen);;
 
-let rbind A B (x : Random A) (f : A -> Random B) : Random B =  
+let rbind A B (x : Random A) (f : A -> Random B) : Random B =
   x {Random B} f (fun k : real -> Random B => rSampleThen {B} k);;
 
 let rmap A B (f : A -> B) (x : Random A) : Random B =
   x {Random B} (fun x : A => rret {B} (f x))
                (fun k : real -> Random B => rSampleThen {B} k);;
-   
+
 type Sampler A = integer -> integer * A;;
 
 let sdirac A (x : A) : Sampler A =
@@ -35,7 +35,7 @@ let sbind A B (x : Sampler A) (f : A -> Sampler B)
     let n' = res[0] in
     let v = res[1] in
     f v n';;
-    
+
 let sample A (x : Random A) : Sampler A =
   x {Sampler A} (sdirac {A}) (sSampleThen {A});;
 

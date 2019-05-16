@@ -1,4 +1,4 @@
-#use "examples/cad.asd";;
+#use "./cad.asd";;
 
 let rightmost_extent (shape : (real^2 -> bool) -> bool) : real =
   dedekind_cut (fun q : real => exists {real^2} shape (fun x : real^2 => q <b x#0))

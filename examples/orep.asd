@@ -1,4 +1,4 @@
-#use "examples/bool.asd";;
+#use "./bool.asd";;
 
 type OShape E = E -> bool;;
 

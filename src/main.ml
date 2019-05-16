@@ -42,7 +42,7 @@ let help_text = "Toplevel commands:
      " Specify the prelude.asd file");
     ("--no-prelude",
      Arg.Clear prelude,
-     " Do not load pervasives.eff");
+     " Do not load prelude.asd");
     ("--wrapper",
      Arg.String (fun str -> wrapper := Some [str]),
      "<program> Specify a command-line wrapper to be used (such as rlwrap or ledit)");
@@ -196,7 +196,11 @@ let help_text = "Toplevel commands:
 
   and use_file env (filename, interactive) =
     let cmds = L.read_file (parse P.file) filename in
-      List.fold_left (exec_cmd interactive) env cmds
+      let cwd = Unix.getcwd () in
+      Unix.chdir (Filename.dirname filename);
+      let env' = List.fold_left (exec_cmd interactive) env cmds in
+      Unix.chdir cwd;
+      env'
 
 
   (* Interactive toplevel *)

@@ -1,6 +1,6 @@
-!#use "examples/cam_piston4.asd";;
-#use "examples/cad.asd";;
-#use "examples/stdlib.asd";;
+!#use "./cam_piston4.asd";;
+#use "./cad.asd";;
+#use "./stdlib.asd";;
 
 ! ###############################################
 ! # Set up cam-piston and enclosure #############

@@ -1,5 +1,5 @@
-#use "examples/cad.asd";;
-#use "examples/stdlib.asd";;
+#use "./cad.asd";;
+#use "./stdlib.asd";;
 
 let cvx3 (c : real) (x y : real^3) : real^3
   = (x#0 + c * (y#0 - x#0)

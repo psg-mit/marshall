@@ -1,4 +1,4 @@
-#use "examples/cad.asd";;
+#use "./cad.asd";;
 
 ! --------- Make the car ---------
 

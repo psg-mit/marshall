@@ -1,5 +1,5 @@
-#use "examples/random.asd";;
-#use "examples/system_f.asd";;
+#use "./random.asd";;
+#use "./system_f.asd";;
 
 type WR A = real -> Random (real * A);;
 

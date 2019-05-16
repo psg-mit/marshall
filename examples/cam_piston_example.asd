@@ -1,5 +1,5 @@
-#use "examples/cad.asd";;
-#use "examples/stdlib.asd";;
+#use "./cad.asd";;
+#use "./stdlib.asd";;
 
 ! Create a cam and piston system:
 ! https://en.wikipedia.org/wiki/Camshaft

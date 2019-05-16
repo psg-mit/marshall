@@ -1,4 +1,4 @@
-#use "examples/orep.asd";;
+#use "./orep.asd";;
 
 ! K-representation
 

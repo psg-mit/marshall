@@ -1,5 +1,5 @@
-#use "examples/cad.asd";;
-#use "examples/stdlib.asd";;
+#use "./cad.asd";;
+#use "./stdlib.asd";;
 
 let unit_circle = fun P : real^2 -> bool =>
   unit_interval (fun t : real => let theta = twopi * t in P (cos theta, sin theta));;

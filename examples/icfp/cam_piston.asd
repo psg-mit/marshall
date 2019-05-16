@@ -1,4 +1,4 @@
-#use "examples/cad.asd";;
+#use "../cad.asd";;
 
 let line_segment (w : real) : KShape real =
   fun P : real -> bool =>

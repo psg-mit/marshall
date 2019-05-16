@@ -1,4 +1,4 @@
-#use "examples/types/boolean.asd";;
+#use "./types/boolean.asd";;
 
 type nat = (A : type) -> A -> (A -> A) -> A;;
 

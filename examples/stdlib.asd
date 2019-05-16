@@ -1,4 +1,4 @@
-#use "examples/bool.asd";;
+#use "./bool.asd";;
 
 let log (x : real) : real = dedekind_cut (fun q : real => exp q <b x);;
 let pi2 : real = 3 * (cut q : [1.0, 1.1] left cos q > 0.5 right cos q < 0.5);;

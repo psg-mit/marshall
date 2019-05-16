@@ -1,5 +1,5 @@
-#use "examples/bool.asd";;
-#use "examples/sqrt.asd";;
+#use "./bool.asd";;
+#use "./sqrt.asd";;
 
 let forall_interval (p : real -> bool) : bool =
   mkbool (Forall x : [0, 1], is_true (p x)) (Exists x : [0, 1], is_false (p x))

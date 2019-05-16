@@ -1,1 +1,1 @@
-#use "examples/okrep.asd";;
+#use "./okrep.asd";;

@@ -1,4 +1,4 @@
-#use "examples/car_visualization_example.asd";;
+#use "./car_visualization_example.asd";;
 
 ! --------- Set up and run the simulation ---------
 let eps = 0.01;;

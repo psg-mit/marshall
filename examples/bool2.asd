@@ -1,4 +1,4 @@
-#use "examples/bool.asd";;
+#use "./bool.asd";;
 
 let not_0 =
   fun x : real =>

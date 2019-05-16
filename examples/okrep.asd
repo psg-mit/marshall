@@ -1,4 +1,4 @@
-#use "examples/krep.asd";;
+#use "./krep.asd";;
 
 ! Both O- and K-representation
 
