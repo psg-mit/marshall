@@ -136,14 +136,14 @@ let help_text = "Toplevel commands:
   (* let v = E.eval false false env e in
     dyadic_to_int' 256 (to_dyadic v);; *)
 
-  let plot_shape pixels tenv ctx env e =
+  let plot_shape filename pixels tenv ctx env e =
     let mypixels = D.of_int ~round:D.down pixels in
     let evaluate = match TC.type_of tenv ctx e with
       | E.S.Ty_Arrow (_, _, E.S.Ty_Real) -> eval_real
       | E.S.Ty_Arrow (_, _, _) -> eval_bool
       | _ -> Message.runtime_error "Must be function type with return type real or bool"
     in
-    Grapher.plot (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->
+    Grapher.plot filename (-pixels) (-pixels) (pixels - 1) (pixels - 1) (fun i j ->
       let x : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down i) mypixels in
       let y : D.t = D.div ~prec:10 ~round:D.down (D.of_int ~round:D.down j) mypixels in
       evaluate env (E.S.App (e, E.S.Tuple [E.S.Dyadic x; E.S.Dyadic y])));
@@ -183,7 +183,7 @@ let help_text = "Toplevel commands:
 	  (ctx, env, tenv)
     | E.S.Help -> print_endline help_text ; (ctx, env, tenv)
     | E.S.Quit -> raise End_of_file
-    | E.S.Plot (pixels, e) -> (try plot_shape pixels tenv ctx env (E.hnf env e)
+    | E.S.Plot (filename, pixels, e) -> (try plot_shape filename pixels tenv ctx env (E.hnf env e)
       with error -> Message.report error);
       (ctx, env, tenv)
     | E.S.Use fn -> use_file (ctx, env, tenv) (fn, interactive)

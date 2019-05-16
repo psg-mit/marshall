@@ -13,8 +13,8 @@ let compute_grid box_lower_left_x box_lower_left_y box_upper_right_x box_upper_r
   (arr, width, height);
 ;;
 
-let create_bmp arr width height =
-  let oc = open_out "picture.bmp" in
+let create_bmp filename arr width height =
+  let oc = open_out filename in
   Printf.fprintf oc "P6\n%d %d\n255\n" width height;
   for y = 0 to pred height do
     for x = 0 to pred width do
@@ -27,8 +27,8 @@ let create_bmp arr width height =
   flush oc;
   ;;
 
-let plot box_lower_left_x box_lower_left_y box_upper_right_x box_upper_right_y in_interior =
+let plot filename box_lower_left_x box_lower_left_y box_upper_right_x box_upper_right_y in_interior =
   let arr, width, height = compute_grid box_lower_left_x box_lower_left_y box_upper_right_x box_upper_right_y in_interior in
-  create_bmp arr width height;
+  create_bmp filename arr width height;
   print_endline "Bitmap created!"
   ;;

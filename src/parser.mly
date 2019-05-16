@@ -153,8 +153,8 @@ topdirective:
     { S.Hnf e }
   | HELP
     { S.Help }
-  | PLOT n = NATURAL e = expr
-    { S.Plot (n, e) }
+  | PLOT s = STRING n = NATURAL e = expr
+    { S.Plot (s, n, e) }
   | QUIT
     { S.Quit }
 
