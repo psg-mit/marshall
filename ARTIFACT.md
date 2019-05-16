@@ -9,9 +9,11 @@ This document describes the generic installation procedure for the MarshallB sys
 
 ### How to run the artifact
 
-- You should first choose whether to run the artifact on a virtual machine (VM) we provide or just with the source code. Here are the links for downloads:
-    * [TODO] VM
+- You should first choose whether to run the artifact on a Docker image we provide or just with the source code. Here are the links for downloads:
+    * [TODO] Docker image
     * [TODO] Source code
+
+- To run the Docker image:
 
 - [TODO: version numbers for rlwrap, MPFR, and OPAM] The VM is already fully configured. If you choose the source, you should install rlwrap and MPFR, in addition to OPAM.
 
@@ -28,18 +30,21 @@ Our artifact consists of the following:
 
 Our artifact permits each of these computations to be run, producing expected results. In particular, each computation corresponds to running the commands for a certain file.
 Running `marshall FILE` should produce as command-line output the output `FILE.expected_out`. For each example, we point out the key part of the expected output, as well as an estimate of running time.
-- 3a. Running `marshall examples/icfp/cam_piston.asd` (0.3 seconds) produces as its last line `- : prop = True`, indicating that `collision_safe` returns `True`.
-- 3b. [TODO] Running `marshall examples/icfp/plot2.asd` (XXX seconds) produces the an image `XXX.bmp` that should be the same as `XXX_expected.bmp` and monotone adjustments to the brightness of the image (to make the depth more apparent) would result in the image shown in Fig. 16 of the paper.
-- 3c. Running `marshall examples/icfp/mesh_lt.asd` (31 minutes) produces as its last line
-`- : prop = True`, indicating that `hausdorff3 cone cone_mesh < 0.1` returns `True`. Running `marshall examples/icfp/mesh_gt.asd` (35 minutes) produces as its last line
+- 3a. Running `marshall examples/icfp/cam_piston.asd` (0.3 seconds, 8 MB max resident set size) produces as its last line `- : prop = True`, indicating that `collision_safe` returns `True`.
+- 3b. [TODO] Running `marshall examples/icfp/plot2.asd` (XXX seconds, XXX max resident set size) produces the an image `XXX.bmp` that should be the same as `XXX_expected.bmp` and monotone adjustments to the brightness of the image (to make the depth more apparent) would result in the image shown in Fig. 16 of the paper.
+- 3c. Running `marshall examples/icfp/mesh_lt.asd` (30 minutes, 155 MB max resident set size) produces as its last line
+`- : prop = True`, indicating that `hausdorff3 cone cone_mesh < 0.1` returns `True`. Running `marshall examples/icfp/mesh_gt.asd` (36 minutes, 398 MB max resident set sizee) produces as its last line
 `- : prop = True`, indicating that `hausdorff3 cone cone_mesh > 0.07` returns `True`.
-
- We will provide timing estimates for each computation. Because producing the image takes on the order of hours to run, we may also provide code for generating a lower-resolution image.
-
 
 ## Step-By-Step instructions
 
 ### Loading libraries and running the REPL
+
+To load a code file (library) at the REPL, simply use the `#use` directory, giving the filepath relative to the current working directory.
+For instance, to load the main Stoneworks library from the base directory of the Docker container, run
+```
+#use "shapes/examples/stoneworks/cad.asd";;
+```
 
 [TODO]
 
@@ -53,3 +58,8 @@ Running `marshall FILE` should produce as command-line output the output `FILE.e
 ### System requirements
 
 [TODO: check minimum amount of RAM required.]
+All computations for the case studies should run with under 400 MB of memory.
+
+### Viewing and editing .asd files
+
+[TODO]
