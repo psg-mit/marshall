@@ -6,7 +6,6 @@ orb : bool -> bool -> bool
 negb : bool -> bool
 lt : real -> real -> bool
 dedekind_cut : (real -> bool) -> real
-sqrt : real -> real
 tt : bool
 ff : bool
 indicator : bool -> real
@@ -92,14 +91,30 @@ indicator : bool -> real
 volume : KShape real*OShape real -> real
 compact_union_o : (E : type) -> KShape E -> (F : type) -> (E -> OShape F) -> OShape F
 compact_intersection_o : (E : type) -> KShape E -> (F : type) -> (E -> OShape F) -> OShape F
-touches : (E : type) -> ((E -> bool) -> bool) -> (E -> bool) -> bool
-lta : real -> real -> bool
-table : real*real*real -> bool
-ball : real*real*real -> bool
-interval : real -> real -> KShape real
-lft_root : (real -> bool) -> real
-lft_root_max_depth : (real -> bool) -> real
-ray : real*real -> real -> real*real*real
-ray_depth : (real*real*real -> bool) -> real*real -> real
-ray_scene : real*real -> real
-Target precision set to 0.0099999999999999999998
+tt : bool
+ff : bool
+indicator : bool -> real
+dedekind_cut : (real -> bool) -> real
+sqrt : real -> real
+log : real -> real
+pi2 : real
+pi : real
+twopi : real
+cvx3 : real -> real*real*real -> real*real*real -> real*real*real
+triangle_k : real*real*real -> real*real*real -> real*real*real -> KShape (real*real*real)
+union3 : KShape (real*real*real) -> KShape (real*real*real) -> (real*real*real -> bool) -> bool
+cone_mesh : KShape (real*real*real)
+sqrt : real -> real
+unit_circle' : (real*real -> bool) -> bool
+unit_circle'' : (real*real -> bool) -> bool
+unit_circle''' : (real*real -> bool) -> bool
+solid_cone : KShape (real*real*real)
+cone : KShape (real*real*real)
+directed_hausdorff_pred : ((real*real*real -> bool) -> bool) -> ((real*real*real -> bool) -> bool) -> real -> bool
+directed_hausdorff3 : KShape (real*real*real) -> KShape (real*real*real) -> real
+hausdorff3 : KShape (real*real*real) -> KShape (real*real*real) -> real
+hausdorff_dist : (E : type) -> (E -> E -> real) -> KShape E -> KShape E -> real
+?
+?
+?
+- : prop = True

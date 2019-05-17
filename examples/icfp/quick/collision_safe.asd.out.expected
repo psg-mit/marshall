@@ -1,0 +1,114 @@
+mkbool : prop -> prop -> bool
+is_true : bool -> prop
+is_false : bool -> prop
+andb : bool -> bool -> bool
+orb : bool -> bool -> bool
+negb : bool -> bool
+lt : real -> real -> bool
+dedekind_cut : (real -> bool) -> real
+tt : bool
+ff : bool
+indicator : bool -> real
+dedekind_cut : (real -> bool) -> real
+sqrt : real -> real
+unit_interval_o : OShape real
+unit_disk_o : OShape (real*real)
+rectangle_o : real -> real -> OShape (real*real)
+unit_square_o : OShape (real*real)
+product_o : (E : type) -> (F : type) -> OShape E -> OShape F -> OShape (E*F)
+empty_o : (E : type) -> OShape E
+full_o : (E : type) -> OShape E
+union_o : (E : type) -> OShape E -> OShape E -> OShape E
+intersection_o : (E : type) -> OShape E -> OShape E -> OShape E
+complement_o : (E : type) -> (E -> bool) -> E -> bool
+contramap : (E : type) -> (F : type) -> (F -> E) -> (E -> bool) -> F -> bool
+translate_o : real*real -> (real*real -> bool) -> real*real -> bool
+is_in : (E : type) -> E -> OShape E -> bool
+nonempty : (E : type) -> ((E -> prop) -> prop) -> OShape E -> prop
+scale_o : real -> (real*real -> bool) -> real*real -> bool
+scale_x_y_o : real -> real -> (real*real -> bool) -> real*real -> bool
+exists_R2 : (real*real -> prop) -> prop
+nonempty_R2 : OShape (real*real) -> prop
+overlaps : OShape (real*real) -> OShape (real*real) -> prop
+line : real -> real -> OShape (real*real)
+unit_interval : KShape real
+forall_interval_sym : (real -> bool) -> bool
+unit_square : (real*real -> bool) -> bool
+intersect : (E : type) -> KShape E -> OShape E -> KShape E
+unit_disk : KShape (real*real)
+point : (E : type) -> E -> (E -> bool) -> bool
+compact_union : (E : type) -> KShape E -> (F : type) -> (E -> KShape F) -> KShape F
+product : (E : type) -> (F : type) -> KShape E -> KShape F -> KShape (E*F)
+empty : (E : type) -> (E -> bool) -> bool
+union : ((real*real -> bool) -> bool) -> ((real*real -> bool) -> bool) -> (real*real -> bool) -> bool
+difference : (E : type) -> KShape E -> OShape E -> KShape E
+map : (E : type) -> (F : type) -> (E -> F) -> KShape E -> KShape F
+bezier : (E : type) -> (real -> E -> E -> E) -> E -> E -> E -> KShape E
+forall : (E : type) -> KShape E -> (E -> bool) -> bool
+exists : (E : type) -> KShape E -> (E -> bool) -> bool
+forall_s : (E : type) -> KShape E -> (E -> prop) -> prop
+exists_s : (E : type) -> KShape E -> (E -> prop) -> prop
+is_empty : (E : type) -> KShape E -> bool
+infimum : KShape real -> real
+supremum : KShape real -> real
+disjoint : (E : type) -> (E -> E -> prop) -> KShape E -> KShape E -> prop
+kshape_neq : (E : type) -> (E -> E -> prop) -> KShape E -> KShape E -> prop
+separation_dist : (E : type) -> (E -> E -> real) -> KShape E -> KShape E -> real
+directed_hausdorff_dist : (E : type) -> (E -> E -> real) -> KShape E -> KShape E -> real
+max : real -> real -> real
+hausdorff_dist : (E : type) -> (E -> E -> real) -> KShape E -> KShape E -> real
+scale_x_y : real -> real -> ((real*real -> bool) -> bool) -> (real*real -> bool) -> bool
+scale : real -> ((real*real -> bool) -> bool) -> (real*real -> bool) -> bool
+translate : real*real -> KShape (real*real) -> KShape (real*real)
+unit_cone : KShape (real*real*real)
+neq : real -> real -> bool
+exterior : (E : type) -> (E -> E -> bool) -> KShape E -> E -> bool
+minkowski_sum : (E : type) -> (E -> E -> E) -> KShape E -> KShape E -> KShape E
+neq_R2 : real*real -> real*real -> prop
+neq_R3 : real*real*real -> real*real*real -> prop
+disjoint_R2 : KShape (real*real) -> KShape (real*real) -> prop
+disjoint_R3 : KShape (real*real*real) -> KShape (real*real*real) -> prop
+separation : KShape (real*real) -> KShape (real*real) -> real
+directed_hausdorff_distance : KShape (real*real) -> KShape (real*real) -> real
+hausdorff_distance : KShape (real*real) -> KShape (real*real) -> real
+convex_hull : (E : type) -> (real -> E -> E -> E) -> KShape E -> KShape E
+intersect_k_implies_equals : (E : type) -> (KShape E -> KShape E -> KShape E) -> E -> E -> bool
+unit_square_ok : ((real*real -> bool) -> bool)*(real*real -> bool)
+unit_disk_ok : ((real*real -> bool) -> bool)*(real*real -> bool)
+translate_ok : real*real -> ((real*real -> bool) -> bool)*(real*real -> bool) -> ((real*real -> bool) -> bool)*(real*real -> bool)
+union_ok : ((real*real -> bool) -> bool)*(real*real -> bool) -> ((real*real -> bool) -> bool)*(real*real -> bool) -> ((real*real -> bool) -> bool)*(real*real -> bool)
+is_contained_in : (E : type) -> KShape E -> OShape E -> bool
+shape_inside : (E : type) -> ((E -> bool) -> bool)*(E -> bool) -> ((E -> bool) -> bool)*(E -> bool) -> bool
+peq : real -> real -> bool
+point_R2 : real -> real -> ((real*real -> bool) -> bool)*(real*real -> bool)
+empty_ok : (E : type) -> ((E -> bool) -> bool)*(E -> bool)
+scale_x_y_ok : real -> real -> ((real*real -> bool) -> bool)*(real*real -> bool) -> ((real*real -> bool) -> bool)*(real*real -> bool)
+minkowski_sum_o : (E : type) -> (E -> E -> E) -> OShape E -> KShape E -> OShape E
+minkowski_diff_o : (E : type) -> (E -> E -> E) -> OShape E -> KShape E -> OShape E
+integrate_unit_interval : (real -> real) -> real
+integral : real -> real -> (real -> real) -> real
+indicator : bool -> real
+volume : KShape real*OShape real -> real
+compact_union_o : (E : type) -> KShape E -> (F : type) -> (E -> OShape F) -> OShape F
+compact_intersection_o : (E : type) -> KShape E -> (F : type) -> (E -> OShape F) -> OShape F
+line_segment : real -> KShape real
+rotate_xyp : real*real -> real*real*real -> real*real*real
+rotate_xy : real*real -> KShape (real*real*real) -> KShape (real*real*real)
+box : real*real*real -> KShape (real*real*real)
+translate3 : real*real*real -> KShape (real*real*real) -> KShape (real*real*real)
+piston : KShape (real*real*real)
+extrude : real -> KShape (real*real) -> KShape (real*real*real)
+scale2 : real -> KShape (real*real) -> KShape (real*real)
+cam : real*real -> KShape (real*real*real)
+translated_piston : real*real -> KShape (real*real*real)
+union : (E : type) -> ((E -> bool) -> bool) -> ((E -> bool) -> bool) -> (E -> bool) -> bool
+cam_piston : real*real -> KShape (real*real*real)
+enclosure_piece : KShape (real*real*real)
+unit_circle : (real*real -> bool) -> bool
+neq_R3 : real*real*real -> real*real*real -> prop
+collision_safe : prop
+d_R3 : real*real*real -> real*real*real -> real
+clearance_dist : real
+?
+?
+- : prop = True

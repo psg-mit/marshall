@@ -75,5 +75,3 @@ let d_R3 (x y : real^3) : real =
 let clearance_dist : real = infimum (
   map {real^2} {real} (fun angle : real^2 => separation_dist {real^3} d_R3 (cam_piston angle) enclosure_piece)
                 unit_circle);;
-
-collision_safe;;

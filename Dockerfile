@@ -3,11 +3,11 @@ FROM ubuntu:18.04
 # install dependencies
 
 RUN apt-get update && \
-    apt-get upgrade -y 
+    apt-get upgrade -y
 
 # install opam
 RUN apt-get install -y software-properties-common
-RUN add-apt-repository ppa:avsm/ppa  
+RUN add-apt-repository ppa:avsm/ppa
 RUN apt-get update
 RUN apt-get install -y ocaml ocaml-native-compilers camlp4-extra opam=2.0.4-0ppa1\~bionic
 
@@ -21,13 +21,13 @@ RUN apt-get install -y \
 	libmpfr-dev=4.0.1-1
 
 # add the repo to the container
-RUN mkdir /shapes
-COPY . /shapes
+RUN mkdir /marshallb
+COPY . /marshallb
 
 # initialize opam dependencies
 RUN opam init -y --disable-sandboxing
 RUN opam switch create 4.04.0
-RUN cd shapes && opam install -y . 
- 
+RUN cd shapes && opam install -y .
+
 RUN echo "eval $(opam env)" >> /root/.bashrc
 #CMD
