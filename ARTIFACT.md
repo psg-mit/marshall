@@ -13,17 +13,14 @@ You should first choose whether to run the artifact on a Docker image we provide
 
 #### Docker image:
 
-First, download the Docker image:
-[TODO] Docker  image.
-
-To run the Docker image, run
+To run the Docker image, run (from the base directory)
 ```
-docker load < marshallb.tar.gz    #load docker image
-docker run -it marshallb          #run docker image
+docker load < docker-image.tar.gz    #load docker image
+docker run -it marshallb             #run docker image
 ```
 
 Once at the interactive terminal, the `marshall` program will be available as a command-line program.
-The entire source directory is located at `/marshall/`.
+The entire source directory is located at `/source/`.
 
 The Dockerfile is at the base of the source code directory (see link below to download the source directory separately). To build a docker image from the Dockerfile, run from the base of the source directory the command
 ```
@@ -32,15 +29,14 @@ docker build --tag=marshallb .
 
 #### Installing from source
 
-First, download the source code.
-[TODO] Source code
-
 Install the following dependencies:
 - rlwrap (we use version 0.43)
 - MPFR (we use version 4.0.1)
 - OPAM 2 (we use version 2.0.4), with an OPAM switch for OCaml 4.04.0.
 
-Then, go to the base source directory, and run `opam install .`.
+(For precise commands that work on Ubuntu 18.04 to install all relevant dependencies, see the Dockerfile in `source/Dockerfile`.)
+
+Then, go to the `source/` directory, and run `opam install .`.
 
 `marshall` should now be available as a command-line program.
 

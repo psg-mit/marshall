@@ -25,9 +25,8 @@ RUN opam init -y --disable-sandboxing
 RUN opam switch create 4.04.0
 
 # add the repo to the container
-RUN mkdir /marshallb
-COPY . /marshallb
-RUN cd shapes && opam install -y .
+RUN mkdir /source
+COPY . /source
+RUN cd source && opam install -y .
 
 RUN echo "eval $(opam env)" >> /root/.bashrc
-#CMD
