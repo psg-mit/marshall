@@ -56,7 +56,7 @@ Follow these instructions for a more thorough description of the artifact and fi
 Our artifact consists of the following:
 
 1. The MarshallB programming system, a programming language interpreter written in OCaml. Once MarshallB is installed, run `marshall` to open a REPL (Ctrl-D to exit), or pass as a command-line argument the filename of a MarshallB code file (suffix `.asd`) to process that file in its entirety.
-2. The StoneWorks library for MarshallB, which is several files of MarshallB code located in `examples/stoneworks/`. To load the entire library at the REPL, run `#use "examples/stoneworks/cad.asd"`.
+2. The StoneWorks library for MarshallB, which is several files of MarshallB code located in `examples/stoneworks/`. To load the entire library at the REPL, run `#use "examples/stoneworks/cad.asd;;"`.
 3. Standalone MarshallB files and commands to execute the case studies from the paper sections 2, 8.1, and 8.2, located at `examples/icfp/`. The executable shell script `examples/icfp/full/run.sh` runs each of the 4 computations (mentioned above), and compares the generated output with the expected output, which is included. Using a 3.1 GHz Core i7 (I7-7920HQ) CPU, this takes under 4 hours in total. There are less expensive versions of each of these computations in the `examples/icfp/quick` directory, which take under 2 minutes in total.
 
 ### Source code contents and thorough descriptions
