@@ -20,13 +20,13 @@ RUN apt-get install -y \
 	rlwrap=0.43-1 \
 	libmpfr-dev=4.0.1-1
 
-# add the repo to the container
-RUN mkdir /marshallb
-COPY . /marshallb
-
 # initialize opam dependencies
 RUN opam init -y --disable-sandboxing
 RUN opam switch create 4.04.0
+
+# add the repo to the container
+RUN mkdir /marshallb
+COPY . /marshallb
 RUN cd shapes && opam install -y .
 
 RUN echo "eval $(opam env)" >> /root/.bashrc
