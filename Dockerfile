@@ -22,7 +22,7 @@ RUN apt-get install -y \
 
 # initialize opam dependencies
 RUN opam init -y --disable-sandboxing
-RUN opam switch create 4.04.0
+RUN opam switch create 4.07.0
 
 # add the repo to the container
 RUN mkdir /source
