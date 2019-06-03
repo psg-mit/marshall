@@ -1,7 +1,4 @@
-let sqrt =
-  fun a : real =>
-    cut x
-      left  (x < 0 \/ x^2 < a)
-
-      right (x > 0 /\ x^2 > a)
-;;
+let sqrt (a : real) : real =
+  cut x : [0, inf)
+    left x^2 < a
+    right x^2 > a;;

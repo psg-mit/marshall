@@ -14,5 +14,4 @@ let dedekind_cut (p : real -> bool) : real =
     right  is_false (p x)
   ;;
 
-let sqrt (a : real) : real =
-  dedekind_cut (fun x : real => x <b 0 || x^2 <b a);;
+#use "./sqrt.asd";;
