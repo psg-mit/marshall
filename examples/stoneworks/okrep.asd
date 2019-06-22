@@ -72,7 +72,7 @@ let volume (s : KShape real * OShape real) : real =
 
 
 let compact_union_o E (k : KShape E) F (o : E -> OShape F) : OShape F =
-  fun f : F => k (fun e : E => o e f);;
+  fun f : F => exists {E} k (fun e : E => o e f);;
 
 let compact_intersection_o E (k : KShape E) F (o : E -> OShape F) : OShape F =
-  fun f : F => exists {E} k (fun e : E => o e f);;
+  fun f : F => forall {E} k (fun e : E => o e f);;
