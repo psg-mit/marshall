@@ -63,19 +63,19 @@ struct
 
   let to_string i =
 	  let l = lower i in
-		let lbrack = if D.is_negative_infinity l then "(" else "[" in
+		let lbrack = if false (*D.is_negative_infinity l*) then "(" else "[" in
 		let r = upper i in
-		let rbrack = if D.is_positive_infinity r then ")" else "]" in
+		let rbrack = if false (*D.is_positive_infinity r*) then ")" else "]" in
     lbrack ^ D.to_string (lower i) ^ ", " ^ D.to_string (upper i) ^ rbrack
 
   let to_string_number i =
-    let a = lower i in
+    (* let a = lower i in
     let b = upper i in
       if D.is_number a && D.is_number b then
 	let c = D.average a b in
 	let r = D.halve ~round:D.up (D.sub ~round:D.up b a) in
 	  D.to_string c ^ " +- " ^ D.to_string r
-      else
+      else *)
 	to_string i
 
   (* \subsection{Arithmetic} *)

@@ -157,7 +157,7 @@ let help_text = "Toplevel commands:
 	(try
 	   let ty = TC.type_of tenv ctx e in
 	   let v = E.eval true trace env (E.hnf env e) in
-	     print_endline ("- : " ^ E.S.string_of_type ty ^ " = " ^ E.S.string_of_expr v) ;
+	     print_endline ("- : " ^ E.S.string_of_type ty ^ " |= " ^ E.S.string_of_expr v) ;
 	     (ctx, env, tenv)
 	 with error -> (Message.report error; (ctx, env, tenv)))
     | E.S.Definition (x, e, ot) ->
